@@ -1,10 +1,11 @@
 /**
  * @fileoverview Pull-model endpoints for the local-continuous adapter daemon (LAD).
  *
- * Three routes replace the push-based heartbeat for local_continuous agents:
- *   POST /api/agents/:agentId/work-claim     – long-poll next task, mint run JWT
- *   POST /api/agents/:agentId/request-work   – ask manager for work (agent_needs_work wake)
- *   POST /api/local-agent-daemons/:ladId/agent-tokens – service-principal JWT mint
+ * Four routes replace the push-based heartbeat for local_continuous agents:
+ *   POST /api/agents/:agentId/work-claim                   – long-poll next task, mint run JWT
+ *   POST /api/agents/:agentId/request-work                 – ask manager for work (agent_needs_work wake)
+ *   POST /api/local-agent-daemons/:ladId/agent-tokens      – service-principal JWT mint
+ *   POST /api/local-agent-daemons/:ladId/agent-events      – inbound agent lifecycle events from LAD
  */
 
 import { randomUUID } from "node:crypto";
@@ -18,7 +19,7 @@ import {
   issues,
 } from "@paperclipai/db";
 import { createLocalAgentJwt } from "../agent-auth-jwt.js";
-import { issueService, heartbeatService, agentService } from "../services/index.js";
+import { issueService, heartbeatService, agentService, logActivity } from "../services/index.js";
 import { logger } from "../middleware/logger.js";
 
 // How long work-claim will long-poll before returning 204 (override via env for tests).
@@ -149,9 +150,14 @@ export function agentWorkClaimRoutes(db: Db) {
       return;
     }
 
-    // 423 Locked: agent is quarantined (paused or terminated).
-    if (agent.status === "paused" || agent.status === "terminated" || agent.status === "pending_approval") {
-      res.status(423).json({ error: "Agent is quarantined", agentStatus: agent.status });
+    // 423 Locked: agent cannot accept work.
+    if (
+      agent.status === "paused" ||
+      agent.status === "terminated" ||
+      agent.status === "pending_approval" ||
+      agent.status === "quarantined"
+    ) {
+      res.status(423).json({ error: "Agent is not available for work", agentStatus: agent.status });
       return;
     }
 
@@ -336,7 +342,11 @@ export function agentWorkClaimRoutes(db: Db) {
       return;
     }
 
-    if (agent.status === "terminated" || agent.status === "pending_approval") {
+    if (
+      agent.status === "terminated" ||
+      agent.status === "pending_approval" ||
+      agent.status === "quarantined"
+    ) {
       res.status(403).json({ error: "Agent is not active", agentStatus: agent.status });
       return;
     }
@@ -352,6 +362,63 @@ export function agentWorkClaimRoutes(db: Db) {
     const ttlSec = cfg?.ttlSeconds ?? 60 * 60 * 48;
 
     res.json({ runToken, ttlSec });
+  });
+
+  // ── POST /api/local-agent-daemons/:ladId/agent-events ────────────────────
+  //
+  // Inbound lifecycle events from the LAD: the LAD reports agent lifecycle
+  // changes (e.g. worker restart after unquarantine) back to the server.
+  // Authenticated with a board API key (the LAD's service principal).
+  router.post("/local-agent-daemons/:ladId/agent-events", async (req, res) => {
+    const { ladId } = req.params as { ladId: string };
+
+    if (req.actor.type !== "board") {
+      res.status(403).json({ error: "Board API key required for agent-events" });
+      return;
+    }
+
+    const event = typeof req.body?.event === "string" ? req.body.event : null;
+    const targetAgentId = typeof req.body?.agentId === "string" ? req.body.agentId.trim() : null;
+
+    if (!event || !targetAgentId) {
+      res.status(400).json({ error: "event and agentId are required" });
+      return;
+    }
+
+    const agent = await agentSvc.getById(targetAgentId);
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+
+    // Validate that this LAD is associated with the given agent.
+    const agentLadHostId = readLadHostId(agent);
+    if (!agentLadHostId || agentLadHostId !== ladId) {
+      res.status(403).json({
+        error: "ladHostId mismatch: this daemon is not authorised to report events for the requested agent",
+      });
+      return;
+    }
+
+    if (event === "agent_unquarantined") {
+      await logActivity(db, {
+        companyId: agent.companyId,
+        actorType: "system",
+        actorId: ladId,
+        action: "agent.worker_restarted_after_unquarantine",
+        entityType: "agent",
+        entityId: agent.id,
+        details: { ladId, event },
+      });
+
+      res.json({ ok: true, event, agentId: targetAgentId });
+      return;
+    }
+
+    // Unknown events are accepted but not processed, so future LAD versions
+    // don't break against older server versions.
+    logger.info({ ladId, event, agentId: targetAgentId }, "agent-events: received unknown event, ignoring");
+    res.json({ ok: true, event, agentId: targetAgentId });
   });
 
   return router;

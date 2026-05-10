@@ -476,6 +476,45 @@ export function agentService(db: Db) {
       return updated ? normalizeAgentRow(updated) : null;
     },
 
+    quarantine: async (id: string, opts: { reason: string; lastRunIds?: string[]; evidence?: unknown }) => {
+      const existing = await getById(id);
+      if (!existing) return null;
+      if (existing.status === "terminated") throw conflict("Cannot quarantine terminated agent");
+      if (existing.status === "quarantined") return existing;
+
+      const updated = await db
+        .update(agents)
+        .set({
+          status: "quarantined",
+          pauseReason: opts.reason,
+          pausedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(agents.id, id))
+        .returning()
+        .then((rows) => rows[0] ?? null);
+      return updated ? normalizeAgentRow(updated) : null;
+    },
+
+    unquarantine: async (id: string) => {
+      const existing = await getById(id);
+      if (!existing) return null;
+      if (existing.status !== "quarantined") throw conflict("Agent is not quarantined");
+
+      const updated = await db
+        .update(agents)
+        .set({
+          status: "idle",
+          pauseReason: null,
+          pausedAt: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(agents.id, id))
+        .returning()
+        .then((rows) => rows[0] ?? null);
+      return updated ? normalizeAgentRow(updated) : null;
+    },
+
     terminate: async (id: string) => {
       const existing = await getById(id);
       if (!existing) return null;

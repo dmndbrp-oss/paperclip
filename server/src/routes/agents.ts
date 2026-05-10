@@ -1659,7 +1659,8 @@ export function agentRoutes(
         const statusEligible =
           row.status !== "paused" &&
           row.status !== "terminated" &&
-          row.status !== "pending_approval";
+          row.status !== "pending_approval" &&
+          row.status !== "quarantined";
 
         return {
           id: row.id,
@@ -1681,7 +1682,8 @@ export function agentRoutes(
       .filter((item) =>
         item.status !== "paused" &&
         item.status !== "terminated" &&
-        item.status !== "pending_approval",
+        item.status !== "pending_approval" &&
+        item.status !== "quarantined",
       )
       .sort((left, right) => {
         if (left.schedulerActive !== right.schedulerActive) {
@@ -1750,6 +1752,12 @@ export function agentRoutes(
   router.get("/agents/me/inbox-lite", async (req, res) => {
     if (req.actor.type !== "agent" || !req.actor.agentId || !req.actor.companyId) {
       res.status(401).json({ error: "Agent authentication required" });
+      return;
+    }
+
+    const callingAgent = await svc.getById(req.actor.agentId);
+    if (callingAgent?.status === "quarantined") {
+      res.status(423).json({ error: "Agent is quarantined", agentStatus: "quarantined" });
       return;
     }
 
@@ -2880,6 +2888,110 @@ export function agentRoutes(
       actorType: "user",
       actorId: req.actor.userId ?? "board",
       action: "agent.terminated",
+      entityType: "agent",
+      entityId: agent.id,
+    });
+
+    res.json(agent);
+  });
+
+  router.post("/agents/:id/quarantine", async (req, res) => {
+    assertBoard(req);
+    const id = req.params.id as string;
+    const existing = await getAccessibleAgent(req, res, id);
+    if (!existing) return;
+
+    const reason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+    if (!reason) {
+      res.status(400).json({ error: "reason is required" });
+      return;
+    }
+    const lastRunIds: string[] | undefined = Array.isArray(req.body?.lastRunIds) ? req.body.lastRunIds : undefined;
+    const evidence: unknown = req.body?.evidence ?? undefined;
+
+    const agent = await svc.quarantine(id, { reason, lastRunIds, evidence });
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+
+    await heartbeat.cancelActiveForAgent(id);
+
+    const chain = await svc.getChainOfCommand(id);
+    const manager = chain[0] ?? null;
+
+    const issueSvc = issueService(db);
+    const evidenceMd = evidence ? `\n\n## Evidence\n\n\`\`\`json\n${JSON.stringify(evidence, null, 2).slice(0, 4000)}\n\`\`\`` : "";
+    const lastRunsMd = lastRunIds && lastRunIds.length > 0
+      ? `\n\n## Last Run IDs\n\n${lastRunIds.map((r) => `- \`${r}\``).join("\n")}`
+      : "";
+    const description = [
+      `Agent **${agent.name}** (${agent.role}) was quarantined.`,
+      "",
+      `**Reason:** ${reason}`,
+      lastRunsMd,
+      evidenceMd,
+      "",
+      "## Next Steps",
+      "",
+      "- Review the reason and evidence above.",
+      "- Clear the quarantine with `DELETE /api/agents/:id/quarantine` once the issue is resolved.",
+    ].join("\n");
+
+    let reviewIssueId: string | null = null;
+    if (manager) {
+      try {
+        const reviewIssue = await issueSvc.create(agent.companyId, {
+          title: `Productivity review: quarantined agent ${agent.name}`,
+          description,
+          status: "todo",
+          priority: "high",
+          assigneeAgentId: manager.id,
+          originKind: "agent_quarantine_review",
+          originId: agent.id,
+        });
+        reviewIssueId = reviewIssue.id;
+      } catch {
+        // non-fatal: log and continue
+      }
+    }
+
+    await logActivity(db, {
+      companyId: agent.companyId,
+      actorType: "user",
+      actorId: req.actor.userId ?? "board",
+      action: "agent.quarantined",
+      entityType: "agent",
+      entityId: agent.id,
+      details: { reason, reviewIssueId },
+    });
+
+    res.json({ agent, reviewIssueId });
+  });
+
+  router.delete("/agents/:id/quarantine", async (req, res) => {
+    // Human user auth required — agent JWTs are "agent" type, not "board".
+    assertBoard(req);
+    const id = req.params.id as string;
+    const existing = await getAccessibleAgent(req, res, id);
+    if (!existing) return;
+
+    if (existing.status !== "quarantined") {
+      res.status(409).json({ error: "Agent is not quarantined" });
+      return;
+    }
+
+    const agent = await svc.unquarantine(id);
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+
+    await logActivity(db, {
+      companyId: agent.companyId,
+      actorType: "user",
+      actorId: req.actor.userId ?? "board",
+      action: "agent.unquarantined",
       entityType: "agent",
       entityId: agent.id,
     });

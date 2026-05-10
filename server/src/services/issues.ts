@@ -1800,6 +1800,9 @@ export function issueService(db: Db) {
     if (assignee.status === "terminated") {
       throw conflict("Cannot assign work to terminated agents");
     }
+    if (assignee.status === "quarantined") {
+      throw conflict("Cannot assign work to quarantined agents");
+    }
   }
 
   async function isTreeHoldInteractionCheckoutAllowed(

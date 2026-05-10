@@ -25,6 +25,9 @@ export const companies = pgTable(
     feedbackDataSharingConsentAt: timestamp("feedback_data_sharing_consent_at", { withTimezone: true }),
     feedbackDataSharingConsentByUserId: text("feedback_data_sharing_consent_by_user_id"),
     feedbackDataSharingTermsVersion: text("feedback_data_sharing_terms_version"),
+    localContinuousAdapterEnabled: boolean("local_continuous_adapter_enabled")
+      .notNull()
+      .default(false),
     brandColor: text("brand_color"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

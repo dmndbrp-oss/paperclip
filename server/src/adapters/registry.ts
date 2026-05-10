@@ -439,6 +439,56 @@ const hermesLocalAdapter: ServerAdapterModule = {
   detectModel: () => detectModelFromHermes(),
 };
 
+// Continuous-process adapter — the agent runs as a long-lived daemon that
+// polls the Paperclip API on its own schedule. The heartbeat scheduler does
+// NOT emit timer wakes for this adapter type. execute() is a stub because
+// direct invocation is not used; all agent logic lives in the external daemon.
+const localContinuousAdapter: ServerAdapterModule = {
+  type: "local_continuous",
+  execute: async () => ({
+    exitCode: 1,
+    signal: null,
+    timedOut: false,
+  }),
+  testEnvironment: async (ctx) => ({
+    adapterType: "local_continuous",
+    status: "pass" as const,
+    checks: [],
+    testedAt: new Date().toISOString(),
+  }),
+  models: [],
+  supportsLocalAgentJwt: true,
+  supportsInstructionsBundle: false,
+  requiresMaterializedRuntimeSkills: false,
+  getConfigSchema: (): import("./types.js").AdapterConfigSchema => ({
+    fields: [
+      { key: "modelTag", label: "Model tag", type: "text", required: true, hint: "e.g. qwen2.5-coder:32b" },
+      { key: "memoryEstimateGB", label: "Memory estimate (GB)", type: "number", required: true },
+      { key: "ladHostId", label: "LAD host ID", type: "text", required: true },
+      { key: "idleAskBossMs", label: "Idle ask-boss interval (ms)", type: "number", default: 300000 },
+      { key: "pollIntervalMs", label: "Poll interval (ms)", type: "number", default: 1000 },
+      { key: "consecutiveFailureThreshold", label: "Consecutive failure threshold", type: "number", default: 3 },
+      { key: "pinned", label: "Pinned", type: "toggle", default: false },
+    ],
+  }),
+  agentConfigurationDoc: `# local_continuous agent configuration
+
+Adapter: local_continuous
+
+The agent runs as a persistent daemon that polls the Paperclip API on its own
+schedule. The heartbeat scheduler does not emit timer wakes for this type.
+
+Config fields:
+- modelTag (string, required): Ollama model tag, e.g. qwen2.5-coder:32b
+- memoryEstimateGB (number, required): estimated VRAM/RAM required to run the model
+- ladHostId (string, required): ID of the Local Adapter Daemon host
+- idleAskBossMs (number, default 300000): how long to wait before asking the manager for work when idle
+- pollIntervalMs (number, default 1000): Paperclip API poll interval in ms
+- consecutiveFailureThreshold (number, default 3): consecutive errors before daemon pauses the agent
+- pinned (boolean, default false): whether the daemon is pinned to this host
+`,
+};
+
 const adaptersByType = new Map<string, ServerAdapterModule>();
 
 // For builtin types that are overridden by an external adapter, we keep the
@@ -455,6 +505,7 @@ function registerBuiltInAdapters() {
     acpxLocalAdapter,
     claudeLocalAdapter,
     codexLocalAdapter,
+    localContinuousAdapter,
     openCodeLocalAdapter,
     piLocalAdapter,
     cursorLocalAdapter,

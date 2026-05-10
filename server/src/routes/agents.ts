@@ -540,6 +540,19 @@ export function agentRoutes(
     );
   }
 
+  async function assertLocalContinuousAdapterAllowed(companyId: string) {
+    const company = await db
+      .select({ localContinuousAdapterEnabled: companies.localContinuousAdapterEnabled })
+      .from(companies)
+      .where(eq(companies.id, companyId))
+      .then((rows) => rows[0] ?? null);
+    if (!company?.localContinuousAdapterEnabled) {
+      throw unprocessable(
+        "Adapter type 'local_continuous' is disabled. Enable the localContinuousAdapter feature flag for this company.",
+      );
+    }
+  }
+
   async function assertCanCreateAgentsForCompany(req: Request, companyId: string) {
     assertCompanyAccess(req, companyId);
     if (req.actor.type === "board") {
@@ -2146,6 +2159,9 @@ export function agentRoutes(
       ...createInput
     } = req.body;
     createInput.adapterType = assertKnownAdapterType(createInput.adapterType);
+    if (createInput.adapterType === "local_continuous") {
+      await assertLocalContinuousAdapterAllowed(companyId);
+    }
     const rawCreateAdapterConfig = (createInput.adapterConfig ?? {}) as Record<string, unknown>;
     assertNoNewAgentLegacyPromptTemplate(
       createInput.adapterType,
@@ -2543,6 +2559,66 @@ export function agentRoutes(
     res.json(result.bundle);
   });
 
+  // Admin-only endpoint used by the local-continuous migration CLI (SAG-807).
+  // Allowed transitions: opencode_local <-> local_continuous.
+  router.patch("/agents/:id/adapter", async (req, res) => {
+    const id = req.params.id as string;
+    const existing = await svc.getById(id);
+    if (!existing) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+    await assertBoardCanManageAgentsForCompany(req, existing.companyId);
+
+    const body = req.body as Record<string, unknown>;
+    const targetType = typeof body.adapterType === "string" ? body.adapterType.trim() : "";
+    if (!targetType) {
+      res.status(422).json({ error: "adapterType is required" });
+      return;
+    }
+
+    const ALLOWED_TRANSITIONS = new Map<string, string>([
+      ["opencode_local", "local_continuous"],
+      ["local_continuous", "opencode_local"],
+    ]);
+
+    const allowed = ALLOWED_TRANSITIONS.get(existing.adapterType);
+    if (!allowed || allowed !== targetType) {
+      res.status(422).json({
+        error: `Transition from '${existing.adapterType}' to '${targetType}' is not allowed. Allowed transitions: opencode_local <-> local_continuous.`,
+      });
+      return;
+    }
+
+    if (targetType === "local_continuous") {
+      await assertLocalContinuousAdapterAllowed(existing.companyId);
+    }
+
+    const updated = await svc.update(id, { adapterType: targetType, adapterConfig: {} });
+    if (!updated) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+
+    const actor = getActorInfo(req);
+    await logActivity(db, {
+      companyId: existing.companyId,
+      actorType: actor.actorType,
+      actorId: actor.actorId,
+      agentId: actor.agentId,
+      runId: actor.runId,
+      action: "agent.adapter_type_changed",
+      entityType: "agent",
+      entityId: existing.id,
+      details: {
+        fromAdapterType: existing.adapterType,
+        toAdapterType: targetType,
+      },
+    });
+
+    res.json(updated);
+  });
+
   router.patch("/agents/:id", validate(updateAgentSchema), async (req, res) => {
     const id = req.params.id as string;
     const existing = await svc.getById(id);
@@ -2577,6 +2653,9 @@ export function agentRoutes(
     const requestedAdapterType = hasOwn(patchData, "adapterType")
       ? assertKnownAdapterType(patchData.adapterType as string | null | undefined)
       : existing.adapterType;
+    if (requestedAdapterType === "local_continuous" && existing.adapterType !== "local_continuous") {
+      await assertLocalContinuousAdapterAllowed(existing.companyId);
+    }
     let requestedRuntimeConfig: Record<string, unknown> | null = null;
     if (hasOwn(patchData, "runtimeConfig")) {
       const runtimeConfig = asRecord(patchData.runtimeConfig);

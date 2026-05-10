@@ -9727,6 +9727,8 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
 
       for (const agent of allAgents) {
         if (agent.status === "paused" || agent.status === "terminated" || agent.status === "pending_approval") continue;
+        // local_continuous agents are self-scheduling daemons; suppress timer wakes entirely.
+        if (agent.adapterType === "local_continuous") continue;
         const policy = parseHeartbeatPolicy(agent);
         if (!policy.enabled || policy.intervalSec <= 0) continue;
 

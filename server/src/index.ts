@@ -32,6 +32,7 @@ import {
   feedbackService,
   heartbeatService,
   instanceSettingsService,
+  ladWatchdogService,
   reconcilePersistedRuntimeServicesOnStartup,
   routineService,
 } from "./services/index.js";
@@ -785,6 +786,22 @@ export async function startServer(): Promise<StartedServer> {
     }, config.heartbeatSchedulerIntervalMs);
   }
   
+  if (config.heartbeatSchedulerEnabled) {
+    const ladWatchdog = ladWatchdogService(db as any);
+    setInterval(() => {
+      void ladWatchdog
+        .scanStale()
+        .then((result) => {
+          if (result.tripped > 0) {
+            logger.warn({ ...result }, "lad-watchdog: stale LADs detected — incidents created");
+          }
+        })
+        .catch((err) => {
+          logger.error({ err }, "lad-watchdog: staleness scan failed");
+        });
+    }, 60_000);
+  }
+
   if (config.databaseBackupEnabled) {
     const backupIntervalMs = config.databaseBackupIntervalMinutes * 60 * 1000;
 

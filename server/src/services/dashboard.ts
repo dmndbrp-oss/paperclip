@@ -3,6 +3,7 @@ import type { Db } from "@paperclipai/db";
 import { agents, approvals, companies, costEvents, heartbeatRuns, issues } from "@paperclipai/db";
 import { notFound } from "../errors.js";
 import { budgetService } from "./budgets.js";
+import { ladWatchdogService } from "./lad-watchdog.js";
 
 const DASHBOARD_RUN_ACTIVITY_DAYS = 14;
 
@@ -24,6 +25,7 @@ function getRecentUtcDateKeys(now: Date, days: number): string[] {
 
 export function dashboardService(db: Db) {
   const budgets = budgetService(db);
+  const ladWatchdog = ladWatchdogService(db);
   return {
     summary: async (companyId: string) => {
       const company = await db
@@ -132,7 +134,10 @@ export function dashboardService(db: Db) {
         company.budgetMonthlyCents > 0
           ? (monthSpendCents / company.budgetMonthlyCents) * 100
           : 0;
-      const budgetOverview = await budgets.overview(companyId);
+      const [budgetOverview, localAdapterDaemons] = await Promise.all([
+        budgets.overview(companyId),
+        ladWatchdog.getLadDashboardData(companyId),
+      ]);
 
       return {
         companyId,
@@ -156,6 +161,7 @@ export function dashboardService(db: Db) {
           pausedProjects: budgetOverview.pausedProjectCount,
         },
         runActivity: Array.from(runActivity.values()),
+        localAdapterDaemons,
       };
     },
   };

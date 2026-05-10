@@ -603,6 +603,13 @@
       "when": 1746921601000,
       "tag": "0085_agent_work_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1746921602000,
+      "tag": "0086_lad_watchdog",
+      "breakpoints": true
     }
   ]
 }

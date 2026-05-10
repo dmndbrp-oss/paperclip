@@ -610,6 +610,13 @@
       "when": 1746921602000,
       "tag": "0086_lad_watchdog",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1746921603000,
+      "tag": "0087_local_agent_metrics",
+      "breakpoints": true
     }
   ]
 }

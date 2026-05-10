@@ -13,6 +13,7 @@ import { heartbeatsApi } from "../api/heartbeats";
 import { instanceSettingsApi } from "../api/instanceSettings";
 import { ApiError } from "../api/client";
 import { ChartCard, RunActivityChart, PriorityChart, IssueStatusChart, SuccessRateChart } from "../components/ActivityCharts";
+import { ladTelemetryApi, makeFixtureMetrics, type TelemetryMetricSeries } from "../api/ladTelemetry";
 import { activityApi } from "../api/activity";
 import { issuesApi } from "../api/issues";
 import { usePanel } from "../context/PanelContext";
@@ -235,7 +236,7 @@ function scrollToContainerBottom(container: ScrollContainer, behavior: ScrollBeh
   container.scrollTo({ top: container.scrollHeight, behavior });
 }
 
-type AgentDetailView = "dashboard" | "instructions" | "configuration" | "skills" | "runs" | "budget";
+type AgentDetailView = "dashboard" | "instructions" | "configuration" | "skills" | "runs" | "budget" | "telemetry";
 
 function parseAgentDetailView(value: string | null): AgentDetailView {
   if (value === "instructions" || value === "prompts") return "instructions";
@@ -243,6 +244,7 @@ function parseAgentDetailView(value: string | null): AgentDetailView {
   if (value === "skills") return "skills";
   if (value === "budget") return "budget";
   if (value === "runs") return value;
+  if (value === "telemetry") return "telemetry";
   return "dashboard";
 }
 
@@ -1025,6 +1027,7 @@ export function AgentDetail() {
               { value: "configuration", label: "Configuration" },
               { value: "runs", label: "Runs" },
               { value: "budget", label: "Budget" },
+              { value: "telemetry", label: "Telemetry" },
             ]}
             value={activeView}
             onValueChange={(value) => navigate(`/agents/${canonicalAgentRef}/${value}`)}
@@ -1162,6 +1165,17 @@ export function AgentDetail() {
           />
         </div>
       ) : null}
+
+      {activeView === "telemetry" && (
+        <TelemetryTab
+          agentId={agent.id}
+          ladHostId={
+            typeof agent.adapterConfig?.ladHostId === "string"
+              ? agent.adapterConfig.ladHostId
+              : null
+          }
+        />
+      )}
     </div>
   );
 }
@@ -4062,6 +4076,156 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ---- Telemetry Tab ---- */
+
+function TelemetryLineChart({ series, label, unit }: { series: TelemetryMetricSeries | undefined; label: string; unit?: string }) {
+  if (!series || series.rows.length === 0) {
+    return (
+      <ChartCard title={label}>
+        <p className="text-xs text-muted-foreground">No data</p>
+      </ChartCard>
+    );
+  }
+
+  const values = series.rows.map((r) => r.value);
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const range = max - min || 1;
+  const latest = values[values.length - 1] ?? 0;
+
+  const width = 240;
+  const height = 56;
+  const pts = series.rows.map((r, i) => {
+    const x = (i / (series.rows.length - 1 || 1)) * width;
+    const y = height - ((r.value - min) / range) * height;
+    return `${x},${y}`;
+  });
+
+  return (
+    <ChartCard title={label} subtitle={unit ? `Latest: ${latest.toFixed(1)} ${unit}` : `Latest: ${latest.toFixed(1)}`}>
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-14 overflow-visible">
+        <polyline
+          points={pts.join(" ")}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="text-primary"
+        />
+      </svg>
+    </ChartCard>
+  );
+}
+
+function TelemetryBarChart({ series, label, unit }: { series: TelemetryMetricSeries | undefined; label: string; unit?: string }) {
+  if (!series || series.rows.length === 0) {
+    return (
+      <ChartCard title={label}>
+        <p className="text-xs text-muted-foreground">No data</p>
+      </ChartCard>
+    );
+  }
+
+  const values = series.rows.map((r) => r.value);
+  const max = Math.max(...values, 1);
+
+  return (
+    <ChartCard title={label} subtitle={unit}>
+      <div className="flex items-end gap-[3px] h-14">
+        {series.rows.map((r, i) => {
+          const heightPct = (r.value / max) * 100;
+          return (
+            <div
+              key={i}
+              className="flex-1 h-full flex flex-col justify-end"
+              title={`${new Date(r.ts).toLocaleTimeString()}: ${r.value.toFixed(1)}${unit ? ` ${unit}` : ""}`}
+            >
+              {r.value > 0 ? (
+                <div
+                  className="bg-primary/70 rounded-sm"
+                  style={{ height: `${heightPct}%`, minHeight: 2 }}
+                />
+              ) : (
+                <div className="bg-muted/30 rounded-sm" style={{ height: 2 }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </ChartCard>
+  );
+}
+
+function TelemetryCounter({ series, label, windowLabel }: { series: TelemetryMetricSeries | undefined; label: string; windowLabel: string }) {
+  const total = series?.rows.reduce((acc, r) => acc + r.value, 0) ?? 0;
+
+  return (
+    <ChartCard title={label} subtitle={windowLabel}>
+      <p className="text-3xl font-semibold tabular-nums">{Math.round(total)}</p>
+    </ChartCard>
+  );
+}
+
+function TelemetryTab({ agentId, ladHostId }: { agentId: string; ladHostId: string | null }) {
+  const since = useMemo(() => new Date(Date.now() - 60 * 60 * 1000), []);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["lad-telemetry", ladHostId, agentId],
+    queryFn: () =>
+      ladHostId
+        ? ladTelemetryApi.getAgentMetrics(ladHostId, agentId, since)
+        : Promise.resolve(makeFixtureMetrics()),
+    staleTime: 30_000,
+  });
+
+  const bySeries = useMemo(() => {
+    const m = new Map<string, TelemetryMetricSeries>();
+    for (const s of data?.series ?? []) m.set(s.key, s);
+    return m;
+  }, [data]);
+
+  if (isLoading) {
+    return <p className="text-sm text-muted-foreground">Loading telemetry…</p>;
+  }
+
+  if (isError && ladHostId) {
+    return <p className="text-sm text-destructive">Failed to load telemetry data.</p>;
+  }
+
+  const isFixture = !ladHostId || !data || data.ladId === "fixture";
+
+  return (
+    <div className="space-y-4">
+      {isFixture && (
+        <p className="text-xs text-muted-foreground">
+          Agent is not running via a Local Adapter Daemon — showing fixture data.
+        </p>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <TelemetryLineChart
+          series={bySeries.get("idle_time_pct")}
+          label="Idle Time"
+          unit="%"
+        />
+        <TelemetryBarChart
+          series={bySeries.get("model_swap_count")}
+          label="Model Swaps"
+          unit="per window"
+        />
+        <TelemetryCounter
+          series={bySeries.get("queue_empty_events")}
+          label="Queue Empty Events"
+          windowLabel="last 15 min"
+        />
+        <TelemetryLineChart
+          series={bySeries.get("manager_response_latency_ms")}
+          label="Manager Response Latency"
+          unit="ms"
+        />
+      </div>
     </div>
   );
 }

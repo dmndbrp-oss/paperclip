@@ -79,3 +79,4 @@ export { pluginLogs } from "./plugin_logs.js";
 export { ladRecords } from "./lad_records.js";
 export { ladHeartbeats } from "./lad_heartbeats.js";
 export { ladIncidents } from "./lad_incidents.js";
+export { localAgentMetrics, ladSchedulerMetrics } from "./local_agent_metrics.js";

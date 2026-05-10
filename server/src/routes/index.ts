@@ -21,3 +21,4 @@ export { instanceSettingsRoutes } from "./instance-settings.js";
 export { instanceDatabaseBackupRoutes } from "./instance-database-backups.js";
 export { agentWorkClaimRoutes } from "./agent-work-claim.js";
 export { ladWatchdogRoutes } from "./lad-watchdog.js";
+export { ladTelemetryRoutes } from "./lad-telemetry.js";

@@ -42,6 +42,7 @@ import { pluginRoutes } from "./routes/plugins.js";
 import { adapterRoutes } from "./routes/adapters.js";
 import { agentWorkClaimRoutes } from "./routes/agent-work-claim.js";
 import { ladWatchdogRoutes } from "./routes/lad-watchdog.js";
+import { ladTelemetryRoutes } from "./routes/lad-telemetry.js";
 import { pluginUiStaticRoutes } from "./routes/plugin-ui-static.js";
 import { applyUiBranding } from "./ui-branding.js";
 import { logger } from "./middleware/logger.js";
@@ -194,6 +195,7 @@ export async function createApp(
   api.use(agentRoutes(db, { pluginWorkerManager: workerManager }));
   api.use(agentWorkClaimRoutes(db));
   api.use(ladWatchdogRoutes(db));
+  api.use(ladTelemetryRoutes(db));
   api.use(assetRoutes(db, opts.storageService));
   api.use(projectRoutes(db));
   api.use(issueRoutes(db, opts.storageService, {

@@ -59,6 +59,24 @@ Core fields:
 - command (string, optional): defaults to "opencode"
 - extraArgs (string[], optional): additional CLI args
 - env (object, optional): KEY=VALUE environment variables
+- mcpServers (object, optional): MCP servers to inject into the runtime OpenCode config. \
+  Each key is the server name; each value is either a stdio entry or an HTTP entry. \
+  Requires dangerouslySkipPermissions to be enabled for the permission override; \
+  when disabled a warning is logged but the MCP block is still written. \
+  Example (ZoomInfo stdio — see SAG-721 for the full integration pattern): \
+  \`\`\`json \
+  { \
+    "zoominfo-mcp": { \
+      "command": "node", \
+      "args": ["/infra/zoominfo-mcp/index.js"], \
+      "env": { "ZOOMINFO_API_KEY": "..." } \
+    } \
+  } \
+  \`\`\` \
+  Shape: \
+  - stdio: { command: string; args?: string[]; env?: Record<string, string> } \
+  - HTTP:  { url: string; headers?: Record<string, string> } \
+  Mapped to opencode config key \`mcp\` (type: "local" / "remote").
 
 Operational fields:
 - timeoutSec (number, optional): run timeout in seconds

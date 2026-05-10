@@ -589,6 +589,20 @@
       "when": 1778074536410,
       "tag": "0083_company_secret_provider_configs",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1746921600000,
+      "tag": "0084_local_continuous_adapter",
+      "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1746921601000,
+      "tag": "0085_agent_work_requests",
+      "breakpoints": true
     }
   ]
 }

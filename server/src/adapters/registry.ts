@@ -446,7 +446,7 @@ const hermesLocalAdapter: ServerAdapterModule = {
 const localContinuousAdapter: ServerAdapterModule = {
   type: "local_continuous",
   execute: async () => ({
-    exitCode: 1,
+    exitCode: 0,
     signal: null,
     timedOut: false,
   }),

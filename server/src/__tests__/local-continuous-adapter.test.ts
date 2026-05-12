@@ -367,7 +367,7 @@ describe("local_continuous adapter: PATCH /api/agents/:id/adapter", () => {
 // Heartbeat scheduler suppression (embedded Postgres)
 // ---------------------------------------------------------------------------
 
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import {
   agents,
   agentRuntimeState,
@@ -484,5 +484,21 @@ describeEmbeddedPostgres("local_continuous adapter: heartbeat suppression", () =
       .from(agentWakeupRequests)
       .then((rows) => rows.filter((r) => r.agentId === agentId));
     expect(requests.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("skip_push_wake: enqueueWakeup returns null and records a skipped request for local_continuous", async () => {
+    const { agentId } = await seedAgent("local_continuous");
+    const heartbeat = heartbeatService(db);
+
+    const result = await heartbeat.wakeup(agentId, { source: "on_demand" });
+
+    expect(result).toBeNull();
+    const requests = await db
+      .select()
+      .from(agentWakeupRequests)
+      .where(eq(agentWakeupRequests.agentId, agentId));
+    expect(requests).toHaveLength(1);
+    expect(requests[0]!.status).toBe("skipped");
+    expect(requests[0]!.reason).toBe("local_continuous.skip_push_wake");
   });
 });

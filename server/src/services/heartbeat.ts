@@ -6788,6 +6788,14 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
       return;
     }
 
+    if (agent.adapterType === "local_continuous") {
+      // Pull-model daemon; server should never execute these runs directly.
+      await setRunStatus(runId, "succeeded", { finishedAt: new Date() });
+      await setWakeupStatus(run.wakeupRequestId, "completed", { finishedAt: new Date() });
+      await releaseIssueExecutionAndPromote(run);
+      return;
+    }
+
     const runtime = await ensureRuntimeState(agent);
     const context = parseObject(run.contextSnapshot);
     const taskKey = deriveTaskKeyWithHeartbeatFallback(context, null);
@@ -8621,6 +8629,11 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
       agent.status === "pending_approval"
     ) {
       throw conflict("Agent is not invokable in its current state", { status: agent.status });
+    }
+
+    if (agent.adapterType === "local_continuous") {
+      await writeSkippedRequest("local_continuous.skip_push_wake");
+      return null;
     }
 
     const policy = parseHeartbeatPolicy(agent);

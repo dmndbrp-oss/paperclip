@@ -364,6 +364,239 @@ export function agentWorkClaimRoutes(db: Db) {
     res.json({ runToken, ttlSec });
   });
 
+  // ── POST /api/local-adapter-daemons/:ladId/agent-tokens ─────────────────
+  // Alias for /api/local-agent-daemons/:ladId/agent-tokens — same logic, correct prefix.
+  router.post("/local-adapter-daemons/:ladId/agent-tokens", async (req, res) => {
+    const { ladId } = req.params as { ladId: string };
+    if (req.actor.type !== "board") {
+      res.status(403).json({ error: "Board API key required for agent-token minting" });
+      return;
+    }
+    const targetAgentId = typeof req.body?.agentId === "string" ? req.body.agentId.trim() : null;
+    if (!targetAgentId) {
+      res.status(400).json({ error: "agentId is required" });
+      return;
+    }
+    const agent = await agentSvc.getById(targetAgentId);
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+    const agentLadHostId = readLadHostId(agent);
+    if (!agentLadHostId || agentLadHostId !== ladId) {
+      res.status(403).json({ error: "ladHostId mismatch: this daemon is not authorised to mint tokens for the requested agent" });
+      return;
+    }
+    if (agent.status === "terminated" || agent.status === "pending_approval" || agent.status === "quarantined") {
+      res.status(403).json({ error: "Agent is not active", agentStatus: agent.status });
+      return;
+    }
+    const runId = randomUUID();
+    const runToken = createLocalAgentJwt(targetAgentId, agent.companyId, agent.adapterType, runId);
+    if (!runToken) {
+      res.status(500).json({ error: "JWT secret not configured; cannot mint run token" });
+      return;
+    }
+    const cfg = jwtConfig();
+    res.json({ runToken, ttlSec: cfg?.ttlSeconds ?? 60 * 60 * 48 });
+  });
+
+  // ── POST /api/local-adapter-daemons/:ladId/agents/:agentId/work-claim ───
+  // LAD-prefixed work-claim. Validates ladId matches agent config, then runs
+  // the standard work-claim long-poll loop.
+  router.post("/local-adapter-daemons/:ladId/agents/:agentId/work-claim", async (req, res) => {
+    const { ladId, agentId } = req.params as { ladId: string; agentId: string };
+    if (req.actor.type === "agent" && req.actor.agentId !== agentId) {
+      res.status(403).json({ error: "Agent can only claim work for itself" });
+      return;
+    }
+    if (req.actor.type === "none") {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+    const agent = await agentSvc.getById(agentId);
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+    const agentLadHostId = readLadHostId(agent);
+    if (!agentLadHostId || agentLadHostId !== ladId) {
+      res.status(403).json({ error: "ladHostId mismatch: not authorised to claim work for this agent" });
+      return;
+    }
+    if (
+      agent.status === "paused" || agent.status === "terminated" ||
+      agent.status === "pending_approval" || agent.status === "quarantined"
+    ) {
+      res.status(423).json({ error: "Agent is not available for work", agentStatus: agent.status });
+      return;
+    }
+    const companyId = agent.companyId;
+    const modelHint = readModelTag(agent);
+    const deadline = Date.now() + getWorkClaimTimeoutMs();
+    while (Date.now() < deadline) {
+      const candidate = await findNextIssue(db, companyId, agentId, null);
+      if (candidate) {
+        try {
+          const run = await createClaimRun(db, companyId, agentId, candidate.id);
+          const checkedOut = await issueSvc.checkout(candidate.id, agentId, ["todo", "in_progress"], run.id);
+          const runToken = createLocalAgentJwt(agentId, companyId, agent.adapterType, run.id);
+          if (!runToken) {
+            logger.warn({ agentId, runId: run.id }, "lad work-claim: JWT secret missing");
+            res.status(500).json({ error: "Run token could not be minted: JWT secret not configured" });
+            return;
+          }
+          const cfg = jwtConfig();
+          res.json({
+            issue: { id: checkedOut.id, identifier: checkedOut.identifier, title: checkedOut.title, status: checkedOut.status, priority: checkedOut.priority },
+            runId: run.id,
+            runToken,
+            runTokenTtlSec: cfg?.ttlSeconds ?? 60 * 60 * 48,
+            modelHint,
+          });
+          return;
+        } catch (err: unknown) {
+          const isConflict = err !== null && typeof err === "object" && "status" in err && (err as { status: number }).status === 409;
+          if (!isConflict) throw err;
+        }
+      }
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) break;
+      await sleep(Math.min(WORK_CLAIM_POLL_INTERVAL_MS, remaining));
+    }
+    res.status(204).end();
+  });
+
+  // ── POST /api/local-adapter-daemons/:ladId/agents/:agentId/request-work ─
+  router.post("/local-adapter-daemons/:ladId/agents/:agentId/request-work", async (req, res) => {
+    const { ladId, agentId } = req.params as { ladId: string; agentId: string };
+    if (req.actor.type === "agent" && req.actor.agentId !== agentId) {
+      res.status(403).json({ error: "Agent can only request work for itself" });
+      return;
+    }
+    if (req.actor.type === "none") {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+    const agent = await agentSvc.getById(agentId);
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+    const agentLadHostId = readLadHostId(agent);
+    if (!agentLadHostId || agentLadHostId !== ladId) {
+      res.status(403).json({ error: "ladHostId mismatch: not authorised to request work for this agent" });
+      return;
+    }
+    const companyId = agent.companyId;
+    const chain = await agentSvc.getChainOfCommand(agentId);
+    const manager = chain[0] ?? null;
+    if (!manager) {
+      res.status(422).json({ error: "Agent has no manager in chainOfCommand; cannot request work" });
+      return;
+    }
+    const lastIssueId = typeof req.body?.lastIssueId === "string" ? req.body.lastIssueId : null;
+    const idleSinceIso = typeof req.body?.idleSinceIso === "string" ? req.body.idleSinceIso : null;
+    const requestId = randomUUID();
+    await db.insert(agentWorkRequests).values({
+      id: requestId, companyId, agentId, managerAgentId: manager.id,
+      lastIssueId: lastIssueId ?? undefined,
+      idleSinceIso: idleSinceIso ? new Date(idleSinceIso) : undefined,
+      status: "pending",
+    });
+    const heartbeat = heartbeatService(db);
+    const wakePayload: Record<string, unknown> = { idleAgent: agentId, requestId };
+    if (idleSinceIso) wakePayload.idleSinceIso = idleSinceIso;
+    if (lastIssueId) wakePayload.lastIssueId = lastIssueId;
+    await heartbeat.wakeup(manager.id, {
+      source: "on_demand", triggerDetail: "system", reason: "agent_needs_work",
+      payload: wakePayload, requestedByActorType: "agent", requestedByActorId: agentId,
+      contextSnapshot: { wakeReason: "agent_needs_work", idleAgent: agentId, requestId },
+    }).catch((err) => {
+      logger.warn({ err, agentId, managerId: manager.id }, "lad request-work: failed to wake manager");
+    });
+    res.status(202).json({ requestId, managerAgentId: manager.id, pollAfterMs: 5_000 });
+  });
+
+  // ── POST /api/local-adapter-daemons/:ladId/agents/:agentId/quarantine ───
+  // Allows an agent to quarantine itself after repeated harness failures.
+  // Accepts agent JWT (agent self-quarantine) or board API key.
+  router.post("/local-adapter-daemons/:ladId/agents/:agentId/quarantine", async (req, res) => {
+    const { ladId, agentId } = req.params as { ladId: string; agentId: string };
+    if (req.actor.type === "none") {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+    if (req.actor.type === "agent" && req.actor.agentId !== agentId) {
+      res.status(403).json({ error: "Agent can only quarantine itself" });
+      return;
+    }
+    const agent = await agentSvc.getById(agentId);
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+    const agentLadHostId = readLadHostId(agent);
+    if (!agentLadHostId || agentLadHostId !== ladId) {
+      res.status(403).json({ error: "ladHostId mismatch: not authorised to quarantine this agent" });
+      return;
+    }
+    const reason =
+      typeof req.body?.reason === "string" && req.body.reason.trim().length > 0
+        ? req.body.reason.trim()
+        : "Consecutive harness failures reported by LAD";
+    const lastRunIds: string[] | undefined = Array.isArray(req.body?.lastRunIds) ? req.body.lastRunIds : undefined;
+    const evidence: unknown = req.body?.evidence ?? undefined;
+    const quarantined = await agentSvc.quarantine(agentId, { reason, lastRunIds, evidence });
+    if (!quarantined) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+    await logActivity(db, {
+      companyId: agent.companyId, actorType: "system", actorId: ladId,
+      action: "agent.quarantined", entityType: "agent", entityId: agentId,
+      details: { ladId, reason, lastRunIds, evidence },
+    });
+    res.json({ ok: true, agentId, status: "quarantined" });
+  });
+
+  // ── POST /api/local-adapter-daemons/:ladId/agent-events ──────────────────
+  // Alias for /api/local-agent-daemons/:ladId/agent-events — correct prefix.
+  router.post("/local-adapter-daemons/:ladId/agent-events", async (req, res) => {
+    const { ladId } = req.params as { ladId: string };
+    if (req.actor.type !== "board") {
+      res.status(403).json({ error: "Board API key required for agent-events" });
+      return;
+    }
+    const event = typeof req.body?.event === "string" ? req.body.event : null;
+    const targetAgentId = typeof req.body?.agentId === "string" ? req.body.agentId.trim() : null;
+    if (!event || !targetAgentId) {
+      res.status(400).json({ error: "event and agentId are required" });
+      return;
+    }
+    const agent = await agentSvc.getById(targetAgentId);
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+    const agentLadHostId = readLadHostId(agent);
+    if (!agentLadHostId || agentLadHostId !== ladId) {
+      res.status(403).json({ error: "ladHostId mismatch: this daemon is not authorised to report events for the requested agent" });
+      return;
+    }
+    if (event === "agent_unquarantined") {
+      await logActivity(db, {
+        companyId: agent.companyId, actorType: "system", actorId: ladId,
+        action: "agent.worker_restarted_after_unquarantine", entityType: "agent", entityId: agent.id,
+        details: { ladId, event },
+      });
+      res.json({ ok: true, event, agentId: targetAgentId });
+      return;
+    }
+    logger.info({ ladId, event, agentId: targetAgentId }, "agent-events: received unknown event, ignoring");
+    res.json({ ok: true, event, agentId: targetAgentId });
+  });
+
   // ── POST /api/local-agent-daemons/:ladId/agent-events ────────────────────
   //
   // Inbound lifecycle events from the LAD: the LAD reports agent lifecycle

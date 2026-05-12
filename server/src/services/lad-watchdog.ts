@@ -30,8 +30,17 @@ export type LadRegistrationStatus =
   | { registered: true; companyId: string }
   | { registered: false };
 
-/** Returns true if at least one agent in the company has ladHostId === ladId. */
+/** Returns true if at least one agent in the company has ladHostId === ladId, or if a lad_records entry exists. */
 async function isLadRegistered(db: Db, ladId: string, companyId: string): Promise<boolean> {
+  // Check lad_records first (explicit registration via POST /register)
+  const ladRow = await db
+    .select({ ladId: ladRecords.ladId })
+    .from(ladRecords)
+    .where(and(eq(ladRecords.ladId, ladId), eq(ladRecords.companyId, companyId)))
+    .limit(1);
+  if (ladRow.length > 0) return true;
+
+  // Fall back: any agent in this company configured with this ladHostId
   const rows = await db
     .select({ id: agents.id })
     .from(agents)

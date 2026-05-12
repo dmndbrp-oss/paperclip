@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lt, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   agents,
@@ -440,7 +440,7 @@ export function ladWatchdogService(db: Db) {
               and(
                 eq(ladHeartbeats.ladId, lad.ladId),
                 eq(ladHeartbeats.companyId, companyId),
-                sql`${ladHeartbeats.createdAt} >= ${oneHourAgo}`,
+                gte(ladHeartbeats.createdAt, oneHourAgo),
               ),
             );
 

@@ -8533,8 +8533,8 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
     });
 
     if (promotionResult?.kind === "blocked_adapter_failed") {
-      await issuesSvc.update(promotionResult.issue.id, { status: "blocked" });
       await issuesSvc.addComment(promotionResult.issue.id, promotionResult.comment, {});
+      await issuesSvc.update(promotionResult.issue.id, { status: "blocked" });
       return;
     }
 

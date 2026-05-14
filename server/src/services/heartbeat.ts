@@ -4563,6 +4563,17 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
       return { outcome: "satisfied" as const, queuedRun: null };
     }
 
+    if (run.status !== "succeeded") {
+      if (run.issueCommentStatus !== "not_applicable") {
+        await patchRunIssueCommentStatus(run.id, {
+          issueCommentStatus: "not_applicable",
+          issueCommentSatisfiedByCommentId: null,
+          issueCommentRetryQueuedAt: null,
+        });
+      }
+      return { outcome: "not_applicable" as const, queuedRun: null };
+    }
+
     if (readNonEmptyString(contextSnapshot.retryReason) === "missing_issue_comment") {
       await patchRunIssueCommentStatus(run.id, {
         issueCommentStatus: "retry_exhausted",
@@ -8116,6 +8127,16 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
     );
   }
 
+  function buildAdapterFailedBlockComment(input: {
+    latestRun: Pick<typeof heartbeatRuns.$inferSelect, "error" | "errorCode"> | null | undefined;
+  }) {
+    const failureSummary = summarizeRunFailureForIssueComment(input.latestRun);
+    return (
+      `The assigned agent's adapter reported a permanent configuration error.${failureSummary ?? ""} ` +
+      "Moving it to `blocked` for operator intervention."
+    );
+  }
+
   async function releaseIssueExecutionAndPromote(run: typeof heartbeatRuns.$inferSelect) {
     const runContext = parseObject(run.contextSnapshot);
     const contextIssueId = readNonEmptyString(runContext.issueId);
@@ -8411,6 +8432,16 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
         };
       }
 
+      if (run.errorCode === "adapter_failed" && !readNonEmptyString(runContext.retryReason)) {
+        const comment = buildAdapterFailedBlockComment({ latestRun: run });
+        return {
+          kind: "blocked_adapter_failed" as const,
+          issue,
+          previousStatus: issue.status,
+          comment,
+        };
+      }
+
       const shouldBlockImmediately =
         !recoveryAgentInvokable ||
         !recoveryAgent ||
@@ -8500,6 +8531,12 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
         run: queuedRun,
       };
     });
+
+    if (promotionResult?.kind === "blocked_adapter_failed") {
+      await issuesSvc.update(promotionResult.issue.id, { status: "blocked" });
+      await issuesSvc.addComment(promotionResult.issue.id, promotionResult.comment, {});
+      return;
+    }
 
     if (promotionResult?.kind === "blocked") {
       await recovery.escalateStrandedAssignedIssue({

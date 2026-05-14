@@ -1819,6 +1819,26 @@ export function recoveryService(db: Db, deps: { enqueueWakeup: RecoveryWakeup })
         continue;
       }
 
+      if (agent.status === "error") {
+        const latestRun = await getLatestIssueRun(issue.companyId, issue.id);
+        const updated = await escalateStrandedAssignedIssue({
+          issue,
+          previousStatus: issue.status as "todo" | "in_progress",
+          latestRun,
+          comment:
+            "Agent is in `status=error` and cannot accept retries. " +
+            "Paperclip skipped automatic retry to prevent burst-retry loops against a wedged agent. " +
+            "Escalating to chain-of-command for intervention.",
+        });
+        if (updated) {
+          result.escalated += 1;
+          result.issueIds.push(issue.id);
+        } else {
+          result.skipped += 1;
+        }
+        continue;
+      }
+
       if (await hasActiveExecutionPath(issue.companyId, issue.id)) {
         result.skipped += 1;
         continue;

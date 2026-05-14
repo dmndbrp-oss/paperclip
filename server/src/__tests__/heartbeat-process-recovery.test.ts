@@ -651,7 +651,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
   }
 
   async function seedAssignedTodoNoRunFixture(input?: {
-    agentStatus?: "paused" | "idle" | "running";
+    agentStatus?: "paused" | "idle" | "running" | "error";
   }) {
     const companyId = randomUUID();
     const agentId = randomUUID();
@@ -2945,5 +2945,75 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
 
     const runs = await db.select().from(heartbeatRuns).where(eq(heartbeatRuns.id, runId));
     expect(runs).toHaveLength(1);
+  });
+
+  it("escalates and blocks a stranded issue when the assigned agent is in status=error", async () => {
+    const { companyId, issueId } = await seedAssignedTodoNoRunFixture({ agentStatus: "error" });
+    const heartbeat = heartbeatService(db);
+
+    const result = await heartbeat.reconcileStrandedAssignedIssues();
+    // Must NOT have dispatched a retry against the wedged agent
+    expect(result.dispatchRequeued).toBe(0);
+    expect(result.continuationRequeued).toBe(0);
+    // Must have counted this issue as escalated
+    expect(result.issueIds).toContain(issueId);
+
+    // Source issue is blocked
+    const sourceIssue = await db.select().from(issues).where(eq(issues.id, issueId)).then((rows) => rows[0] ?? null);
+    expect(sourceIssue?.status).toBe("blocked");
+
+    // Exactly one escalation/recovery issue was created for the source issue
+    const recoveryIssues = await db
+      .select()
+      .from(issues)
+      .where(
+        and(
+          eq(issues.companyId, companyId),
+          eq(issues.originKind, "stranded_issue_recovery"),
+          eq(issues.originId, issueId),
+        ),
+      );
+    expect(recoveryIssues).toHaveLength(1);
+    await expect(sourceBlockerIssueIds(companyId, issueId)).resolves.toEqual([recoveryIssues[0]!.id]);
+  });
+
+  it("does not create a second escalation issue on a repeat reconcile for the same error-agent source issue (dedup holds)", async () => {
+    const { companyId, issueId } = await seedAssignedTodoNoRunFixture({ agentStatus: "error" });
+    const heartbeat = heartbeatService(db);
+
+    // First call: escalate the source issue and create the recovery issue
+    await heartbeat.reconcileStrandedAssignedIssues();
+
+    const firstRecoveryIssues = await db
+      .select()
+      .from(issues)
+      .where(
+        and(
+          eq(issues.companyId, companyId),
+          eq(issues.originKind, "stranded_issue_recovery"),
+          eq(issues.originId, issueId),
+        ),
+      );
+    expect(firstRecoveryIssues).toHaveLength(1);
+
+    // Reset the source issue to in_progress so it re-enters the candidate set on the next call
+    await db.update(issues).set({ status: "in_progress" }).where(eq(issues.id, issueId));
+
+    // Second call: the source issue is a candidate again; the recovery issue already exists
+    await heartbeat.reconcileStrandedAssignedIssues();
+
+    // Dedup: still only ONE recovery issue for the source issue despite two escalation calls
+    const recoveryIssues = await db
+      .select()
+      .from(issues)
+      .where(
+        and(
+          eq(issues.companyId, companyId),
+          eq(issues.originKind, "stranded_issue_recovery"),
+          eq(issues.originId, issueId),
+        ),
+      );
+    expect(recoveryIssues).toHaveLength(1);
+    await expect(sourceBlockerIssueIds(companyId, issueId)).resolves.toEqual([recoveryIssues[0]!.id]);
   });
 });

@@ -140,6 +140,10 @@ async function createApp(opts: {
     };
     next();
   });
+  const fakeTx = {
+    delete: vi.fn(() => ({ where: vi.fn(() => Promise.resolve()) })),
+    insert: vi.fn(() => ({ values: vi.fn(() => Promise.resolve()) })),
+  };
   const db = {
     select: vi.fn(() => ({
       from: vi.fn(() => ({
@@ -152,6 +156,7 @@ async function createApp(opts: {
         ]),
       })),
     })),
+    transaction: vi.fn(async (fn: (tx: typeof fakeTx) => Promise<unknown>) => fn(fakeTx)),
   };
   app.use("/api", agentRoutes(db as any));
   app.use(errorHandler);
@@ -256,6 +261,165 @@ describe("local_continuous adapter: feature flag enforcement", () => {
     );
 
     expect([200, 201], `Got ${res.status}: ${JSON.stringify(res.body)}`).toContain(res.status);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SAG-1172 §7: PATCH /api/agents/:id — incomplete adapterConfig gate
+// ---------------------------------------------------------------------------
+
+describe("local_continuous adapter: PATCH /api/agents/:id rejects incomplete adapterConfig", () => {
+  const AGENT_ID = "44444444-4444-4444-8444-444444444444";
+
+  beforeEach(() => {
+    vi.resetModules();
+    vi.doUnmock("../routes/agents.js");
+    vi.doUnmock("../routes/authz.js");
+    vi.doUnmock("../middleware/index.js");
+    registerModuleMocks();
+    vi.clearAllMocks();
+    mockAccessService.canUser.mockResolvedValue(true);
+    mockAccessService.hasPermission.mockResolvedValue(true);
+    mockLogActivity.mockResolvedValue(undefined);
+  });
+
+  function makeAgent(adapterType: string, adapterConfig: Record<string, unknown> = {}) {
+    return {
+      id: AGENT_ID,
+      companyId: COMPANY_ID,
+      name: "Test Agent",
+      adapterType,
+      adapterConfig,
+      runtimeConfig: {},
+      permissions: {},
+      status: "idle",
+      role: "engineer",
+    };
+  }
+
+  it("returns 422 with field names when all three required fields are missing", async () => {
+    const agent = makeAgent("local_continuous");
+    mockAgentService.getById.mockResolvedValue(agent);
+    mockAgentService.update.mockResolvedValue(agent);
+
+    const app = await createApp({ localContinuousAdapterEnabled: true });
+    const res = await httpRequest(app, (baseUrl) =>
+      request(baseUrl)
+        .patch(`/api/agents/${AGENT_ID}`)
+        .send({
+          adapterConfig: {}, // all three fields missing
+        }),
+    );
+
+    expect(res.status, JSON.stringify(res.body)).toBe(422);
+    const errorMsg = String(res.body.error ?? res.body.message ?? "");
+    expect(errorMsg).toMatch(/modelTag/);
+    expect(errorMsg).toMatch(/memoryEstimateGB/);
+    expect(errorMsg).toMatch(/ladHostId/);
+  });
+
+  it("returns 422 naming only the missing field when two are present", async () => {
+    const agent = makeAgent("local_continuous");
+    mockAgentService.getById.mockResolvedValue(agent);
+
+    const app = await createApp({ localContinuousAdapterEnabled: true });
+    const res = await httpRequest(app, (baseUrl) =>
+      request(baseUrl)
+        .patch(`/api/agents/${AGENT_ID}`)
+        .send({
+          adapterConfig: {
+            modelTag: "llama3.1:8b",
+            memoryEstimateGB: 8,
+            // ladHostId missing
+          },
+        }),
+    );
+
+    expect(res.status, JSON.stringify(res.body)).toBe(422);
+    const errorMsg = String(res.body.error ?? res.body.message ?? "");
+    expect(errorMsg).toMatch(/ladHostId/);
+    expect(errorMsg).not.toMatch(/modelTag/);
+    expect(errorMsg).not.toMatch(/memoryEstimateGB/);
+  });
+
+  it("returns 200 when all three required fields are present", async () => {
+    const completeConfig = {
+      modelTag: "llama3.1:8b",
+      memoryEstimateGB: 8,
+      ladHostId: "lad-host-001",
+    };
+    const agent = makeAgent("local_continuous", completeConfig);
+    mockAgentService.getById.mockResolvedValue(agent);
+    mockAgentService.update.mockResolvedValue(agent);
+
+    const app = await createApp({ localContinuousAdapterEnabled: true });
+    const res = await httpRequest(app, (baseUrl) =>
+      request(baseUrl)
+        .patch(`/api/agents/${AGENT_ID}`)
+        .send({ adapterConfig: completeConfig }),
+    );
+
+    expect([200, 201], `Got ${res.status}: ${JSON.stringify(res.body)}`).toContain(res.status);
+  });
+
+  it("does NOT apply the gate for opencode_local (no false-positives)", async () => {
+    const agent = makeAgent("opencode_local", {});
+    mockAgentService.getById.mockResolvedValue(agent);
+    mockAgentService.update.mockResolvedValue({ ...agent, name: "Updated" });
+
+    const app = await createApp();
+    const res = await httpRequest(app, (baseUrl) =>
+      request(baseUrl)
+        .patch(`/api/agents/${AGENT_ID}`)
+        .send({ name: "Updated" }),
+    );
+
+    // Should NOT 422 on non-local_continuous adapters
+    expect(res.status, JSON.stringify(res.body)).not.toBe(422);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SAG-1172 §7: POST /api/companies/:id/agents — incomplete adapterConfig gate on create
+// ---------------------------------------------------------------------------
+
+describe("local_continuous adapter: POST /api/companies/:id/agents rejects incomplete adapterConfig", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.doUnmock("../routes/agents.js");
+    vi.doUnmock("../routes/authz.js");
+    vi.doUnmock("../middleware/index.js");
+    registerModuleMocks();
+    vi.clearAllMocks();
+    mockCompanySkillService.listRuntimeSkillEntries.mockResolvedValue([]);
+    mockCompanySkillService.resolveRequestedSkillKeys.mockResolvedValue([]);
+    mockAccessService.canUser.mockResolvedValue(true);
+    mockAccessService.hasPermission.mockResolvedValue(true);
+    mockAccessService.ensureMembership.mockResolvedValue(undefined);
+    mockAccessService.setPrincipalPermission.mockResolvedValue(undefined);
+    mockLogActivity.mockResolvedValue(undefined);
+  });
+
+  it("returns 422 with field names when adapterConfig is missing required fields on create", async () => {
+    const app = await createApp({ localContinuousAdapterEnabled: true });
+    const res = await httpRequest(app, (baseUrl) =>
+      request(baseUrl)
+        .post(`/api/companies/${COMPANY_ID}/agents`)
+        .send({
+          name: "Partial Agent",
+          adapterType: "local_continuous",
+          adapterConfig: {
+            modelTag: "llama3.1:8b",
+            // memoryEstimateGB and ladHostId missing
+          },
+        }),
+    );
+
+    expect(res.status, JSON.stringify(res.body)).toBe(422);
+    const errorMsg = String(res.body.error ?? res.body.message ?? "");
+    expect(errorMsg).toMatch(/memoryEstimateGB/);
+    expect(errorMsg).toMatch(/ladHostId/);
+    expect(errorMsg).not.toMatch(/modelTag/);
   });
 });
 

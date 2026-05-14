@@ -553,6 +553,31 @@ export function agentRoutes(
     }
   }
 
+  /**
+   * Validates that a local_continuous adapterConfig contains all required fields.
+   * Throws 422 listing missing fields so callers know exactly what to supply.
+   * SAG-1172 §7.
+   */
+  function assertLocalContinuousAdapterConfigComplete(
+    adapterConfig: Record<string, unknown>,
+  ): void {
+    const missing: string[] = [];
+    if (typeof adapterConfig["modelTag"] !== "string" || (adapterConfig["modelTag"] as string).trim() === "") {
+      missing.push("modelTag");
+    }
+    if (typeof adapterConfig["memoryEstimateGB"] !== "number" || (adapterConfig["memoryEstimateGB"] as number) <= 0) {
+      missing.push("memoryEstimateGB");
+    }
+    if (typeof adapterConfig["ladHostId"] !== "string" || (adapterConfig["ladHostId"] as string).trim() === "") {
+      missing.push("ladHostId");
+    }
+    if (missing.length > 0) {
+      throw unprocessable(
+        `local_continuous adapterConfig is missing required fields: ${missing.join(", ")}`,
+      );
+    }
+  }
+
   async function assertCanCreateAgentsForCompany(req: Request, companyId: string) {
     assertCompanyAccess(req, companyId);
     if (req.actor.type === "board") {
@@ -2204,6 +2229,11 @@ export function agentRoutes(
       allowedSandboxProviders: allowedSandboxProvidersForAgent(createInput.adapterType),
     });
 
+    // SAG-1172 §7: reject incomplete local_continuous configs on create.
+    if (createInput.adapterType === "local_continuous") {
+      assertLocalContinuousAdapterConfigComplete(normalizedAdapterConfig);
+    }
+
     const createdAgent = await svc.create(companyId, {
       ...createInput,
       adapterConfig: normalizedAdapterConfig,
@@ -2725,6 +2755,11 @@ export function agentRoutes(
         adapterConfig: effectiveAdapterConfig,
       });
       patchData.adapterConfig = syncInstructionsBundleConfigFromFilePath(existing, normalizedEffectiveAdapterConfig);
+
+      // SAG-1172 §7: reject incomplete local_continuous configs before persisting.
+      if (requestedAdapterType === "local_continuous") {
+        assertLocalContinuousAdapterConfigComplete(asRecord(patchData.adapterConfig) ?? {});
+      }
     }
     if (requestedRuntimeConfig) {
       const baseAdapterConfig = asRecord(patchData.adapterConfig) ?? asRecord(existing.adapterConfig) ?? {};

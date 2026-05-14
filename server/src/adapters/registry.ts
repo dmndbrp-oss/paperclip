@@ -120,6 +120,8 @@ import { buildExternalAdapters } from "./plugin-loader.js";
 import { getDisabledAdapterTypes } from "../services/adapter-plugin-store.js";
 import { processAdapter } from "./process/index.js";
 import { httpAdapter } from "./http/index.js";
+// SAG-1172: harness wiring for local-adapter output validation.
+import { detectLeakedToolCallContent } from "../lib/local-llm-harness.js";
 
 function readConfiguredCommand(config: Record<string, unknown>, fallback: string): string {
   const value = typeof config.command === "string" ? config.command.trim() : "";
@@ -334,9 +336,35 @@ const openclawGatewayAdapter: ServerAdapterModule = {
   agentConfigurationDoc: openclawGatewayAgentConfigurationDoc,
 };
 
+// SAG-1172 §5: Wrap opencode_local execute so that leaked tool-call content in
+// the raw output is detected by the harness and surfaced as a structured log
+// rather than silently stripped.  sanitizeModelText() in parse.ts still strips
+// the content from the comment summary; this wrapper makes the harness the
+// explicit validation gate in the adapter output path.
+async function openCodeExecuteWithHarness(
+  ctx: Parameters<typeof openCodeExecute>[0],
+): ReturnType<typeof openCodeExecute> {
+  const result = await openCodeExecute(ctx);
+  const rawStdout =
+    result.resultJson &&
+    typeof result.resultJson === "object" &&
+    !Array.isArray(result.resultJson)
+      ? (result.resultJson as Record<string, unknown>).stdout
+      : null;
+  if (typeof rawStdout === "string" && rawStdout.length > 0) {
+    const leakError = detectLeakedToolCallContent(rawStdout);
+    if (leakError) {
+      console.warn(
+        `[paperclip/harness] SAG-1172: opencode_local output contains leaked content (${leakError}). Agent: ${ctx.agent.id}. Run: ${ctx.runId}. Content will be stripped by sanitizeModelText.`,
+      );
+    }
+  }
+  return result;
+}
+
 const openCodeLocalAdapter: ServerAdapterModule = {
   type: "opencode_local",
-  execute: openCodeExecute,
+  execute: openCodeExecuteWithHarness,
   testEnvironment: openCodeTestEnvironment,
   listSkills: listOpenCodeSkills,
   syncSkills: syncOpenCodeSkills,
@@ -443,6 +471,10 @@ const hermesLocalAdapter: ServerAdapterModule = {
 // polls the Paperclip API on its own schedule. The heartbeat scheduler does
 // NOT emit timer wakes for this adapter type. execute() is a stub because
 // direct invocation is not used; all agent logic lives in the external daemon.
+//
+// SAG-1172 §1–§5: Daemon-side structured LLM calls MUST use harnessCall() from
+// server/src/lib/local-llm-harness.ts. The canonical adapterConfig TypeScript
+// type (LocalContinuousAdapterConfig) is co-located there.
 const localContinuousAdapter: ServerAdapterModule = {
   type: "local_continuous",
   execute: async () => ({

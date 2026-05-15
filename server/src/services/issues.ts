@@ -4057,10 +4057,16 @@ export function issueService(db: Db) {
       }),
 
     findMentionedAgents: async (companyId: string, body: string) => {
+      // Strip structured mention links before name-matching so display text like
+      // [@Coder (Claude)](agent://...) doesn't also fire an @name match.
+      const bodyForNameExtraction = body.replace(
+        /\[([^\]]*)\]\((?:agent|user|project|skill):\/\/[^)]*\)/gi,
+        "",
+      );
       const re = /\B@([^\s@,!?.]+)/g;
       const tokens = new Set<string>();
       let m: RegExpExecArray | null;
-      while ((m = re.exec(body)) !== null) {
+      while ((m = re.exec(bodyForNameExtraction)) !== null) {
         const normalized = normalizeAgentMentionToken(m[1]);
         if (normalized) tokens.add(normalized.toLowerCase());
       }

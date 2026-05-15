@@ -8432,6 +8432,10 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
         };
       }
 
+      if (run.errorCode === "claude_monthly_usage_limit") {
+        return { kind: "blocked_monthly_usage_limit" as const, issue, previousStatus: issue.status };
+      }
+
       if (run.errorCode === "adapter_failed" && !readNonEmptyString(runContext.retryReason)) {
         const comment = buildAdapterFailedBlockComment({ latestRun: run });
         return {
@@ -8531,6 +8535,16 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
         run: queuedRun,
       };
     });
+
+    if (promotionResult?.kind === "blocked_monthly_usage_limit") {
+      await issuesSvc.addComment(
+        promotionResult.issue.id,
+        "Paused: org Claude usage limit exhausted. Resume when quota resets.",
+        {},
+      );
+      await issuesSvc.update(promotionResult.issue.id, { status: "blocked" });
+      return;
+    }
 
     if (promotionResult?.kind === "blocked_adapter_failed") {
       await issuesSvc.addComment(promotionResult.issue.id, promotionResult.comment, {});

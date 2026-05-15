@@ -1,8 +1,22 @@
 import { describe, expect, it } from "vitest";
 import {
   extractClaudeRetryNotBefore,
+  isClaudeMonthlyUsageLimitError,
   isClaudeTransientUpstreamError,
 } from "./parse.js";
+
+describe("isClaudeMonthlyUsageLimitError", () => {
+  it("detects org monthly usage limit messages", () => {
+    expect(isClaudeMonthlyUsageLimitError({ errorMessage: "You've hit your org's monthly usage limit" })).toBe(true);
+    expect(isClaudeMonthlyUsageLimitError({ errorMessage: "monthly usage limit exceeded" })).toBe(true);
+    expect(isClaudeMonthlyUsageLimitError({ errorMessage: "monthly quota exhausted" })).toBe(true);
+  });
+
+  it("does not match unrelated usage messages", () => {
+    expect(isClaudeMonthlyUsageLimitError({ errorMessage: "You're out of extra usage. Resets at 4pm." })).toBe(false);
+    expect(isClaudeMonthlyUsageLimitError({ errorMessage: "weekly limit reached" })).toBe(false);
+  });
+});
 
 describe("isClaudeTransientUpstreamError", () => {
   it("classifies the 'out of extra usage' subscription window failure as transient", () => {
@@ -91,6 +105,19 @@ describe("isClaudeTransientUpstreamError", () => {
     expect(
       isClaudeTransientUpstreamError({
         errorMessage: "Invalid request_error: Unknown parameter 'foo'.",
+      }),
+    ).toBe(false);
+  });
+
+  it("does not classify monthly usage limit exhaustion as transient", () => {
+    expect(
+      isClaudeTransientUpstreamError({
+        errorMessage: "You've hit your org's monthly usage limit",
+      }),
+    ).toBe(false);
+    expect(
+      isClaudeTransientUpstreamError({
+        errorMessage: "monthly usage limit exceeded",
       }),
     ).toBe(false);
   });

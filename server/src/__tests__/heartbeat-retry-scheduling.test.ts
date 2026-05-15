@@ -1337,4 +1337,28 @@ describeEmbeddedPostgres("heartbeat bounded retry scheduling", () => {
       retryNotBefore.toISOString(),
     );
   });
+
+  it("does not schedule a bounded retry for claude_monthly_usage_limit runs", async () => {
+    const companyId = randomUUID();
+    const agentId = randomUUID();
+    const runId = randomUUID();
+    const now = new Date(2026, 3, 22, 10, 0, 0);
+
+    await seedRetryFixture({
+      runId,
+      companyId,
+      agentId,
+      now,
+      errorCode: "adapter_failed",
+      adapterType: "claude_local",
+      resultJson: { errorFamily: "monthly_usage_limit" },
+    });
+
+    const scheduled = await heartbeat.scheduleBoundedRetry(runId, {
+      now,
+      random: () => 0.5,
+    });
+
+    expect(scheduled.outcome).not.toBe("scheduled");
+  });
 });

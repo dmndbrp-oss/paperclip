@@ -5149,6 +5149,21 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
         : null;
     const transientRetryNotBefore = transientRecovery?.retryNotBefore ?? null;
 
+    if (readHeartbeatRunErrorFamily(run) === "monthly_usage_limit") {
+      await appendRunEvent(run, await nextRunEventSeq(run.id), {
+        eventType: "lifecycle",
+        stream: "system",
+        level: "warn",
+        message: "Monthly usage limit exhaustion is a hard non-retryable failure; no bounded retry scheduled",
+        payload: { retryReason },
+      });
+      return {
+        outcome: "retry_exhausted" as const,
+        attempt: nextAttempt,
+        maxAttempts,
+      };
+    }
+
     if (!baseSchedule) {
       await appendRunEvent(run, await nextRunEventSeq(run.id), {
         eventType: "lifecycle",

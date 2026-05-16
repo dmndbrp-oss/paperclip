@@ -344,8 +344,74 @@ export async function runClaudeLogin(input: {
   });
 }
 
+// ── GOAL MODE HELPERS ────────────────────────────────────────────────────────
+
+type EvalResult = { met: boolean; reason: string; tokensUsed: number };
+
+async function callEvaluator(opts: {
+  condition: string;
+  workerOutput: string;
+  evaluatorModel: string;
+  apiKey: string;
+}): Promise<EvalResult> {
+  const tail = opts.workerOutput.split('\n').slice(-50).join('\n');
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': opts.apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: opts.evaluatorModel,
+      max_tokens: 128,
+      system: 'You are a goal completion evaluator. Respond ONLY with valid JSON: {"met": boolean, "reason": string}. "met" is true only when the condition is fully satisfied. "reason" is one sentence.',
+      messages: [{ role: 'user', content: `Goal condition: ${opts.condition}\n\nWorker last output:\n${tail}` }],
+    }),
+  });
+  if (!resp.ok) {
+    return { met: false, reason: `evaluator HTTP error ${resp.status}`, tokensUsed: 0 };
+  }
+  const data = await resp.json() as Record<string, unknown>;
+  const usage = data.usage as Record<string, number> | undefined;
+  const tokensUsed = (usage?.input_tokens ?? 0) + (usage?.output_tokens ?? 0);
+  const rawContent = Array.isArray(data.content) ? (data.content[0] as Record<string, unknown>)?.text as string : '';
+  let parsed: unknown;
+  try { parsed = JSON.parse(rawContent ?? ''); } catch { return { met: false, reason: `parse error: ${rawContent?.slice(0, 80)}`, tokensUsed }; }
+  if (typeof parsed !== 'object' || parsed === null || typeof (parsed as Record<string, unknown>).met !== 'boolean') {
+    return { met: false, reason: 'parse error: missing met boolean', tokensUsed };
+  }
+  const p = parsed as Record<string, unknown>;
+  return { met: p.met as boolean, reason: typeof p.reason === 'string' ? p.reason : 'no reason', tokensUsed };
+}
+
+async function paperclipApiRequest(opts: {
+  method: 'POST' | 'PATCH';
+  path: string;
+  body: Record<string, unknown>;
+  apiKey: string;
+  runId: string;
+}): Promise<void> {
+  const apiUrl = process.env.PAPERCLIP_API_URL ?? 'http://127.0.0.1:3100';
+  await fetch(`${apiUrl}${opts.path}`, {
+    method: opts.method,
+    headers: {
+      'Authorization': `Bearer ${opts.apiKey}`,
+      'Content-Type': 'application/json',
+      'X-Paperclip-Run-Id': opts.runId,
+    },
+    body: JSON.stringify(opts.body),
+  });
+}
+
+// ── END GOAL MODE HELPERS ────────────────────────────────────────────────────
+
 export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionResult> {
   const { runId, agent, runtime, config, context, onLog, onMeta, onSpawn, authToken } = ctx;
+  const wakeTaskId =
+    (typeof context.taskId === "string" && context.taskId.trim().length > 0 && context.taskId.trim()) ||
+    (typeof context.issueId === "string" && context.issueId.trim().length > 0 && context.issueId.trim()) ||
+    null;
   const executionTarget = readAdapterExecutionTarget({
     executionTarget: ctx.executionTarget,
     legacyRemoteExecution: ctx.executionTransport?.remoteExecution,
@@ -361,6 +427,11 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   const chrome = asBoolean(config.chrome, false);
   const maxTurns = asNumber(config.maxTurnsPerRun, 0);
   const dangerouslySkipPermissions = asBoolean(config.dangerouslySkipPermissions, true);
+  const goalCondition = asString(config.goalCondition, "").trim();
+  const goalMaxTurns = asNumber(config.goalMaxTurns, 0);
+  const goalBudgetTokensEvaluator = asNumber(config.goalBudgetTokensEvaluator, 0);
+  const goalEvaluatorModel = asString(config.goalEvaluatorModel, "claude-haiku-4-5-20251001").trim() || "claude-haiku-4-5-20251001";
+  const isGoalMode = goalCondition.length > 0 && goalMaxTurns > 0 && goalBudgetTokensEvaluator > 0;
   const configEnv = parseObject(config.env);
   const workspaceContext = parseObject(context.paperclipWorkspace);
   const workspaceCwd = asString(workspaceContext.cwd, "");
@@ -693,7 +764,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       : `Claude exited with code ${proc.exitCode ?? -1}`;
   };
 
-  const runAttempt = async (resumeSessionId: string | null) => {
+  const runAttempt = async (resumeSessionId: string | null, envOverride?: Record<string, string>) => {
     const attemptInstructionsFilePath = resumeSessionId ? undefined : effectiveInstructionsFilePath;
     const args = buildClaudeArgs(resumeSessionId, attemptInstructionsFilePath);
     const commandNotes: string[] = [];
@@ -721,7 +792,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
 
     const proc = await runAdapterExecutionTargetProcess(runId, runtimeExecutionTarget, command, args, {
       cwd,
-      env,
+      env: envOverride ?? env,
       stdin: prompt,
       timeoutSec,
       graceSec,
@@ -939,6 +1010,140 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   };
 
   try {
+    // ── GOAL MODE ─────────────────────────────────────────────────────────────
+    if (isGoalMode) {
+      const anthropicApiKey = process.env.ANTHROPIC_API_KEY ?? '';
+      if (!anthropicApiKey) {
+        await onLog('stderr', '[goal-mode] ANTHROPIC_API_KEY not set; falling back to standard mode\n');
+      } else {
+        let turns = 0;
+        let evaluatorTokensUsed = 0;
+        let lastReason = 'no evaluation performed';
+        let lastWorkerOutput = '';
+
+        while (turns < goalMaxTurns) {
+          if (process.env.PAPERCLIP_AGENT_PAUSED === 'true') {
+            if (authToken && wakeTaskId) {
+              await paperclipApiRequest({
+                method: 'POST',
+                runId,
+                path: `/api/issues/${wakeTaskId}/comments`,
+                body: { body: `## Goal-Mode: Paused\n\nPaused by operator after turn ${turns}/${goalMaxTurns}. Goal condition length: ${goalCondition.length} chars.\n\nResume to continue.` },
+                apiKey: authToken,
+              });
+            }
+            break;
+          }
+
+          turns++;
+          const goalEnv = { ...env };
+          delete goalEnv['PAPERCLIP_API_KEY'];
+          goalEnv['PAPERCLIP_GOAL_TURN'] = String(turns);
+          goalEnv['PAPERCLIP_GOAL_MAX_TURNS'] = String(goalMaxTurns);
+          goalEnv['PAPERCLIP_GOAL_CONDITION'] = goalCondition;
+
+          const { proc } = await runAttempt(null, goalEnv);
+          lastWorkerOutput = proc.stdout || '';
+
+          await onLog('stdout', `[goal-mode] Turn ${turns}/${goalMaxTurns} complete. Calling evaluator (condition length: ${goalCondition.length} chars).\n`);
+
+          const evalResult = await callEvaluator({
+            condition: goalCondition,
+            workerOutput: lastWorkerOutput,
+            evaluatorModel: goalEvaluatorModel,
+            apiKey: anthropicApiKey,
+          });
+          evaluatorTokensUsed += evalResult.tokensUsed;
+          lastReason = evalResult.reason;
+
+          if (evalResult.met) {
+            const outputTail = lastWorkerOutput.split('\n').slice(-20).join('\n');
+            const closingComment = [
+              '## Goal-Mode Result: MET',
+              '',
+              `**Goal condition:** ${goalCondition}`,
+              `**Turns taken:** ${turns}/${goalMaxTurns}`,
+              `**Evaluator model:** ${goalEvaluatorModel}`,
+              `**Evaluator reason:** ${evalResult.reason}`,
+              `**Evaluator tokens used:** ${evaluatorTokensUsed}`,
+              '',
+              '### Worker last output (tail)',
+              '```',
+              outputTail,
+              '```',
+            ].join('\n');
+
+            if (authToken && wakeTaskId) {
+              await paperclipApiRequest({
+                method: 'POST',
+                runId,
+                path: `/api/issues/${wakeTaskId}/comments`,
+                body: { body: closingComment },
+                apiKey: authToken,
+              });
+              await paperclipApiRequest({
+                method: 'PATCH',
+                runId,
+                path: `/api/issues/${wakeTaskId}`,
+                body: { status: 'done' },
+                apiKey: authToken,
+              });
+            }
+            return {
+              exitCode: 0,
+              signal: null,
+              timedOut: false,
+              errorMessage: null,
+              errorCode: null,
+              usage: { inputTokens: 0, cachedInputTokens: 0, outputTokens: evaluatorTokensUsed },
+              resultJson: { goalMet: true, turns, evaluatorTokensUsed },
+              summary: `Goal met after ${turns} turn(s)`,
+              clearSession: true,
+            };
+          }
+        }
+
+        if (process.env.PAPERCLIP_AGENT_PAUSED !== 'true' && authToken && wakeTaskId) {
+          const blockedComment = [
+            '## Goal-Mode Result: BLOCKED — maxTurns Reached',
+            '',
+            `**Goal condition:** ${goalCondition}`,
+            `**Turns taken:** ${goalMaxTurns}/${goalMaxTurns}`,
+            `**Last evaluator reason:** ${lastReason}`,
+            `**Evaluator tokens used:** ${evaluatorTokensUsed}`,
+            '',
+            'Recommended next action: Review task scope, refine goal condition, or raise maxTurns with CEO approval.',
+          ].join('\n');
+          await paperclipApiRequest({
+            method: 'POST',
+            runId,
+            path: `/api/issues/${wakeTaskId}/comments`,
+            body: { body: blockedComment },
+            apiKey: authToken,
+          });
+          await paperclipApiRequest({
+            method: 'PATCH',
+            runId,
+            path: `/api/issues/${wakeTaskId}`,
+            body: { status: 'blocked' },
+            apiKey: authToken,
+          });
+        }
+        return {
+          exitCode: 0,
+          signal: null,
+          timedOut: false,
+          errorMessage: 'Goal not met after maxTurns',
+          errorCode: 'goal_max_turns_exceeded',
+          usage: { inputTokens: 0, cachedInputTokens: 0, outputTokens: evaluatorTokensUsed },
+          resultJson: { goalMet: false, turns, evaluatorTokensUsed },
+          summary: `Goal not met after ${turns} turn(s)`,
+          clearSession: true,
+        };
+      }
+    }
+    // ── END GOAL MODE ──────────────────────────────────────────────────────────
+
     const initial = await runAttempt(sessionId ?? null);
     if (
       sessionId &&

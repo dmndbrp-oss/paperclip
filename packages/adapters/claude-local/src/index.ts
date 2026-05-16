@@ -46,6 +46,12 @@ Core fields:
 - workspaceStrategy (object, optional): execution workspace strategy; currently supports { type: "git_worktree", baseRef?, branchTemplate?, worktreeParentDir? }
 - workspaceRuntime (object, optional): reserved for workspace runtime metadata; workspace runtime services are manually controlled from the workspace UI and are not auto-started by heartbeats
 
+Goal-mode fields (all three required to enable goal-mode; omit all three for standard single-turn behaviour):
+- goalCondition (string): natural-language condition the evaluator checks after each worker turn
+- goalMaxTurns (number): maximum worker turns before the loop gives up and marks the task blocked
+- goalBudgetTokensEvaluator (number): token budget reserved for evaluator calls (informational; does not enforce a hard cap)
+- goalEvaluatorModel (string, optional, default "claude-haiku-4-5-20251001"): Anthropic model used for goal evaluation; must be reachable via ANTHROPIC_API_KEY in the server process environment
+
 Operational fields:
 - timeoutSec (number, optional): run timeout in seconds
 - graceSec (number, optional): SIGTERM grace period in seconds

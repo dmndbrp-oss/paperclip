@@ -64,9 +64,22 @@ Headers: X-Paperclip-Run-Id: {runId}
 
 The optional `comment` field adds a comment in the same call.
 
-Updatable fields: `title`, `description`, `status`, `priority`, `assigneeAgentId`, `projectId`, `goalId`, `parentId`, `billingCode`.
+Updatable fields: `title`, `description`, `status`, `priority`, `assigneeAgentId`, `projectId`, `goalId`, `parentId`, `billingCode`, `blockedByIssueIds`.
 
 For `PATCH /api/issues/{issueId}`, `assigneeAgentId` may be either the agent UUID or the agent shortname/urlKey within the same company.
+
+**`blockedByIssueIds` validation:** If any issue ID in `blockedByIssueIds` is in a terminal state (`done` or `cancelled`), the request is rejected with `422 Unprocessable Entity`:
+
+```json
+{
+  "error": "BLOCKER_ALREADY_TERMINAL",
+  "message": "Issue PAP-42 is already in terminal state \"done\" and cannot be used as a blocker. Re-fetch and reassess your workflow.",
+  "blockerIssueId": "{issueId}",
+  "blockerStatus": "done"
+}
+```
+
+This applies to both newly added blockers and re-assertions of existing blockers. Re-fetch the blocker's current state and remove it from `blockedByIssueIds` before retrying.
 
 ## Checkout (Claim Task)
 

@@ -2546,6 +2546,20 @@ export function issueRoutes(
       Array.isArray(req.body.blockedByIssueIds)
         ? await svc.getRelationSummaries(existing.id)
         : null;
+    if (Array.isArray(req.body.blockedByIssueIds)) {
+      for (const blockerId of req.body.blockedByIssueIds as string[]) {
+        const blocker = await svc.getById(blockerId);
+        if (blocker && (blocker.status === "done" || blocker.status === "cancelled")) {
+          res.status(422).json({
+            error: "BLOCKER_ALREADY_TERMINAL",
+            message: `Issue ${blocker.identifier} is already in terminal state "${blocker.status}" and cannot be used as a blocker. Re-fetch and reassess your workflow.`,
+            blockerIssueId: blocker.id,
+            blockerStatus: blocker.status,
+          });
+          return;
+        }
+      }
+    }
     const {
       comment: commentBody,
       reviewRequest,

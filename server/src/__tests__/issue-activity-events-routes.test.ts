@@ -490,4 +490,90 @@ describe("issue activity event routes", () => {
       );
     });
   });
+
+  describe("stale blocker rejection (422)", () => {
+    it("returns 422 when a done issue is added as a blocker", async () => {
+      const issue = makeIssue();
+      const doneBlockerId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+      mockIssueService.getById.mockImplementation(async (id: string) => {
+        if (id === issue.id) return issue;
+        if (id === doneBlockerId)
+          return { id: doneBlockerId, identifier: "PAP-99", status: "done", companyId: "company-1" };
+        return null;
+      });
+
+      const res = await request(await createApp())
+        .patch(`/api/issues/${issue.id}`)
+        .send({ blockedByIssueIds: [doneBlockerId] });
+
+      expect(res.status).toBe(422);
+      expect(res.body).toMatchObject({
+        error: "BLOCKER_ALREADY_TERMINAL",
+        blockerIssueId: doneBlockerId,
+        blockerStatus: "done",
+      });
+    });
+
+    it("returns 422 when a cancelled issue is added as a blocker", async () => {
+      const issue = makeIssue();
+      const cancelledBlockerId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+      mockIssueService.getById.mockImplementation(async (id: string) => {
+        if (id === issue.id) return issue;
+        if (id === cancelledBlockerId)
+          return { id: cancelledBlockerId, identifier: "PAP-98", status: "cancelled", companyId: "company-1" };
+        return null;
+      });
+
+      const res = await request(await createApp())
+        .patch(`/api/issues/${issue.id}`)
+        .send({ blockedByIssueIds: [cancelledBlockerId] });
+
+      expect(res.status).toBe(422);
+      expect(res.body).toMatchObject({
+        error: "BLOCKER_ALREADY_TERMINAL",
+        blockerIssueId: cancelledBlockerId,
+        blockerStatus: "cancelled",
+      });
+    });
+
+    it("passes (200) when an in_progress issue is added as a blocker", async () => {
+      const issue = makeIssue();
+      const inProgressBlockerId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+      mockIssueService.getById.mockImplementation(async (id: string) => {
+        if (id === issue.id) return issue;
+        if (id === inProgressBlockerId)
+          return { id: inProgressBlockerId, identifier: "PAP-97", status: "in_progress", companyId: "company-1" };
+        return null;
+      });
+      mockIssueService.update.mockResolvedValue({ ...issue, updatedAt: new Date() });
+
+      const res = await request(await createApp())
+        .patch(`/api/issues/${issue.id}`)
+        .send({ blockedByIssueIds: [inProgressBlockerId] });
+
+      expect(res.status).toBe(200);
+    });
+
+    it("passes (200) when re-asserting an existing active (todo) blocker", async () => {
+      const issue = makeIssue();
+      const existingBlockerId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+      mockIssueService.getById.mockImplementation(async (id: string) => {
+        if (id === issue.id) return issue;
+        if (id === existingBlockerId)
+          return { id: existingBlockerId, identifier: "PAP-96", status: "todo", companyId: "company-1" };
+        return null;
+      });
+      mockIssueService.getRelationSummaries.mockResolvedValue({
+        blockedBy: [{ id: existingBlockerId, identifier: "PAP-96", status: "todo" }],
+        blocks: [],
+      });
+      mockIssueService.update.mockResolvedValue({ ...issue, updatedAt: new Date() });
+
+      const res = await request(await createApp())
+        .patch(`/api/issues/${issue.id}`)
+        .send({ blockedByIssueIds: [existingBlockerId] });
+
+      expect(res.status).toBe(200);
+    });
+  });
 });

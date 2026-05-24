@@ -167,7 +167,7 @@ Manufacturer: Florim | Category: outdoor_patio | Price: $42/sqft
 
 ---
 
-### Reviewer Example 3 — material_type wrong (quartz vs granite) (score 0.30)
+### Reviewer Example 3 — material_type wrong (quartz vs granite) (score 0.55)
 
 **Input:**
 ```
@@ -176,10 +176,10 @@ Raw description: Premium absolute black granite slab from India. Mirror polish.
 Manufacturer: null | Category: stone | Price: $55/sqft
 ```
 
-**Enrichment excerpt (with intentional error):**
+**Enrichment excerpt (with intentional errors):**
 ```json
 {"material_type": "quartz", "primary_color_family": "black", "finish": "polished",
- "is_outdoor": false, "sealing_required": false, "price_tier": "mid",
+ "is_outdoor": false, "sealing_required": true, "price_tier": "mid",
  "enrichment_confidence": 0.88}
 ```
 
@@ -187,8 +187,8 @@ Manufacturer: null | Category: stone | Price: $55/sqft
 ```json
 {
   "anomaly_score": 0.55,
-  "anomaly_reason": "A1: product name and description clearly say 'granite' but material_type=quartz. D2: quartz with sealing_required is unusual but less critical here.",
-  "triggered_rules": ["A1"]
+  "anomaly_reason": "A1: name and description say 'granite' but material_type=quartz. D2: quartz assigned sealing_required=true — engineered quartz does not require sealing.",
+  "triggered_rules": ["A1", "D2"]
 }
 ```
 

@@ -92,13 +92,13 @@ Rules are grouped by type. Each rule has a **weight** (how much it contributes t
 
 ## Score computation
 
-The reviewer considers all applicable rules. The final score is:
+The reviewer checks all applicable rules. For each group (A–F), only the highest-weight triggered rule contributes — this avoids double-counting correlated signals. The final score is:
 
 ```
-anomaly_score = min(1.0, sum of triggered rule weights)
+anomaly_score = min(1.0, sum-over-groups(max-weight-per-group))
 ```
 
-If multiple rules from the same group fire, only the highest-weight rule in that group contributes (to avoid double-counting correlated signals). Groups A, B, C, D, E, F each contribute at most their highest triggered weight.
+Groups A, B, C, D, E, F each contribute at most their single highest triggered rule weight to the sum.
 
 ---
 

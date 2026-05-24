@@ -1,0 +1,10 @@
+task_id: "f0520b79-76b2-45f5-9d21-bd7676b4500f"
+identifier: "SAG-2067"
+title: "Triage your recovery queue (1 recovery + 1 silent-run review)"
+specialty: "ssi_director"
+domain: "ssi-hp"
+outcome: "done"
+decided_at: "2026-05-24T01:25:18.540Z"
+digest_model: "claude-sonnet-4-6"
+digest_version: 1
+source: "digester"

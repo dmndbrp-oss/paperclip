@@ -7,9 +7,11 @@
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "test": "vitest run",
-    "smoke": "tsx scripts/knowledge-smoke.ts"
+    "smoke": "tsx scripts/knowledge-smoke.ts",
+    "digester-smoke": "tsx scripts/digester-smoke.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
     "yaml": "^2.4.0",
     "zod": "^3.23.0"
   },

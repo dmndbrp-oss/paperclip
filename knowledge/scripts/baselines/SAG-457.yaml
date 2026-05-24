@@ -1,0 +1,10 @@
+task_id: "3ecf9af7-afa6-4b7e-ad63-d15531741e98"
+identifier: "SAG-457"
+title: "API Endpoints"
+specialty: "ssi_director"
+domain: "ssi-hp"
+outcome: "done"
+decided_at: "2026-05-07T20:39:37.805Z"
+digest_model: "claude-sonnet-4-6"
+digest_version: 1
+source: "digester"

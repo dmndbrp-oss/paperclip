@@ -1,0 +1,10 @@
+task_id: "9d26f9c1-de67-48c1-9da0-364806e19129"
+identifier: "SAG-2152"
+title: "SSI Director batch-approval workflow"
+specialty: "ssi_director"
+domain: "ssi-hp"
+outcome: "done"
+decided_at: "2026-05-24T11:24:59.075Z"
+digest_model: "claude-sonnet-4-6"
+digest_version: 1
+source: "digester"

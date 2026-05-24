@@ -1,6 +1,6 @@
 # Enrichment Staging — Database Migrations
 
-SAG-2147 | Parent: [SAG-2136](/SAG/issues/SAG-2136)
+[SAG-2147](/SAG/issues/SAG-2147) + [SAG-2149](/SAG/issues/SAG-2149) | Parent: [SAG-2136](/SAG/issues/SAG-2136)
 
 Plain SQL migrations for the enrichment pipeline's isolated Postgres schema.
 No migration runner required — apply with `psql` directly.
@@ -26,10 +26,14 @@ The migration is instance-agnostic and runs on any Postgres ≥ 13.
 ## Applying the migration
 
 ```bash
-# Forward (create schema + tables + roles + permissions)
+# Migration 001: schema + tables + roles (SAG-2147)
 psql -U postgres -d <your_db> -f migrations/001_enrichment_staging_up.sql
 
-# Rollback (drop everything — destructive)
+# Migration 002: review view + enrichment_ui_reader role (SAG-2149)
+psql -U postgres -d <your_db> -f migrations/002_review_view_up.sql
+
+# Rollback 002 first, then 001
+psql -U postgres -d <your_db> -f migrations/002_review_view_down.sql
 psql -U postgres -d <your_db> -f migrations/001_enrichment_staging_down.sql
 ```
 

@@ -1,0 +1,22 @@
+{
+  "name": "knowledge",
+  "version": "0.1.0",
+  "description": "Sage Surfaces per-task knowledge store — SAG-2187",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "test": "vitest run",
+    "smoke": "tsx scripts/knowledge-smoke.ts"
+  },
+  "dependencies": {
+    "yaml": "^2.4.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.6.0"
+  }
+}

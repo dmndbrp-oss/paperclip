@@ -10,6 +10,14 @@ Environment variables (beyond dispatcher's own set):
   PAPERCLIP_RUN_ID    current run ID for X-Paperclip-Run-Id audit header
   PAPERCLIP_API_URL   Paperclip control-plane URL
   PAPERCLIP_API_KEY   scoped JWT for Paperclip API calls
+
+OpenShell sandbox (SAG-2357 production routing flip):
+  OPENSH_SANDBOX_ENABLED   1=on, 0=off (default 0; flip to 1 for production — CEO approved 2026-05-26)
+  OPENSH_SANDBOX_TAG        openshell image tag (default 0.0.47)
+  OPENSH_USE_GRPC           1=gRPC dispatcher, 0=CLI (default 1; gRPC is -24% latency)
+  OPENSH_MACOS_FALLBACK     container|none (default container)
+  OPENSH_POOL_SIZE          sandbox pool size (default 3; ~42 MiB total at pool=3)
+  OPENSH_RAM_ALERT_MIB      alert threshold in MiB (default 200)
 """
 from __future__ import annotations
 
@@ -23,7 +31,16 @@ from datetime import datetime, timezone
 import httpx
 
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from dispatcher import DispatcherConfig, EnrichmentDispatcher  # type: ignore[import]
+
+try:
+    from scripts.opensh_shim.config import ShimConfig  # type: ignore[import]
+    from scripts.opensh_shim.pool import SandboxPool  # type: ignore[import]
+    from scripts.opensh_shim.monitor import PoolMonitor  # type: ignore[import]
+    _OPENSH_AVAILABLE = True
+except ImportError:
+    _OPENSH_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +51,8 @@ def _build_comment(summary: dict, started_at: datetime, finished_at: datetime) -
     done = summary["done"]
     failed = summary["failed"]
     cap_paused = summary["cap_paused"]
+    pool_ram_mib = summary.get("opensh_pool_ram_mib")
+    pool_size = summary.get("opensh_pool_size")
 
     if total == 0:
         status_line = "Batch complete — queue empty, no rows to process."
@@ -58,6 +77,11 @@ def _build_comment(summary: dict, started_at: datetime, finished_at: datetime) -
         f"| Duration | {duration_s:.1f}s |",
         f"| Finished at | {finished_at.strftime('%Y-%m-%d %H:%M:%S')} UTC |",
     ]
+
+    if pool_ram_mib is not None:
+        lines += [
+            f"| OpenShell pool RAM | {pool_ram_mib:.1f} MiB (size={pool_size}) |",
+        ]
 
     if cap_paused:
         lines += [
@@ -131,6 +155,24 @@ async def run() -> int:
     run_id = os.environ.get("PAPERCLIP_RUN_ID", "")
     task_id = os.environ.get("PAPERCLIP_TASK_ID", "")
 
+    # --- OpenShell sandbox pool initialization (SAG-2357) ---
+    sandbox_pool: SandboxPool | None = None
+    pool_monitor: PoolMonitor | None = None
+    if _OPENSH_AVAILABLE:
+        shim_cfg = ShimConfig.from_env()
+        if shim_cfg.enabled:
+            sandbox_pool = SandboxPool(shim_cfg.sandbox_tag, shim_cfg.pool_size)
+            sandbox_pool.prefill()
+            pool_monitor = PoolMonitor(
+                shim_cfg, sandbox_pool,
+                api_url=api_url, api_key=api_key,
+                issue_id=task_id, run_id=run_id,
+            )
+            logger.info(
+                "OpenShell sandbox pool active: tag=%s pool_size=%d grpc=%s",
+                shim_cfg.sandbox_tag, shim_cfg.pool_size, shim_cfg.use_grpc,
+            )
+
     started_at = datetime.now(timezone.utc)
     exit_code = 0
 
@@ -143,7 +185,16 @@ async def run() -> int:
         summary = {"total": 0, "done": 0, "failed": 0, "cap_paused": False, "error": str(exc)}
         exit_code = 1
 
+    # --- Pool RAM check + alert ---
+    if pool_monitor:
+        metrics = await pool_monitor.check_and_alert()
+        summary["opensh_pool_ram_mib"] = metrics["pool_ram_mib"]
+        summary["opensh_pool_size"] = metrics["pool_size"]
+
     finished_at = datetime.now(timezone.utc)
+
+    if sandbox_pool:
+        sandbox_pool.teardown()
 
     if api_url and api_key and task_id:
         comment = _build_comment(summary, started_at, finished_at)

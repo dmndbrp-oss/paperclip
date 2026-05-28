@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-28T21:19:28.451347+00:00",
+  "plugin_slug": "code-simplifier",
+  "marketplace": "anthropics/claude-plugins-official",
+  "manifest": {
+    "name": "code-simplifier",
+    "version": "1.0.0",
+    "description": "Agent that simplifies and refines code for clarity, consistency, and maintainability while preserving functionality",
+    "author": {
+      "name": "Anthropic",
+      "email": "support@anthropic.com"
+    }
+  },
+  "files_written": [
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/code-simplifier/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "size_bytes": 11358
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/code-simplifier/agents/code-simplifier.md",
+      "sha256": "2a51e8d210580d9f66ac2ed1226c41f9374565fc275da30d7bb95f65c2cc87bb",
+      "size_bytes": 3129
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/code-simplifier/.claude-plugin/plugin.json",
+      "sha256": "f18fb26b2f03e95ad165a4333c73ecd292da18e74d2b89d89bd9848839f8d0e7",
+      "size_bytes": 271
+    }
+  ],
+  "network_egress": [],
+  "denylist_precheck": {
+    "result": "clean",
+    "hits": [],
+    "framework_ref": "SAG-683 §1 + §1.5",
+    "checked_identifiers": [
+      "anthropics/code-simplifier",
+      "anthropic",
+      "support@anthropic.com"
+    ]
+  },
+  "post_install_check": {
+    "ok": true,
+    "notes": "Found 3 file(s) under /home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/code-simplifier"
+  }
+}

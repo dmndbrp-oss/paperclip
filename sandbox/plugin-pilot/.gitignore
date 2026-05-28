@@ -1,0 +1,8 @@
+# Installed plugin files — workspace is ephemeral, not production catalog
+workspace/
+# State dir used by audit_install.py (alternate harness)
+state/
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/

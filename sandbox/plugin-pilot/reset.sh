@@ -1,37 +1,60 @@
 #!/usr/bin/env bash
-# Reset the plugin-pilot sandbox state.
-# Wipes state/home/ (the isolated install target) so the next smoke run starts clean.
-# Does NOT touch audits/ — audit records are preserved.
-# Does NOT touch ~/.claude/ (production) — verified below.
+# Reset the plugin-pilot sandbox.
+#
+# Removes workspace/ (the isolated install target) so the next smoke run
+# starts with a clean slate.  Audit logs in audit/ are preserved by default.
+#
+# Usage:
+#   bash reset.sh              # clear workspace only
+#   bash reset.sh --clear-audit  # clear workspace + audit logs
+#
+# Production safety: only sandbox/plugin-pilot/workspace/ is removed.
+# This script never touches ~/.claude/ or any Paperclip platform directory.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATE_DIR="$SCRIPT_DIR/state"
+WORKSPACE_DIR="$SCRIPT_DIR/workspace"
+AUDIT_DIR="$SCRIPT_DIR/audit"
 PROD_CLAUDE="$HOME/.claude"
+CLEAR_AUDIT=0
+
+for arg in "$@"; do
+    [ "$arg" = "--clear-audit" ] && CLEAR_AUDIT=1
+done
 
 echo "=== plugin-pilot reset ==="
 
-# Wipe sandbox state.
-if [ -d "$STATE_DIR" ]; then
-    echo "Removing: $STATE_DIR"
-    rm -rf "$STATE_DIR"
-    echo "State cleared."
+# Remove workspace.
+if [ -d "$WORKSPACE_DIR" ]; then
+    echo "Removing: $WORKSPACE_DIR"
+    rm -rf "$WORKSPACE_DIR"
+    echo "Workspace cleared."
 else
-    echo "State directory not found -- already clean."
+    echo "Workspace not found -- already clean."
 fi
 
-# Verify production HOME was not touched: check if any files in
-# ~/.claude/plugins/ are newer than this script file.
+# Optionally clear audit logs.
+if [ "$CLEAR_AUDIT" -eq 1 ]; then
+    if [ -d "$AUDIT_DIR" ]; then
+        echo "Removing: $AUDIT_DIR"
+        rm -rf "$AUDIT_DIR"
+        echo "Audit logs cleared."
+    fi
+fi
+
+# Production safety check: warn if ~/.claude/plugins/ has files newer than
+# the workspace (which was just removed). Use the script itself as the
+# comparison anchor since the workspace is gone.
 if [ -d "$PROD_CLAUDE/plugins" ]; then
     recent=$(find "$PROD_CLAUDE/plugins" -newer "$SCRIPT_DIR/reset.sh" -name "*.json" 2>/dev/null | head -5)
     if [ -n "$recent" ]; then
         echo "WARNING: production ~/.claude/plugins/ has files newer than this script:"
         echo "$recent"
-        echo "Investigate whether the sandbox HOME isolation held."
+        echo "Investigate whether sandbox HOME isolation held."
     else
         echo "Production ~/.claude/plugins/ unmodified -- sandbox boundary confirmed."
     fi
 fi
 
-echo "Reset complete. Run 'python audit_install.py code-review@claude-plugins-official' for a fresh smoke run."
+echo "Reset complete. Run 'python3 plugin_sandbox.py code-simplifier' for a fresh smoke run."

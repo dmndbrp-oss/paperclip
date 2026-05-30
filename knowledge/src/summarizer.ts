@@ -14,16 +14,25 @@ interface PaperclipTaskSummarizerConfig {
   companyId: string;
   summarizerAgentId: string;
   runId?: string;
+  /** Override poll cadence. Default: 3 000 ms. */
+  pollIntervalMs?: number;
+  /** Override total wait cap. Default: 180 000 ms (3 min). */
+  timeoutMs?: number;
 }
 
-const POLL_INTERVAL_MS = 3_000;
-const TIMEOUT_MS = 300_000;
+const DEFAULT_POLL_INTERVAL_MS = 3_000;
+const DEFAULT_TIMEOUT_MS = 180_000;
+
+// Statuses that will never progress — throw immediately rather than waiting for timeout.
+const TERMINAL_FAILURE_STATUSES = new Set(['cancelled', 'blocked', 'failed', 'archived']);
 
 export class PaperclipTaskSummarizer implements Summarizer {
   constructor(private readonly cfg: PaperclipTaskSummarizerConfig) {}
 
   async summarize(system: string, user: string): Promise<string> {
     const { apiUrl, apiKey, companyId, summarizerAgentId, runId } = this.cfg;
+    const timeoutMs = this.cfg.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const pollIntervalMs = this.cfg.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
 
     const mutatingHeaders: Record<string, string> = {
       Authorization: `Bearer ${apiKey}`,
@@ -84,10 +93,10 @@ export class PaperclipTaskSummarizer implements Summarizer {
     const created = (await createRes.json()) as { id: string };
     const delegatedIssueId = created.id;
 
-    const deadline = Date.now() + TIMEOUT_MS;
+    const deadline = Date.now() + timeoutMs;
 
     while (Date.now() < deadline) {
-      await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+      await new Promise((r) => setTimeout(r, pollIntervalMs));
 
       const pollRes = await fetch(`${apiUrl}/api/issues/${delegatedIssueId}`, {
         headers: { Authorization: `Bearer ${apiKey}` },
@@ -95,6 +104,13 @@ export class PaperclipTaskSummarizer implements Summarizer {
       if (!pollRes.ok) continue;
 
       const issue = (await pollRes.json()) as { status: string };
+
+      if (TERMINAL_FAILURE_STATUSES.has(issue.status)) {
+        throw new Error(
+          `PaperclipTaskSummarizer: delegated issue ${delegatedIssueId} reached terminal state '${issue.status}'`,
+        );
+      }
+
       if (issue.status !== 'done') continue;
 
       const commentsRes = await fetch(`${apiUrl}/api/issues/${delegatedIssueId}/comments`, {
@@ -120,7 +136,7 @@ export class PaperclipTaskSummarizer implements Summarizer {
     }
 
     throw new Error(
-      `PaperclipTaskSummarizer: timeout after ${TIMEOUT_MS / 1000}s waiting for issue ${delegatedIssueId}`,
+      `PaperclipTaskSummarizer: timeout after ${timeoutMs / 1000}s waiting for issue ${delegatedIssueId}`,
     );
   }
 }

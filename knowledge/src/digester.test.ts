@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { parse as yamlParse } from 'yaml';
 import { validateEntry, writeEntry } from './store.js';
-import { DIGESTER_SYSTEM_PROMPT } from './digester.js';
+import { DIGESTER_SYSTEM_PROMPT, digestIssue, type DigesterConfig } from './digester.js';
+import type { Summarizer } from './summarizer.js';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Helpers for failure-path simulation
@@ -236,5 +237,103 @@ describe('DIGESTER_SYSTEM_PROMPT', () => {
     for (const field of required) {
       expect(DIGESTER_SYSTEM_PROMPT).toContain(field);
     }
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// digestIssue seam tests (Finding #2 — SAG-2508)
+// Uses vi.stubGlobal to intercept fetch; injects a fake Summarizer.
+// ────────────────────────────────────────────────────────────────────────────
+
+describe('digestIssue seam', () => {
+  const FAKE_ISSUE_ID = 'aaaabbbb-0000-0000-0000-000000000001';
+
+  const FAKE_ISSUE = {
+    id: FAKE_ISSUE_ID,
+    identifier: 'SAG-9999',
+    title: 'Test issue',
+    description: 'Test description',
+    status: 'done',
+    completedAt: '2026-05-30T00:00:00.000Z',
+    updatedAt: '2026-05-30T00:00:00.000Z',
+    assigneeAgentId: 'agent-target',
+  };
+
+  const CANNED_YAML = [
+    `task_id: ${FAKE_ISSUE_ID}`,
+    'identifier: SAG-9999',
+    'title: Test issue',
+    'specialty: ssi_director',
+    'domain: ssi-hp',
+    'outcome: done',
+    'summary: Completed the test task successfully.',
+    'decided_at: "2026-05-30T00:00:00.000Z"',
+    'digest_model: claude-sonnet-4-6',
+    'digest_version: 1',
+    'source: digester',
+  ].join('\n');
+
+  function makeConfig(): DigesterConfig {
+    return {
+      baseDir: tmpDir,
+      stateFile: path.join(tmpDir, 'state.json'),
+      failureLogFile: path.join(tmpDir, '_failures.jsonl'),
+      companyId: 'co-test',
+      apiUrl: 'http://fake',
+      apiKey: 'fake-key',
+      summarizerAgentId: 'agent-sum',
+      targetAgentId: 'agent-target',
+      targetAgentRole: 'Director of SSI (ssi-hp catalog work)',
+    };
+  }
+
+  function stubFetch(issueBody = FAKE_ISSUE): void {
+    vi.stubGlobal('fetch', (url: string) => {
+      if (url.endsWith('/comments')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.endsWith('/documents')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(issueBody) });
+    });
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('happy path: wires summarize → extractYamlBlock → validateEntry → writeEntry', async () => {
+    stubFetch();
+    const fakeSummarizer: Summarizer = {
+      summarize: vi.fn().mockResolvedValue(CANNED_YAML),
+    };
+
+    const result = await digestIssue(makeConfig(), fakeSummarizer, FAKE_ISSUE_ID);
+
+    expect(result.success).toBe(true);
+    expect(result.identifier).toBe('SAG-9999');
+
+    const yamlPath = path.join(tmpDir, 'tasks', '2026', '05', 'SAG-9999.yaml');
+    expect(fs.existsSync(yamlPath)).toBe(true);
+  });
+
+  it('summarizer throw → result.reason contains summarizer_error, failure logged', async () => {
+    stubFetch();
+    const fakeSummarizer: Summarizer = {
+      summarize: vi.fn().mockRejectedValue(new Error('worker timed out')),
+    };
+
+    const config = makeConfig();
+    const result = await digestIssue(config, fakeSummarizer, FAKE_ISSUE_ID);
+
+    expect(result.success).toBe(false);
+    expect(result.reason).toMatch(/summarizer_error/);
+
+    const lines = fs.readFileSync(config.failureLogFile, 'utf8')
+      .trim().split('\n').filter(Boolean);
+    expect(lines.length).toBe(1);
+    const logged = JSON.parse(lines[0]) as Record<string, unknown>;
+    expect((logged['reason'] as string)).toMatch(/summarizer_error/);
   });
 });

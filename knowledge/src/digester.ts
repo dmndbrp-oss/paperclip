@@ -1,6 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
 import fs from 'node:fs';
 import path from 'node:path';
+import { type Summarizer, PaperclipTaskSummarizer } from './summarizer.js';
 import { parse as yamlParse } from 'yaml';
 import { validateEntry, writeEntry } from './store.js';
 
@@ -18,7 +18,8 @@ export interface DigesterConfig {
   companyId: string;
   apiUrl: string;
   apiKey: string;
-  anthropicApiKey: string;
+  /** Agent ID of the summarizer worker (must differ from the routine runner — see summarizer.ts). */
+  summarizerAgentId: string;
   /** Agent ID to poll for done issues (e.g. SSI Director). */
   targetAgentId: string;
   /**
@@ -254,7 +255,7 @@ function extractYamlBlock(text: string): string | null {
 
 export async function digestIssue(
   config: DigesterConfig,
-  client: Anthropic,
+  summarizer: Summarizer,
   issueId: string,
 ): Promise<DigestResult> {
   let issue: PaperclipIssue;
@@ -273,18 +274,9 @@ export async function digestIssue(
 
   let rawText: string;
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system: DIGESTER_SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userPrompt }],
-    });
-    rawText = message.content
-      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-      .map((b) => b.text)
-      .join('');
+    rawText = await summarizer.summarize(DIGESTER_SYSTEM_PROMPT, userPrompt);
   } catch (err) {
-    const reason = `anthropic_error: ${err}`;
+    const reason = `summarizer_error: ${err}`;
     logFailure(config.failureLogFile, { issueId, identifier: issue.identifier, reason });
     return { issueId, identifier: issue.identifier, success: false, reason };
   }
@@ -338,7 +330,13 @@ export async function digestIssue(
 
 export async function runDigester(config: DigesterConfig): Promise<void> {
   const state = loadState(config.stateFile);
-  const client = new Anthropic({ apiKey: config.anthropicApiKey });
+  const summarizer = new PaperclipTaskSummarizer({
+    apiUrl: config.apiUrl,
+    apiKey: config.apiKey,
+    companyId: config.companyId,
+    summarizerAgentId: config.summarizerAgentId,
+    runId: process.env['PAPERCLIP_RUN_ID'],
+  });
 
   console.log(`[digester] polling issues updated since ${state.lastRunAt}`);
 
@@ -355,7 +353,7 @@ export async function runDigester(config: DigesterConfig): Promise<void> {
   for (const issue of issues) {
     console.log(`[digester] → ${issue.identifier}: ${issue.title}`);
     try {
-      const result = await digestIssue(config, client, issue.id);
+      const result = await digestIssue(config, summarizer, issue.id);
       if (result.success) {
         console.log(`[digester]   ✓ written`);
       } else {

@@ -16,9 +16,9 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { parse as yamlParse } from 'yaml';
-import Anthropic from '@anthropic-ai/sdk';
 import { digestIssue } from '../src/digester.js';
 import type { DigesterConfig } from '../src/digester.js';
+import { PaperclipTaskSummarizer } from '../src/summarizer.js';
 import type { KnowledgeEntry } from '../src/index.js';
 import { initDirectories } from '../src/index.js';
 
@@ -30,6 +30,8 @@ const SCRIPT_DIR = path.dirname(new URL(import.meta.url).pathname);
 const SMOKE_DIR = path.resolve(SCRIPT_DIR, '../.smoke-output');
 const BASELINES_DIR = path.resolve(SCRIPT_DIR, 'baselines');
 
+const SUMMARIZER_AGENT_ID = '11d0b5de-44a9-4f05-b130-846804e29955';
+
 const config: DigesterConfig = {
   baseDir: SMOKE_DIR,
   stateFile: path.join(SMOKE_DIR, 'state.json'),
@@ -37,7 +39,7 @@ const config: DigesterConfig = {
   companyId: process.env['PAPERCLIP_COMPANY_ID'] ?? '1dc911ed-ff05-4072-b2ae-a3e3177e3873',
   apiUrl: process.env['PAPERCLIP_API_URL'] ?? 'http://127.0.0.1:3100',
   apiKey: process.env['PAPERCLIP_API_KEY'] ?? '',
-  anthropicApiKey: process.env['ANTHROPIC_API_KEY'] ?? '',
+  summarizerAgentId: SUMMARIZER_AGENT_ID,
   targetAgentId: '7cc4dafd-b41f-469c-b8ea-7b4110a11fe8',
   targetAgentRole: 'Director of SSI (ssi-hp catalog work, staging audits, recovery triage)',
 };
@@ -116,24 +118,26 @@ function diffEntry(
 // ────────────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  if (!config.anthropicApiKey) {
-    console.error('ERROR: ANTHROPIC_API_KEY not set — cannot run live smoke');
-    process.exit(1);
-  }
   if (!config.apiKey) {
     console.error('ERROR: PAPERCLIP_API_KEY not set');
     process.exit(1);
   }
 
   initDirectories(SMOKE_DIR);
-  const client = new Anthropic({ apiKey: config.anthropicApiKey });
+  const summarizer = new PaperclipTaskSummarizer({
+    apiUrl: config.apiUrl,
+    apiKey: config.apiKey,
+    companyId: config.companyId,
+    summarizerAgentId: config.summarizerAgentId,
+    runId: process.env['PAPERCLIP_RUN_ID'],
+  });
 
   let totalDrift = 0;
   const results: Array<{ identifier: string; drifts: string[]; success: boolean }> = [];
 
   for (const { issueId, identifier } of REPLAY_ISSUES) {
     console.log(`\n── ${identifier} (${issueId}) ──`);
-    const result = await digestIssue(config, client, issueId);
+    const result = await digestIssue(config, summarizer, issueId);
 
     if (!result.success) {
       console.log(`  ✗ digestion failed: ${result.reason}`);

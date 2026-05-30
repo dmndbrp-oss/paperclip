@@ -8,7 +8,9 @@
     "build": "tsc",
     "test": "vitest run",
     "smoke": "tsx scripts/knowledge-smoke.ts",
-    "digester-smoke": "tsx scripts/digester-smoke.ts"
+    "digester-smoke": "tsx scripts/digester-smoke.ts",
+    "knowledge-cli": "tsx scripts/knowledge-cli.ts",
+    "knowledge-cli-smoke": "tsx scripts/knowledge-cli.ts write < scripts/baselines/SAG-2067.yaml && echo SMOKE_PASSED"
   },
   "dependencies": {
     "yaml": "^2.4.0",

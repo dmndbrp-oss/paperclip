@@ -4,6 +4,7 @@ title: "Triage your recovery queue (1 recovery + 1 silent-run review)"
 specialty: "ssi_director"
 domain: "ssi-hp"
 outcome: "done"
+summary: "SSI Director triaged 2 stalled items: cancelled stale 10-day recovery (SAG-1121) blocked by nested guard; closed orphaned silent run (SAG-2033) as false positive."
 decided_at: "2026-05-24T01:25:18.540Z"
 digest_model: "claude-sonnet-4-6"
 digest_version: 1

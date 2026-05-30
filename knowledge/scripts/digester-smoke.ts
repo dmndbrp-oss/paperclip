@@ -9,7 +9,7 @@
  *   npx tsx scripts/digester-smoke.ts
  *
  * Required env vars:
- *   ANTHROPIC_API_KEY, PAPERCLIP_API_KEY, PAPERCLIP_API_URL,
+ *   PAPERCLIP_API_KEY, PAPERCLIP_API_URL
  *   PAPERCLIP_COMPANY_ID (optional, has a default)
  */
 

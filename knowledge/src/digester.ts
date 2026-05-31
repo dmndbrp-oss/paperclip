@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { type Summarizer, PaperclipTaskSummarizer } from './summarizer.js';
 import { parse as yamlParse } from 'yaml';
-import { validateEntry, writeEntry } from './store.js';
+import { validateEntry, writeEntry, entryExists } from './store.js';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -60,6 +60,10 @@ export interface DigestResult {
   issueId: string;
   identifier: string;
   success: boolean;
+  /** True when the outcome will not change on identical input — safe to advance the watermark past it. */
+  terminal: boolean;
+  /** True when we skipped the summarizer because the entry already existed. */
+  skipped?: boolean;
   reason?: string;
 }
 
@@ -262,7 +266,13 @@ export async function digestIssue(
   try {
     issue = await fetchIssue(config, issueId);
   } catch (err) {
-    return { issueId, identifier: issueId, success: false, reason: `fetch_issue: ${err}` };
+    return { issueId, identifier: issueId, success: false, terminal: false, reason: `fetch_issue: ${err}` };
+  }
+
+  // Fix A (SAG-2587): client-side dedup — skip the expensive summarize if the entry already exists.
+  const decidedAt = issue.completedAt ?? issue.updatedAt;
+  if (entryExists(config.baseDir, issue.identifier, decidedAt)) {
+    return { issueId, identifier: issue.identifier, success: true, terminal: true, skipped: true, reason: 'already_exists' };
   }
 
   const [comments, docs] = await Promise.all([
@@ -278,7 +288,7 @@ export async function digestIssue(
   } catch (err) {
     const reason = `summarizer_error: ${err}`;
     logFailure(config.failureLogFile, { issueId, identifier: issue.identifier, reason });
-    return { issueId, identifier: issue.identifier, success: false, reason };
+    return { issueId, identifier: issue.identifier, success: false, terminal: false, reason };
   }
 
   const yamlBlock = extractYamlBlock(rawText);
@@ -290,7 +300,7 @@ export async function digestIssue(
       reason,
       rawResponse: rawText.slice(0, 500),
     });
-    return { issueId, identifier: issue.identifier, success: false, reason };
+    return { issueId, identifier: issue.identifier, success: false, terminal: true, reason };
   }
 
   let parsed: unknown;
@@ -304,7 +314,7 @@ export async function digestIssue(
       reason,
       rawYaml: yamlBlock.slice(0, 500),
     });
-    return { issueId, identifier: issue.identifier, success: false, reason };
+    return { issueId, identifier: issue.identifier, success: false, terminal: true, reason };
   }
 
   const validation = validateEntry(parsed);
@@ -317,20 +327,20 @@ export async function digestIssue(
       errors: validation.errors,
       parsed,
     });
-    return { issueId, identifier: issue.identifier, success: false, reason };
+    return { issueId, identifier: issue.identifier, success: false, terminal: true, reason };
   }
 
   writeEntry(config.baseDir, validation.data);
-  return { issueId, identifier: issue.identifier, success: true };
+  return { issueId, identifier: issue.identifier, success: true, terminal: true };
 }
 
 // ────────────────────────────────────────────────────────────────────────────
 // Polling loop (called by routine execution)
 // ────────────────────────────────────────────────────────────────────────────
 
-export async function runDigester(config: DigesterConfig): Promise<void> {
+export async function runDigester(config: DigesterConfig, _summarizer?: Summarizer): Promise<void> {
   const state = loadState(config.stateFile);
-  const summarizer = new PaperclipTaskSummarizer({
+  const summarizer = _summarizer ?? new PaperclipTaskSummarizer({
     apiUrl: config.apiUrl,
     apiKey: config.apiKey,
     companyId: config.companyId,
@@ -352,27 +362,35 @@ export async function runDigester(config: DigesterConfig): Promise<void> {
 
   for (const issue of issues) {
     console.log(`[digester] → ${issue.identifier}: ${issue.title}`);
+
+    let result: DigestResult;
     try {
-      const result = await digestIssue(config, summarizer, issue.id);
-      if (result.success) {
-        console.log(`[digester]   ✓ written`);
-      } else {
-        console.log(`[digester]   ✗ skipped (${result.reason}) — logged`);
-      }
+      result = await digestIssue(config, summarizer, issue.id);
     } catch (err) {
-      const identifier = issue.identifier;
       console.error(`[digester]   ✗ unexpected error:`, err);
       logFailure(config.failureLogFile, {
         issueId: issue.id,
-        identifier,
+        identifier: issue.identifier,
         reason: `unexpected_error: ${err}`,
       });
+      continue; // transient — do not advance watermark, retry next run
     }
 
-    const at = issue.completedAt ?? issue.updatedAt;
-    if (at > watermark) watermark = at;
+    if (result.success) {
+      console.log(result.skipped ? `[digester]   ↩ already digested — skipped` : `[digester]   ✓ written`);
+    } else {
+      console.log(`[digester]   ✗ skipped (${result.reason}) — logged`);
+    }
+
+    // Fix B (SAG-2587): advance + persist watermark only past terminal outcomes.
+    if (result.terminal) {
+      const at = issue.completedAt ?? issue.updatedAt;
+      if (at > watermark) {
+        watermark = at;
+        saveState(config.stateFile, { lastRunAt: watermark });
+      }
+    }
   }
 
-  saveState(config.stateFile, { lastRunAt: watermark });
   console.log(`[digester] state advanced to ${watermark}`);
 }

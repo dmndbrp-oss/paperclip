@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { stringify as yamlStringify } from 'yaml';
-import { validateEntry, writeEntry, readEntriesBySpecialtyAndDomain, initDirectories } from './store.js';
+import { validateEntry, writeEntry, readEntriesBySpecialtyAndDomain, initDirectories, entryExists } from './store.js';
 import type { KnowledgeEntry } from './schema.js';
 
 const GOLDEN: KnowledgeEntry = {
@@ -217,5 +217,32 @@ describe('initDirectories', () => {
     expect(fs.existsSync(path.join(dir, 'tasks'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'index', 'by_domain'))).toBe(true);
     expect(fs.existsSync(path.join(dir, 'index', 'by_specialty'))).toBe(true);
+  });
+});
+
+// ---------- entryExists ----------
+
+describe('entryExists', () => {
+  it('returns false for an absent entry', () => {
+    const dir = makeTmpDir();
+    expect(entryExists(dir, 'SAG-9001', '2026-05-15T00:00:00.000Z')).toBe(false);
+  });
+
+  it('returns true after writeEntry for the same identifier + decided_at', () => {
+    const dir = makeTmpDir();
+    const entry: KnowledgeEntry = {
+      ...GOLDEN,
+      task_id: 'SAG-9001',
+      identifier: 'SAG-9001',
+      decided_at: '2026-05-15T00:00:00.000Z',
+    };
+    writeEntry(dir, entry);
+    expect(entryExists(dir, 'SAG-9001', '2026-05-15T00:00:00.000Z')).toBe(true);
+  });
+
+  it('returns false for a different identifier even if decided_at matches', () => {
+    const dir = makeTmpDir();
+    writeEntry(dir, { ...GOLDEN, task_id: 'SAG-9001', identifier: 'SAG-9001', decided_at: '2026-05-15T00:00:00.000Z' });
+    expect(entryExists(dir, 'SAG-9002', '2026-05-15T00:00:00.000Z')).toBe(false);
   });
 });

@@ -58,6 +58,14 @@ export function initDirectories(baseDir: string): void {
   ensureDir(path.join(baseDir, 'index', 'by_specialty'));
 }
 
+export function entryExists(baseDir: string, identifier: string, decidedAt: string): boolean {
+  const dt = new Date(decidedAt);
+  const yyyy = dt.getUTCFullYear().toString();
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const yamlPath = path.join(baseDir, 'tasks', yyyy, mm, `${identifier}.yaml`);
+  return fs.existsSync(yamlPath);
+}
+
 export function writeEntry(baseDir: string, entry: KnowledgeEntry): void {
   const yamlPath = entryPath(baseDir, entry);
   ensureDir(path.dirname(yamlPath));

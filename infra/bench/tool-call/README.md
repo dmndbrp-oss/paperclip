@@ -27,3 +27,7 @@ Output is written to `infra/bench/tool-call/results.json`.
 ## Pass criterion
 
 Model emits a `get_weather` tool call with a `location` argument. Selecting any other tool or narrating = fail.
+
+## SAG-2553 fleet-alignment rows
+
+`results-sag2553.json` — same harness, env-selected models (`BENCH_MODELS` / `BENCH_OUT`): `llama3.3:70b-instruct-q4_K_M` + `qwen3-coder:30b`; GLM-5.1 is `unobtainable-on-ollama` (page exists, no published GGUF manifest as of 2026-05-31).

@@ -4,7 +4,7 @@
 DIRECT Ollama /api/chat per SAG-2459 (never opencode_local).
 Identical N across all models; 1-tool control + multi-tool selection.
 """
-import json, sys, urllib.request
+import json, os, sys, urllib.request
 from pathlib import Path
 
 OLLAMA_URL = "http://localhost:11434"
@@ -14,12 +14,16 @@ TOOLS = json.loads((HERE / "tools.json").read_text())
 SINGLE_TOOLS = TOOLS["single"]
 MULTI_TOOLS = TOOLS["multi"]
 
-MODELS = [
+DEFAULT_MODELS = [
     "qwen3:30b-a3b",
     "qwen3:32b",
     "gemma3-tc:27b",
     "gemma4:26b-a4b-it-q4_K_M",
 ]
+
+_env_models = os.environ.get("BENCH_MODELS", "").strip()
+MODELS = [m.strip() for m in _env_models.split(",") if m.strip()] or DEFAULT_MODELS
+OUT_FILE = os.environ.get("BENCH_OUT", "results.json")
 
 
 def call(model, prompt, tools):
@@ -49,16 +53,23 @@ def is_pass(data):
 
 def run_mode(model, tools):
     passed, details = 0, []
+    total_eval_count, total_eval_duration = 0, 0
     for i, p in enumerate(PROMPTS):
         try:
             data = call(model, p, tools)
             ok = is_pass(data)
             note = data.get("message", {}).get("content", "")[:120]
+            total_eval_count += data.get("eval_count", 0) or 0
+            total_eval_duration += data.get("eval_duration", 0) or 0
         except Exception as e:
             ok, note = False, f"ERROR: {e}"
         passed += 1 if ok else 0
         details.append({"i": i + 1, "pass": ok, "note": note})
-    return passed, details
+    if total_eval_duration > 0:
+        tok_per_sec = round(total_eval_count / total_eval_duration * 1e9, 1)
+    else:
+        tok_per_sec = None
+    return passed, details, tok_per_sec
 
 
 def main():
@@ -71,20 +82,24 @@ def main():
         "rows": [],
     }
     for m in MODELS:
-        s_pass, s_det = run_mode(m, SINGLE_TOOLS)
-        mu_pass, mu_det = run_mode(m, MULTI_TOOLS)
+        s_pass, s_det, s_tps = run_mode(m, SINGLE_TOOLS)
+        mu_pass, mu_det, mu_tps = run_mode(m, MULTI_TOOLS)
+        # average tok/s across both modes (use non-null values only)
+        tps_vals = [v for v in [s_tps, mu_tps] if v is not None]
+        tok_per_sec = round(sum(tps_vals) / len(tps_vals), 1) if tps_vals else None
         out["rows"].append({
             "model": m,
             "single_tool": f"{s_pass}/{n}",
             "single_pct": round(s_pass / n * 100),
             "multi_tool": f"{mu_pass}/{n}",
             "multi_pct": round(mu_pass / n * 100),
+            "tok_per_sec": tok_per_sec,
             "single_detail": s_det,
             "multi_detail": mu_det,
         })
-        print(f"{m}: single {s_pass}/{n}  multi {mu_pass}/{n}", flush=True)
-    (HERE / "results.json").write_text(json.dumps(out, indent=2))
-    print("wrote", HERE / "results.json", flush=True)
+        print(f"{m}: single {s_pass}/{n}  multi {mu_pass}/{n}  tok/s {tok_per_sec}", flush=True)
+    (HERE / OUT_FILE).write_text(json.dumps(out, indent=2))
+    print("wrote", HERE / OUT_FILE, flush=True)
 
 
 if __name__ == "__main__":

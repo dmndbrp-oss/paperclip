@@ -1,0 +1,1033 @@
+{
+  "bench": "SAG-2537 uniform tool-call re-bench",
+  "N": 50,
+  "tool_call_path": "DIRECT /api/chat (SAG-2459)",
+  "multi_tool_count": 9,
+  "note_sag2553": "Fleet-alignment rows (SAG-2553): env-selected models via BENCH_MODELS, same SAG-2537 harness. GLM-5.1 unobtainable on Ollama.",
+  "rows": [
+    {
+      "model": "llama3.3:70b-instruct-q4_K_M",
+      "single_tool": "50/50",
+      "single_pct": 100,
+      "multi_tool": "50/50",
+      "multi_pct": 100,
+      "tok_per_sec": 3.5,
+      "single_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ],
+      "multi_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "model": "qwen3-coder:30b",
+      "single_tool": "50/50",
+      "single_pct": 100,
+      "multi_tool": "48/50",
+      "multi_pct": 96,
+      "tok_per_sec": 61.6,
+      "single_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ],
+      "multi_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": false,
+          "note": "<function=get_weather>\n<parameter=location>\nMoscow\n</parameter>\n<parameter=unit>\ncelsius\n</parameter>\n</function>\n</tool"
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": false,
+          "note": "<function=get_weather>\n<parameter=location>\nJakarta\n</parameter>\n<parameter=unit>\ncelsius\n</parameter>\n</function>\n</too"
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ]
+    }
+  ]
+}

@@ -145,6 +145,71 @@ const HIRE_ISSUE: IssueDetail = makeDetail({
   createdAt: '2026-05-27T00:00:00.000Z',
 });
 
+// ─── Regression fixtures for SAG-2592 false-positive fixes ──────────────────
+
+// SAG-316: PWA notifications button — "installed via Tailscale" is incidental;
+// must classify agent (no action phrasing near tailscale).
+const SAG_316: IssueDetail = makeDetail({
+  id: 'aaaa-0316',
+  identifier: 'SAG-316',
+  title: "Enable Notifications button doesn't prompt for permission (PWA)",
+  description: 'The notification permission prompt is not appearing. App was installed as PWA via Tailscale tunnel at pwa.internal. No infra action required.',
+  priority: 'medium',
+  createdAt: '2026-03-01T00:00:00.000Z',
+  assigneeAgentId: 'b0f67cc2-259e-477b-ac89-d0ff4e7c8e89', // CEO
+});
+
+// SAG-865: upstream PR for notifications button — code work only. Terminal
+// blocker title includes SAG-316 text which mentions tailscale incidentally.
+const SAG_865: IssueDetail = makeDetail({
+  id: 'aaaa-0865',
+  identifier: 'SAG-865',
+  title: 'Implement Notifications button (upstream PR)',
+  description: 'Implement the PWA notification permission flow. Upstream PR for the button.',
+  priority: 'medium',
+  createdAt: '2026-04-01T00:00:00.000Z',
+  assigneeAgentId: '3ab7fa06-f831-4631-922a-2fe824005788', // Coder
+  blockedBy: [
+    {
+      identifier: 'SAG-316',
+      status: 'blocked',
+      assigneeAgentId: 'b0f67cc2-259e-477b-ac89-d0ff4e7c8e89',
+      terminalBlockers: [
+        {
+          identifier: 'SAG-316',
+          status: 'blocked',
+          assigneeAgentId: 'b0f67cc2-259e-477b-ac89-d0ff4e7c8e89',
+          title: "Enable Notifications button doesn't prompt for permission (PWA installed via Tailscale)",
+        },
+      ],
+    },
+  ],
+});
+
+// SAG-800: Bind HTTP server to all interfaces — CTO code task. Description
+// mentions "Tailscale-routed 'API down'" as a symptom, not as board action.
+// Must classify agent via the internal-owner override (CTO assignee).
+const SAG_800: IssueDetail = makeDetail({
+  id: 'aaaa-0800',
+  identifier: 'SAG-800',
+  title: 'Bind HTTP server to all interfaces (fix Tailscale-routed API down)',
+  description: "Tailscale-routed 'API down' error appears when connecting from remote host. Fix: bind server to 0.0.0.0 instead of 127.0.0.1.",
+  priority: 'high',
+  createdAt: '2026-04-15T00:00:00.000Z',
+  assigneeAgentId: 'f3c48afc-c339-4e43-b47b-a42a0891229d', // CTO
+});
+
+// SAG-1272: D365 environment provisioning — genuine board action. Must remain board.
+const SAG_1272: IssueDetail = makeDetail({
+  id: 'aaaa-1272',
+  identifier: 'SAG-1272',
+  title: 'D365 environment provisioning for integration testing',
+  description: 'Board must provision D365 environment. Dynamics setup requires board access.',
+  priority: 'medium',
+  createdAt: '2026-04-20T00:00:00.000Z',
+  assigneeAgentId: null,
+});
+
 // Agent-owned issue (CTO owns the blocker, no board rule fires)
 const AGENT_OWNED: IssueDetail = makeDetail({
   id: 'aaaa-0020',
@@ -237,6 +302,33 @@ describe('classify — infra_unreachable', () => {
     expect(result.classification).toBe('board');
     expect(result.category).toBe('infra_unreachable');
     expect(result.matchedRule).toBe(5);
+  });
+});
+
+// ─── SAG-2592 regression: false-positive fixes ───────────────────────────────
+
+describe('classify — SAG-2592 infra_unreachable false-positive regressions', () => {
+  it('SAG-316: classifies agent — "installed via Tailscale" is incidental, no action phrasing', () => {
+    const result = classify(SAG_316, SAG_316, noInteractions());
+    expect(result.classification).toBe('agent');
+    expect(result.category).toBeUndefined();
+  });
+
+  it('SAG-865: classifies agent — terminal blocker title mentions tailscale incidentally', () => {
+    const result = classify(SAG_865, SAG_865, noInteractions());
+    expect(result.classification).toBe('agent');
+    expect(result.category).toBeUndefined();
+  });
+
+  it('SAG-800: classifies agent — CTO internal owner overrides infra_unreachable match', () => {
+    const result = classify(SAG_800, SAG_800, noInteractions());
+    expect(result.classification).toBe('agent');
+  });
+
+  it('SAG-1272: classifies board/infra_unreachable — genuine D365 provision action', () => {
+    const result = classify(SAG_1272, SAG_1272, noInteractions());
+    expect(result.classification).toBe('board');
+    expect(result.category).toBe('infra_unreachable');
   });
 });
 

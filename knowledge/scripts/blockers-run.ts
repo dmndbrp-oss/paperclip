@@ -19,7 +19,7 @@
  * Optional env:
  *   PAPERCLIP_API_URL        (default: http://localhost:3100)
  *   PAPERCLIP_COMPANY_ID     (default: 1dc911ed-ff05-4072-b2ae-a3e3177e3873)
- *   BLOCKERS_PUBLISH_ISSUE_ID (default: 279c6f12-5cc1-487b-ba8d-50a17caf9c4c — SAG-2570)
+ *   BLOCKERS_PUBLISH_ISSUE_ID (default: 2fcd939a-b715-4980-8364-dd99c2f9d18b — SAG-2591)
  */
 
 import fs from 'node:fs';
@@ -42,7 +42,7 @@ const COMPANY_ID = process.env['PAPERCLIP_COMPANY_ID'] ?? '1dc911ed-ff05-4072-b2
 const API_URL = process.env['PAPERCLIP_API_URL'] ?? 'http://localhost:3100';
 const API_KEY = process.env['PAPERCLIP_API_KEY'] ?? '';
 const PUBLISH_ISSUE_ID =
-  process.env['BLOCKERS_PUBLISH_ISSUE_ID'] ?? '279c6f12-5cc1-487b-ba8d-50a17caf9c4c';
+  process.env['BLOCKERS_PUBLISH_ISSUE_ID'] ?? '2fcd939a-b715-4980-8364-dd99c2f9d18b';
 
 const HOME = process.env['HOME'] ?? '/root';
 const STATE_FILE = path.join(

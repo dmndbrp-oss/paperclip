@@ -84,6 +84,14 @@ export interface ClassifiedIssue {
 // Internal helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Agents that can resolve issues with code — should not be classified board
+// for category infra_unreachable when only a symptom token triggered the rule.
+const INTERNAL_AGENT_IDS = new Set([
+  'f3c48afc-c339-4e43-b47b-a42a0891229d', // CTO
+  '3ab7fa06-f831-4631-922a-2fe824005788', // Coder (Claude)
+  'b214c191-e56f-4d62-80ef-1c12af0788f6', // Director of Engineering
+]);
+
 const PRIORITY_RANK: Record<Priority, number> = {
   critical: 0,
   high: 1,
@@ -108,6 +116,16 @@ function hasPendingConfirmation(interactions: Interaction[]): boolean {
   return interactions.some(
     (i) => i.kind === 'request_confirmation' && i.status === 'pending',
   );
+}
+
+function hasInternalOwner(detail: IssueDetail): boolean {
+  if (detail.assigneeAgentId && INTERNAL_AGENT_IDS.has(detail.assigneeAgentId)) return true;
+  for (const bb of detail.blockedBy ?? []) {
+    for (const tb of bb.terminalBlockers ?? []) {
+      if (tb?.assigneeAgentId && INTERNAL_AGENT_IDS.has(tb.assigneeAgentId)) return true;
+    }
+  }
+  return false;
 }
 
 function areAllTerminalBlockersStale(detail: IssueDetail): boolean {
@@ -144,7 +162,13 @@ function matchBoardRule(
     return { category: 'credential_purchase', matchedRule: 4 };
   }
 
-  if (/tailscale|tunnel|dns|provision .*environment|d365 .*provision|dynamics .*setup/.test(corpus)) {
+  if (
+    // Require action phrasing near infra term — bare incidental mentions (e.g.
+    // "installed via Tailscale", "Tailscale-routed") must not fire this rule.
+    /(?:restore|provision|configure|set[\s-]?up|stand[\s-]?up|bring[\s-]?up|unreachable|cannot\s+reach).{0,60}(?:tailscale|tunnel|dns)/.test(corpus) ||
+    /(?:tailscale|tunnel|dns).{0,60}(?:\bdown\b|unreachable|failed|disconnected|broken|restart)/.test(corpus) ||
+    /provision.{0,40}environment|d365.{0,40}provision|dynamics.{0,40}setup/.test(corpus)
+  ) {
     return { category: 'infra_unreachable', matchedRule: 5 };
   }
 
@@ -180,6 +204,14 @@ export function classify(
   const corpus = buildTextCorpus(candidate, detail);
   const match = matchBoardRule(corpus, pendingConfirm);
   if (match) {
+    // For infra_unreachable only: if an internal agent owns the issue or its
+    // terminal blocker, they can fix it in code — override to agent even if
+    // an infra keyword was present as incidental context.
+    // pending_confirmation/routine_cron/oauth_reconnect/credential_purchase/
+    // hire_or_model_signoff always stay board regardless of assignee.
+    if (match.category === 'infra_unreachable' && hasInternalOwner(detail)) {
+      return { classification: 'agent' };
+    }
     return { classification: 'board', ...match };
   }
 

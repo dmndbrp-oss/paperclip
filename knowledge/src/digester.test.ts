@@ -458,6 +458,85 @@ describe('runDigester incremental save', () => {
     vi.unstubAllGlobals();
   });
 
+  it('does not advance watermark past a transient older issue when a terminal newer issue follows (SAG-2595 ordering hazard)', async () => {
+    // ISSUE1 is older (May 1) and transient; ISSUE2 is newer (May 2) and terminal.
+    // Before the fix: watermark would jump to May 2, silently dropping ISSUE1 on the
+    // next run once the server-side updatedSince filter works.
+    // After the fix: watermark must stay at the initial value so ISSUE1 is re-fetched.
+    const issueMap: Record<string, typeof ISSUE1> = {
+      'id-001': ISSUE1,
+      'id-002': ISSUE2,
+    };
+
+    vi.stubGlobal('fetch', (url: string) => {
+      if (url.endsWith('/comments')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.endsWith('/documents')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/companies/')) {
+        // Return ISSUE1 before ISSUE2 so oldest-first ordering puts the transient first.
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([ISSUE1, ISSUE2]) });
+      }
+      for (const [id, body] of Object.entries(issueMap)) {
+        if (url.endsWith(`/issues/${id}`)) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve(body) });
+        }
+      }
+      return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) });
+    });
+
+    let callCount = 0;
+    const fakeSummarizer: Summarizer = {
+      summarize: vi.fn().mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) return Promise.reject(new Error('transient timeout')); // ISSUE1 fails
+        return Promise.resolve(makeYaml(ISSUE2)); // ISSUE2 succeeds
+      }),
+    };
+
+    const config = makeRunDigesterConfig();
+    const initialWatermark = '2026-04-30T00:00:00.000Z';
+    fs.writeFileSync(config.stateFile, JSON.stringify({ lastRunAt: initialWatermark }), 'utf8');
+
+    await runDigester(config, fakeSummarizer);
+
+    const stateRaw = JSON.parse(fs.readFileSync(config.stateFile, 'utf8')) as { lastRunAt: string };
+    // Watermark must NOT have advanced to May 2 — ISSUE1 (May 1) is still unprocessed.
+    expect(stateRaw.lastRunAt).toBe(initialWatermark);
+  });
+
+  it('sends updatedSince in the issues list URL (SAG-2595 server-side filter)', async () => {
+    const capturedUrls: string[] = [];
+
+    vi.stubGlobal('fetch', (url: string) => {
+      capturedUrls.push(url);
+      if (url.endsWith('/comments')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.endsWith('/documents')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/companies/')) {
+        // Simulate server returning 0 issues (nothing updated since watermark).
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) });
+    });
+
+    const config = makeRunDigesterConfig();
+    const watermark = '2026-05-15T12:00:00.000Z';
+    fs.writeFileSync(config.stateFile, JSON.stringify({ lastRunAt: watermark }), 'utf8');
+
+    await runDigester(config, { summarize: vi.fn() });
+
+    const listCall = capturedUrls.find((u) => u.includes('/companies/'));
+    expect(listCall).toBeDefined();
+    expect(listCall).toContain('updatedSince=');
+    expect(listCall).toContain(encodeURIComponent(watermark));
+  });
+
   it('persists watermark to issue 2 when issue 3 summarizer throws (transient)', async () => {
     const issueMap: Record<string, typeof ISSUE1> = {
       'id-001': ISSUE1, 'id-002': ISSUE2, 'id-003': ISSUE3,

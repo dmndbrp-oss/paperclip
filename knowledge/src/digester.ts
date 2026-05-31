@@ -359,6 +359,10 @@ export async function runDigester(config: DigesterConfig, _summarizer?: Summariz
   }
 
   let watermark = state.lastRunAt;
+  // Once true, stop advancing the watermark: an older transient issue was seen and
+  // must be re-fetched next run. Advancing past it would silently drop it once the
+  // server-side updatedSince filter is working (SAG-2595).
+  let transientSeen = false;
 
   for (const issue of issues) {
     console.log(`[digester] → ${issue.identifier}: ${issue.title}`);
@@ -373,6 +377,7 @@ export async function runDigester(config: DigesterConfig, _summarizer?: Summariz
         identifier: issue.identifier,
         reason: `unexpected_error: ${err}`,
       });
+      transientSeen = true;
       continue; // transient — do not advance watermark, retry next run
     }
 
@@ -382,8 +387,13 @@ export async function runDigester(config: DigesterConfig, _summarizer?: Summariz
       console.log(`[digester]   ✗ skipped (${result.reason}) — logged`);
     }
 
-    // Fix B (SAG-2587): advance + persist watermark only past terminal outcomes.
-    if (result.terminal) {
+    if (!result.terminal) {
+      transientSeen = true;
+    }
+
+    // Advance + persist watermark only past terminal outcomes, and only when no
+    // earlier transient issue blocks the boundary (SAG-2595 ordering-hazard fix).
+    if (result.terminal && !transientSeen) {
       const at = issue.completedAt ?? issue.updatedAt;
       if (at > watermark) {
         watermark = at;

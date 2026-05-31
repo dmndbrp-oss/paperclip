@@ -1,0 +1,68 @@
+{
+  "single": [
+    { "type": "function", "function": {
+      "name": "get_weather",
+      "description": "Get current weather for a location",
+      "parameters": { "type": "object",
+        "properties": {
+          "location": { "type": "string" },
+          "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] } },
+        "required": ["location"] } } }
+  ],
+  "multi": [
+    { "type": "function", "function": {
+      "name": "get_weather",
+      "description": "Get current weather for a location",
+      "parameters": { "type": "object",
+        "properties": {
+          "location": { "type": "string" },
+          "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] } },
+        "required": ["location"] } } },
+    { "type": "function", "function": {
+      "name": "get_time",
+      "description": "Get the current local time for a location or timezone",
+      "parameters": { "type": "object",
+        "properties": { "location": { "type": "string" } },
+        "required": ["location"] } } },
+    { "type": "function", "function": {
+      "name": "send_email",
+      "description": "Send an email to a recipient",
+      "parameters": { "type": "object",
+        "properties": {
+          "to": { "type": "string" }, "subject": { "type": "string" }, "body": { "type": "string" } },
+        "required": ["to", "subject", "body"] } } },
+    { "type": "function", "function": {
+      "name": "web_search",
+      "description": "Search the web for a query",
+      "parameters": { "type": "object",
+        "properties": { "query": { "type": "string" } }, "required": ["query"] } } },
+    { "type": "function", "function": {
+      "name": "calculator",
+      "description": "Evaluate an arithmetic expression",
+      "parameters": { "type": "object",
+        "properties": { "expression": { "type": "string" } }, "required": ["expression"] } } },
+    { "type": "function", "function": {
+      "name": "get_stock_price",
+      "description": "Get the latest stock price for a ticker symbol",
+      "parameters": { "type": "object",
+        "properties": { "symbol": { "type": "string" } }, "required": ["symbol"] } } },
+    { "type": "function", "function": {
+      "name": "set_reminder",
+      "description": "Set a reminder at a given time",
+      "parameters": { "type": "object",
+        "properties": { "text": { "type": "string" }, "time": { "type": "string" } },
+        "required": ["text", "time"] } } },
+    { "type": "function", "function": {
+      "name": "translate_text",
+      "description": "Translate text into a target language",
+      "parameters": { "type": "object",
+        "properties": { "text": { "type": "string" }, "target_lang": { "type": "string" } },
+        "required": ["text", "target_lang"] } } },
+    { "type": "function", "function": {
+      "name": "get_directions",
+      "description": "Get directions between two places",
+      "parameters": { "type": "object",
+        "properties": { "origin": { "type": "string" }, "destination": { "type": "string" } },
+        "required": ["origin", "destination"] } } }
+  ]
+}

@@ -1,0 +1,2052 @@
+{
+  "bench": "SAG-2537 uniform tool-call re-bench",
+  "N": 50,
+  "tool_call_path": "DIRECT /api/chat (SAG-2459)",
+  "multi_tool_count": 9,
+  "rows": [
+    {
+      "model": "qwen3:30b-a3b",
+      "single_tool": "50/50",
+      "single_pct": 100,
+      "multi_tool": "50/50",
+      "multi_pct": 100,
+      "single_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Paris. Let me check the tools provided. There's a function called get_weathe"
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Tokyo. Let me check the tools provided. There's a function called ge"
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in London, UK. Let me check the available tools. There's a function called get_"
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": "Okay, the user is asking for the current temperature in New York. Let me check the tools provided. There's a function ca"
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": "Okay, the user wants to check the weather in Berlin. Let me see what tools I have. There's a get_weather function. It re"
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Sydney, Australia. Let me check the tools provided. There's a function calle"
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": "Okay, the user wants the current weather for Chicago. Let me check the tools available. There's a get_weather function t"
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Los Angeles. Let me check the tools provided. There's a get_weather function"
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Toronto. Let me check the tools available. There's a get_weather function "
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Singapore. Let me check the tools provided. There's a function calle"
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Dubai. Let me check the tools available. There's a function called get_weath"
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather conditions in Mumbai today. Let me check the tools provided. There's a get_we"
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": "Okay, the user wants the weather for Seattle, Washington. Let me check the tools provided. There's a get_weather functio"
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Boston. Let me check the tools provided. There's a get_weather function that"
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Amsterdam. Let me check the tools provided. There's a function called get_we"
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": "Okay, the user wants to check the weather conditions in Seoul. Let me see what tools I have available. The only tool pro"
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in S\u00e3o Paulo. Let me check the tools available. There's a function called get_w"
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Cape Town. Let me check the tools provided. There's a function calle"
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Moscow. Let me check the tools provided. There's a get_weather function that"
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": "Okay, the user is asking for the temperature in Beijing. Let me check the available tools. There's a function called get"
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": "Okay, the user is asking how hot it is in Phoenix right now. Let me check the available tools. There's a get_weather fun"
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": "Okay, the user is asking if it's raining in Seattle. Let me check the tools provided. There's a get_weather function tha"
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": "Okay, the user is asking for the forecast in Madrid. Let me check the tools provided. There's a get_weather function tha"
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Rome today. Let me check the tools available. There's a get_weather functi"
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": "Okay, the user is asking for the current temperature in Helsinki. Let me check the tools provided. There's a get_weather"
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather conditions in Bangkok. Let me check the available tools. There's a get_weathe"
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": "Okay, the user is asking how cold it is in Reykjavik. Let me check the tools provided. There's a get_weather function th"
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Mexico City. Let me check the tools provided. There's a function cal"
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Cairo. Let me check the available tools. There's a get_weather function that"
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather conditions in Lagos. Let me check the tools provided. There's a get_weather f"
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather report for Buenos Aires. Let me check the tools provided. There's a function ca"
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Vancouver. Let me check the tools provided. There's a get_weather function"
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Lisbon. Let me check the tools provided. There's a function called get_weath"
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": "Okay, the user is asking if it's sunny in Barcelona right now. Let me check the tools available. There's a get_weather f"
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": "Okay, the user is asking for the temperature in Oslo today. Let me check the tools provided. There's a get_weather funct"
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Jakarta. Let me check the tools provided. There's a function called get_weat"
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Nairobi. Let me check the tools available. There's a get_weather function "
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather conditions in Istanbul. Let me check the tools provided. There's a get_"
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Hanoi. Let me check the tools available. There's a get_weather function that"
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Wellington, New Zealand. Let me check the tools available. There's a get_wea"
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Edinburgh. Let me check the available tools. There's a get_weather f"
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": "Okay, the user is asking for the temperature in Dublin. Let me check the tools provided. There's a function called get_w"
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather conditions in Kuala Lumpur today. Let me check the tools provided. There's a "
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": "Okay, the user is asking how warm it is in Athens. Let me check the available tools. There's a get_weather function that"
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather forecast in Warsaw. Let me check the available tools. There's a get_weather fun"
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Santiago. Let me check the tools provided. There's a get_weather function th"
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Montreal. Let me check the tools provided. There's a get_weather function "
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Stockholm. Let me check the tools provided. There's a function calle"
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Manila. Let me check the tools provided. There's a get_weather function that"
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Lima today. Let me check the tools provided. The available function is get"
+        }
+      ],
+      "multi_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Paris. Let me check the available tools. There's a get_weather function that"
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Tokyo. Let me check the available tools. There's a get_weather funct"
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in London, UK. Let me check the available tools. There's a get_weather function"
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": "Okay, the user is asking for the current temperature in New York. Let me check the available tools. There's a get_weathe"
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": "Okay, the user wants to check the weather in Berlin. Let me see which tool I can use for that. Looking at the provided f"
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Sydney, Australia. Let me check the available tools. There's a get_weather f"
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather conditions in Chicago. Let me check the available tools. There's a get_"
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Los Angeles. Let me check the available tools. There's a get_weather functio"
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Toronto. Let me check the available tools. There's a get_weather function "
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Singapore. Let me check the available tools. There's a get_weather f"
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Dubai. Let me check the available tools. There's a get_weather function that"
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather conditions in Mumbai today. Let me check the available tools. There's a get_w"
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Seattle, Washington. Let me check the available tools. There's a get_weather"
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Boston. Let me check the available tools. There's a get_weather function tha"
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Amsterdam. Let me check the available tools. There's a get_weather functio"
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": "Okay, the user wants to check the conditions in Seoul. Let me see what tools I have available. There's get_weather, whic"
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in S\u00e3o Paulo. Let me check the available tools. There's a get_weather function "
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Cape Town. Let me check the available tools. There's a get_weather f"
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Moscow. Let me check the available tools. There's a get_weather function tha"
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": "Okay, the user is asking for the temperature in Beijing. Let me check which tool I can use for that. Looking at the prov"
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": "Okay, the user is asking how hot it is in Phoenix right now. Let me check the available tools. There's a get_weather fun"
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": "Okay, the user is asking if it's raining in Seattle. Let me check the available tools. There's a get_weather function th"
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather forecast in Madrid. Let me check the available tools. There's a get_weather fun"
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Rome today. Let me check the available tools. There's a get_weather functi"
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": "Okay, the user is asking for the current temperature in Helsinki. Let me check which tool I can use for that. Looking at"
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather conditions in Bangkok. Let me check the available tools. There's a get_weathe"
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": "Okay, the user is asking how cold it is in Reykjavik. Let me check the available tools. There's a get_weather function t"
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Mexico City. Let me check the available tools. There's a get_weather"
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Cairo. Let me check the available tools. There's a get_weather function that"
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather conditions in Lagos. Let me check the available tools. There's a get_weather fu"
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": "Okay, the user is asking for a weather report for Buenos Aires. Let me check the available tools. There's a get_weather "
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Vancouver. Let me check the available tools. There's a get_weather functio"
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Lisbon. Let me check the available tools. There's a function called get_weat"
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": "Okay, the user is asking if it's sunny in Barcelona right now. Let me check what tools I have available. There's the get"
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": "Okay, the user is asking for the temperature in Oslo today. Let me check the available tools. There's a get_weather func"
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Jakarta. Let me check the available tools. There's a get_weather function th"
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Nairobi. Let me check the available tools. There's a get_weather function "
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": "Okay, the user is asking about the current weather conditions in Istanbul. Let me check the available tools. There's a g"
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Hanoi. Let me check which tool I can use for that. Looking at the provided f"
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Wellington, New Zealand. Let me check the available tools. There's a get_wea"
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Edinburgh. Let me check which tool I can use for that. Looking at th"
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": "Okay, the user is asking for the temperature in Dublin. Let me check the available tools. There's a get_weather function"
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather conditions in Kuala Lumpur today. Let me check the available tools. There's a"
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": "Okay, the user is asking, \"How warm is it in Athens?\" So I need to figure out what function to use here. Let's see the a"
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather forecast in Warsaw. Let me check the available tools. There's a get_weather fun"
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Santiago. Let me check the available tools. There's a get_weather function t"
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": "Okay, the user is asking about the weather in Montreal. Let me check the available tools. There's a get_weather function"
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": "Okay, the user is asking for the current weather in Stockholm. Let me check the available tools. There's a get_weather f"
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Manila. Let me check the available tools. There's a get_weather function tha"
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": "Okay, the user is asking for the weather in Lima today. Let me check the available tools. There's a get_weather function"
+        }
+      ]
+    },
+    {
+      "model": "qwen3:32b",
+      "single_tool": "50/50",
+      "single_pct": 100,
+      "multi_tool": "50/50",
+      "multi_pct": 100,
+      "single_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ],
+      "multi_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "model": "gemma3-tc:27b",
+      "single_tool": "47/50",
+      "single_pct": 94,
+      "multi_tool": "42/50",
+      "multi_pct": 84,
+      "single_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": false,
+          "note": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Toronto\", \"unit\": \"celsius\"}}\n```"
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": false,
+          "note": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Mumbai\", \"unit\": \"celsius\"}}\n```"
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": false,
+          "note": "Okay, I can help with that. I'll use the `get_weather` tool to get the current conditions in Lagos.\n\n```json\n{\"name\": \"g"
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ],
+      "multi_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": false,
+          "note": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Chicago\", \"unit\": \"fahrenheit\"}}\n```"
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": false,
+          "note": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Toronto\", \"unit\": \"celsius\"}}\n```"
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": false,
+          "note": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Mumbai\", \"unit\": \"celsius\"}}\n```"
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": false,
+          "note": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Reykjavik\", \"unit\": \"celsius\"}}\n```"
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": false,
+          "note": "Okay, I can tell you about the conditions in Lagos. To give you the most accurate information, I need to know what *kind"
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": false,
+          "note": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Vancouver\", \"unit\": \"celsius\"}}\n```"
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": false,
+          "note": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Edinburgh\", \"unit\": \"celsius\"}}\n```"
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": false,
+          "note": "```json\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Montreal\", \"unit\": \"celsius\"}}\n```"
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ]
+    },
+    {
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "single_tool": "50/50",
+      "single_pct": 100,
+      "multi_tool": "50/50",
+      "multi_pct": 100,
+      "single_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ],
+      "multi_detail": [
+        {
+          "i": 1,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 2,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 3,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 4,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 5,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 6,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 7,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 8,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 9,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 10,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 11,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 12,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 13,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 14,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 15,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 16,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 17,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 18,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 19,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 20,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 21,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 22,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 23,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 24,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 25,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 26,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 27,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 28,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 29,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 30,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 31,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 32,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 33,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 34,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 35,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 36,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 37,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 38,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 39,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 40,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 41,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 42,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 43,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 44,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 45,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 46,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 47,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 48,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 49,
+          "pass": true,
+          "note": ""
+        },
+        {
+          "i": 50,
+          "pass": true,
+          "note": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "candidate": {
+    "id": "593d829a-5c54-492b-a035-07c83e0717ac",
+    "identifier": "SAG-2510",
+    "title": "Cron production go-live decision: digester routine c82813c2 (runner topology + board spend)",
+    "description": "The digester summarization refactor is complete and live. Turning on the production 15-min cron (routine c82813c2, \"SSI Director knowledge digest\" — currently paused, never triggered) is a separate, board-gated decision. Board must accept the request_confirmation to unpause the routine and enable the cron schedule.",
+    "priority": "medium",
+    "createdAt": "2026-05-30T15:40:59.649Z",
+    "assigneeAgentId": null,
+    "blockerAttention": {
+      "state": "needs_attention",
+      "unresolvedBlockerCount": 1,
+      "sampleBlockerIdentifier": "SAG-2535"
+    }
+  },
+  "detail": {
+    "id": "593d829a-5c54-492b-a035-07c83e0717ac",
+    "identifier": "SAG-2510",
+    "title": "Cron production go-live decision: digester routine c82813c2 (runner topology + board spend)",
+    "description": "The digester summarization refactor is complete and live. Turning on the production 15-min cron (routine c82813c2, \"SSI Director knowledge digest\" — currently paused, never triggered) is a separate, board-gated decision. Board must accept the request_confirmation to unpause the routine and enable the cron schedule.",
+    "priority": "medium",
+    "createdAt": "2026-05-30T15:40:59.649Z",
+    "assigneeAgentId": null,
+    "blockerAttention": {
+      "state": "needs_attention",
+      "unresolvedBlockerCount": 1,
+      "sampleBlockerIdentifier": "SAG-2535"
+    },
+    "blocks": [
+      { "identifier": "SAG-2481", "status": "blocked", "title": "SAG-2481 downstream" }
+    ],
+    "blockedBy": [
+      {
+        "identifier": "SAG-2535",
+        "status": "in_progress",
+        "assigneeAgentId": "1e0167fe-1f74-43ea-ad89-36fa724ab80a",
+        "terminalBlockers": []
+      }
+    ]
+  },
+  "interactions": []
+}

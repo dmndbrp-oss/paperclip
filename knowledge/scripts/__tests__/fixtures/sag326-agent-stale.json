@@ -1,0 +1,47 @@
+{
+  "candidate": {
+    "id": "417727d6-bdc7-4d38-8164-15c777819247",
+    "identifier": "SAG-326",
+    "title": "Phase 1: Claude-tiered routing dispatcher + audit/cost logging + 1-agent pilot",
+    "description": "Stand up a hardware-agnostic Claude-tiered routing dispatcher and migrate one agent onto it.",
+    "priority": "critical",
+    "createdAt": "2026-05-07T20:39:37.426Z",
+    "assigneeAgentId": "b0f67cc2-259e-477b-ac89-d0ff4e7c8e89",
+    "blockerAttention": {
+      "state": "needs_attention",
+      "unresolvedBlockerCount": 3,
+      "sampleBlockerIdentifier": "SAG-1093"
+    }
+  },
+  "detail": {
+    "id": "417727d6-bdc7-4d38-8164-15c777819247",
+    "identifier": "SAG-326",
+    "title": "Phase 1: Claude-tiered routing dispatcher + audit/cost logging + 1-agent pilot",
+    "description": "Stand up a hardware-agnostic Claude-tiered routing dispatcher and migrate one agent onto it.",
+    "priority": "critical",
+    "createdAt": "2026-05-07T20:39:37.426Z",
+    "assigneeAgentId": "b0f67cc2-259e-477b-ac89-d0ff4e7c8e89",
+    "blockerAttention": {
+      "state": "needs_attention",
+      "unresolvedBlockerCount": 3,
+      "sampleBlockerIdentifier": "SAG-1093"
+    },
+    "blocks": [],
+    "blockedBy": [
+      {
+        "identifier": "SAG-1091",
+        "status": "blocked",
+        "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+        "terminalBlockers": [
+          {
+            "identifier": "SAG-1093",
+            "status": "cancelled",
+            "assigneeAgentId": "b0f67cc2-259e-477b-ac89-d0ff4e7c8e89",
+            "title": "SAG-1092 unblock: add dispatcher remote + ANTHROPIC_API_KEY"
+          }
+        ]
+      }
+    ]
+  },
+  "interactions": []
+}

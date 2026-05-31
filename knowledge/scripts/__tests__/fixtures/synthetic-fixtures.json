@@ -1,0 +1,263 @@
+{
+  "pending_confirmation": {
+    "candidate": {
+      "id": "aaaa0001-0000-0000-0000-000000000001",
+      "identifier": "SAG-CONF",
+      "title": "Proceed with model migration plan",
+      "description": "Awaiting board approval before continuing implementation. The plan is ready for confirmation.",
+      "priority": "high",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+      "blockerAttention": {
+        "state": "needs_attention",
+        "unresolvedBlockerCount": 0,
+        "sampleBlockerIdentifier": null
+      }
+    },
+    "detail": {
+      "id": "aaaa0001-0000-0000-0000-000000000001",
+      "identifier": "SAG-CONF",
+      "title": "Proceed with model migration plan",
+      "description": "Awaiting board approval before continuing implementation. The plan is ready for confirmation.",
+      "priority": "high",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+      "blockerAttention": {
+        "state": "needs_attention",
+        "unresolvedBlockerCount": 0,
+        "sampleBlockerIdentifier": null
+      },
+      "blocks": [],
+      "blockedBy": []
+    },
+    "interactions": [
+      { "id": "inter-001", "kind": "request_confirmation", "status": "pending" }
+    ]
+  },
+
+  "infra_unreachable": {
+    "candidate": {
+      "id": "aaaa0002-0000-0000-0000-000000000002",
+      "identifier": "SAG-INFRA",
+      "title": "Restore Tailscale tunnel for D365 environment provisioning",
+      "description": "The Tailscale tunnel connecting the agent host to the D365 Dynamics environment is down. Agents cannot reach the provisioned D365 environment for this task.",
+      "priority": "high",
+      "createdAt": "2026-05-22T08:00:00.000Z",
+      "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+      "blockerAttention": {
+        "state": "needs_attention",
+        "unresolvedBlockerCount": 1,
+        "sampleBlockerIdentifier": "SAG-INFRA-B"
+      }
+    },
+    "detail": {
+      "id": "aaaa0002-0000-0000-0000-000000000002",
+      "identifier": "SAG-INFRA",
+      "title": "Restore Tailscale tunnel for D365 environment provisioning",
+      "description": "The Tailscale tunnel connecting the agent host to the D365 Dynamics environment is down. Agents cannot reach the provisioned D365 environment for this task.",
+      "priority": "high",
+      "createdAt": "2026-05-22T08:00:00.000Z",
+      "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+      "blockerAttention": {
+        "state": "needs_attention",
+        "unresolvedBlockerCount": 1,
+        "sampleBlockerIdentifier": "SAG-INFRA-B"
+      },
+      "blocks": [
+        { "identifier": "SAG-INFRA-C", "status": "blocked", "title": "Dynamics setup dep" }
+      ],
+      "blockedBy": [
+        {
+          "identifier": "SAG-INFRA-B",
+          "status": "blocked",
+          "assigneeAgentId": null,
+          "terminalBlockers": [
+            {
+              "identifier": "SAG-INFRA-B",
+              "status": "blocked",
+              "assigneeAgentId": null,
+              "title": "provision environment via tailscale dns tunnel"
+            }
+          ]
+        }
+      ]
+    },
+    "interactions": []
+  },
+
+  "hire_or_model_signoff": {
+    "candidate": {
+      "id": "aaaa0003-0000-0000-0000-000000000003",
+      "identifier": "SAG-HIRE",
+      "title": "Board approval: hire new QA Integration agent",
+      "description": "The hire request has been drafted and requires board approval before the agent can be provisioned. This is a hire approval sign-off request.",
+      "priority": "medium",
+      "createdAt": "2026-05-28T12:00:00.000Z",
+      "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+      "blockerAttention": {
+        "state": "needs_attention",
+        "unresolvedBlockerCount": 0,
+        "sampleBlockerIdentifier": null
+      }
+    },
+    "detail": {
+      "id": "aaaa0003-0000-0000-0000-000000000003",
+      "identifier": "SAG-HIRE",
+      "title": "Board approval: hire new QA Integration agent",
+      "description": "The hire request has been drafted and requires board approval before the agent can be provisioned. This is a hire approval sign-off request.",
+      "priority": "medium",
+      "createdAt": "2026-05-28T12:00:00.000Z",
+      "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+      "blockerAttention": {
+        "state": "needs_attention",
+        "unresolvedBlockerCount": 0,
+        "sampleBlockerIdentifier": null
+      },
+      "blocks": [],
+      "blockedBy": []
+    },
+    "interactions": []
+  },
+
+  "agent_internal_owned": {
+    "candidate": {
+      "id": "aaaa0004-0000-0000-0000-000000000004",
+      "identifier": "SAG-AGENT",
+      "title": "Fix retry logic in QA Integration test harness",
+      "description": "The QA integration test is failing intermittently. The agent needs to update the retry logic.",
+      "priority": "low",
+      "createdAt": "2026-05-29T09:00:00.000Z",
+      "assigneeAgentId": "3ab7fa06-f831-4631-922a-2fe824005788",
+      "blockerAttention": {
+        "state": "needs_attention",
+        "unresolvedBlockerCount": 1,
+        "sampleBlockerIdentifier": "SAG-AGENT-B"
+      }
+    },
+    "detail": {
+      "id": "aaaa0004-0000-0000-0000-000000000004",
+      "identifier": "SAG-AGENT",
+      "title": "Fix retry logic in QA Integration test harness",
+      "description": "The QA integration test is failing intermittently. The agent needs to update the retry logic.",
+      "priority": "low",
+      "createdAt": "2026-05-29T09:00:00.000Z",
+      "assigneeAgentId": "3ab7fa06-f831-4631-922a-2fe824005788",
+      "blockerAttention": {
+        "state": "needs_attention",
+        "unresolvedBlockerCount": 1,
+        "sampleBlockerIdentifier": "SAG-AGENT-B"
+      },
+      "blocks": [],
+      "blockedBy": [
+        {
+          "identifier": "SAG-AGENT-B",
+          "status": "in_progress",
+          "assigneeAgentId": "3ab7fa06-f831-4631-922a-2fe824005788",
+          "terminalBlockers": [
+            {
+              "identifier": "SAG-AGENT-B",
+              "status": "in_progress",
+              "assigneeAgentId": "3ab7fa06-f831-4631-922a-2fe824005788",
+              "title": "Investigate intermittent test failure cause"
+            }
+          ]
+        }
+      ]
+    },
+    "interactions": []
+  },
+
+  "agent_done_terminal": {
+    "candidate": {
+      "id": "aaaa0005-0000-0000-0000-000000000005",
+      "identifier": "SAG-DONE-TB",
+      "title": "Clear stale blocker from completed security audit",
+      "description": "Waiting on security audit which is now done. Stale blocker link needs clearing.",
+      "priority": "low",
+      "createdAt": "2026-05-15T10:00:00.000Z",
+      "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+      "blockerAttention": {
+        "state": "stalled",
+        "unresolvedBlockerCount": 1,
+        "sampleBlockerIdentifier": "SAG-AUDIT"
+      }
+    },
+    "detail": {
+      "id": "aaaa0005-0000-0000-0000-000000000005",
+      "identifier": "SAG-DONE-TB",
+      "title": "Clear stale blocker from completed security audit",
+      "description": "Waiting on security audit which is now done. Stale blocker link needs clearing.",
+      "priority": "low",
+      "createdAt": "2026-05-15T10:00:00.000Z",
+      "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+      "blockerAttention": {
+        "state": "stalled",
+        "unresolvedBlockerCount": 1,
+        "sampleBlockerIdentifier": "SAG-AUDIT"
+      },
+      "blocks": [],
+      "blockedBy": [
+        {
+          "identifier": "SAG-AUDIT",
+          "status": "done",
+          "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+          "terminalBlockers": [
+            {
+              "identifier": "SAG-AUDIT",
+              "status": "done",
+              "assigneeAgentId": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+              "title": "Security audit — completed"
+            }
+          ]
+        }
+      ]
+    },
+    "interactions": []
+  },
+
+  "ranking_items": [
+    {
+      "id": "rank-001",
+      "identifier": "SAG-RANK-CRIT",
+      "title": "Critical old issue with high blast radius",
+      "description": "Needs board approval for hire process.",
+      "priority": "critical",
+      "createdAt": "2026-05-01T00:00:00.000Z",
+      "assigneeAgentId": null,
+      "blockerAttention": { "state": "needs_attention", "unresolvedBlockerCount": 0, "sampleBlockerIdentifier": null },
+      "blocks": [
+        { "identifier": "SAG-D1", "status": "blocked", "title": "D1" },
+        { "identifier": "SAG-D2", "status": "blocked", "title": "D2" },
+        { "identifier": "SAG-D3", "status": "blocked", "title": "D3" }
+      ],
+      "blockedBy": []
+    },
+    {
+      "id": "rank-002",
+      "identifier": "SAG-RANK-HIGH-OLD",
+      "title": "High priority, oldest, low blast radius — approve hire",
+      "description": "Board approval needed for hiring new agent.",
+      "priority": "high",
+      "createdAt": "2026-05-10T00:00:00.000Z",
+      "assigneeAgentId": null,
+      "blockerAttention": { "state": "needs_attention", "unresolvedBlockerCount": 0, "sampleBlockerIdentifier": null },
+      "blocks": [],
+      "blockedBy": []
+    },
+    {
+      "id": "rank-003",
+      "identifier": "SAG-RANK-HIGH-NEW",
+      "title": "High priority, newer, higher blast radius — board approval",
+      "description": "Reconnect claude.ai OAuth integration.",
+      "priority": "high",
+      "createdAt": "2026-05-20T00:00:00.000Z",
+      "assigneeAgentId": null,
+      "blockerAttention": { "state": "needs_attention", "unresolvedBlockerCount": 0, "sampleBlockerIdentifier": null },
+      "blocks": [
+        { "identifier": "SAG-D4", "status": "blocked", "title": "D4" },
+        { "identifier": "SAG-D5", "status": "blocked", "title": "D5" }
+      ],
+      "blockedBy": []
+    }
+  ]
+}

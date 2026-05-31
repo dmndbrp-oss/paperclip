@@ -1,0 +1,33 @@
+{
+  "candidate": {
+    "id": "76ae4796-0464-461e-920f-3e0b0f9d56fd",
+    "identifier": "SAG-2337",
+    "title": "Disconnect unused claude.ai OAuth integrations (no-code, operator action)",
+    "description": "Parent: SAG-2336. See audit Lever A.\n\nGoal: Reduce the 28-entry claudeAiMcpEverConnected set on the claude.ai OAuth account driving Paperclip runners down to an engineering-safe set. This is a board-level operator action only — no agent can disconnect OAuth integrations via API.",
+    "priority": "high",
+    "createdAt": "2026-05-25T23:01:52.422Z",
+    "assigneeAgentId": null,
+    "blockerAttention": {
+      "state": "needs_attention",
+      "unresolvedBlockerCount": 0,
+      "sampleBlockerIdentifier": null
+    }
+  },
+  "detail": {
+    "id": "76ae4796-0464-461e-920f-3e0b0f9d56fd",
+    "identifier": "SAG-2337",
+    "title": "Disconnect unused claude.ai OAuth integrations (no-code, operator action)",
+    "description": "Parent: SAG-2336. See audit Lever A.\n\nGoal: Reduce the 28-entry claudeAiMcpEverConnected set on the claude.ai OAuth account driving Paperclip runners down to an engineering-safe set. This is a board-level operator action only — no agent can disconnect OAuth integrations via API.",
+    "priority": "high",
+    "createdAt": "2026-05-25T23:01:52.422Z",
+    "assigneeAgentId": null,
+    "blockerAttention": {
+      "state": "needs_attention",
+      "unresolvedBlockerCount": 0,
+      "sampleBlockerIdentifier": null
+    },
+    "blocks": [],
+    "blockedBy": []
+  },
+  "interactions": []
+}

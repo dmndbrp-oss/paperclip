@@ -1,0 +1,33 @@
+{
+  "candidate": {
+    "id": "d70c1bfa-7465-457f-b7c1-6755638dd694",
+    "identifier": "SAG-2170",
+    "title": "Provide GitHub PAT for upstream paperclip-create-agent PR",
+    "description": "Coder has prepared all four required edits for the upstream PR. The only remaining blocker is GitHub push credentials.\n\nA GitHub personal access token (PAT) with repo scope is needed, or a configured SSH key for GitHub, injected into the Coder agent environment.",
+    "priority": "low",
+    "createdAt": "2026-05-24T07:39:57.430Z",
+    "assigneeAgentId": null,
+    "blockerAttention": {
+      "state": "needs_attention",
+      "unresolvedBlockerCount": 0,
+      "sampleBlockerIdentifier": null
+    }
+  },
+  "detail": {
+    "id": "d70c1bfa-7465-457f-b7c1-6755638dd694",
+    "identifier": "SAG-2170",
+    "title": "Provide GitHub PAT for upstream paperclip-create-agent PR",
+    "description": "Coder has prepared all four required edits for the upstream PR. The only remaining blocker is GitHub push credentials.\n\nA GitHub personal access token (PAT) with repo scope is needed, or a configured SSH key for GitHub, injected into the Coder agent environment.",
+    "priority": "low",
+    "createdAt": "2026-05-24T07:39:57.430Z",
+    "assigneeAgentId": null,
+    "blockerAttention": {
+      "state": "needs_attention",
+      "unresolvedBlockerCount": 0,
+      "sampleBlockerIdentifier": null
+    },
+    "blocks": [],
+    "blockedBy": []
+  },
+  "interactions": []
+}

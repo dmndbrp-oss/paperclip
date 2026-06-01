@@ -49,8 +49,8 @@ logger = logging.getLogger(__name__)
 OPUS_INPUT_PER_1K = 0.015
 OPUS_OUTPUT_PER_1K = 0.075
 
-PRIMARY_MODEL = "qwen2.5:14b-instruct-q4_K_M"
-FALLBACK_MODEL = "llama3.3:70b-instruct-q4_K_M"
+PRIMARY_MODEL = "ollama/qwen2.5:14b-instruct-q4_K_M"
+FALLBACK_MODEL = "ollama/llama3.3:70b-instruct-q4_K_M"
 REVIEWER_MODEL = "claude-opus-4-7"
 
 PRIMARY_TIMEOUT = 60.0

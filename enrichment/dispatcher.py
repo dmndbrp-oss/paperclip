@@ -13,6 +13,7 @@ Entry point:
 Environment variables:
   DATABASE_URL          postgres://user:pass@host/db  (required)
   LITELLM_BASE_URL      default http://localhost:4000
+  LITELLM_API_KEY       bearer token for LiteLLM gateway (required when master_key set)
   ANTHROPIC_API_KEY     required for reviewer tier
   PAPERCLIP_API_URL     for routine pause notification
   PAPERCLIP_API_KEY     for routine pause notification
@@ -66,6 +67,7 @@ REVIEWER_TIMEOUT = 60.0
 class DispatcherConfig:
     database_url: str
     litellm_base_url: str = "http://localhost:4000"
+    litellm_api_key: str = ""
     anthropic_api_key: str = ""
     paperclip_api_url: str = ""
     paperclip_api_key: str = ""
@@ -85,6 +87,7 @@ class DispatcherConfig:
         return cls(
             database_url=database_url,
             litellm_base_url=os.environ.get("LITELLM_BASE_URL", "http://localhost:4000"),
+            litellm_api_key=os.environ.get("LITELLM_API_KEY", ""),
             anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
             paperclip_api_url=os.environ.get("PAPERCLIP_API_URL", ""),
             paperclip_api_key=os.environ.get("PAPERCLIP_API_KEY", ""),
@@ -167,14 +170,48 @@ def _write_staging(conn, batch_id: str, source_row_id: str, result: dict) -> Non
 def _build_enrichment_messages(payload: dict) -> tuple[str, str]:
     """Return (system_prompt, user_prompt) for the enrichment task."""
     system = (
-        "You are a product data enrichment specialist for Sage Surfaces. "
-        "Analyze the product information and produce a structured JSON object describing "
-        "the surface material's attributes. Output ONLY valid JSON. No prose. No markdown fences."
+        "You are a product data enrichment specialist for Sage Surfaces, a countertop and "
+        "surface materials distributor. Your job is to analyze product information and produce "
+        "a structured JSON object describing a surface material's attributes.\n\n"
+        "Rules:\n"
+        "1. Output ONLY a valid JSON object. No explanation, no markdown, no prose.\n"
+        "2. Every required field must be present. Optional fields may be null if genuinely unknown.\n"
+        "3. Use only the exact enum values listed in the schema. Do not invent new values.\n"
+        "4. If is_outdoor is true, weather_rating must NOT be null.\n"
+        "5. Set enrichment_confidence to a float 0.0-1.0 reflecting your overall certainty.\n"
+        "6. List any fields you are uncertain about in low_confidence_fields.\n"
+        "7. Keep enrichment_notes under 200 characters if used.\n\n"
+        "Schema reference (required fields: sku, product_name, material_type, primary_color_family, "
+        "finish, applications, price_tier, availability, is_outdoor, enrichment_confidence):\n"
+        "- material_type: quartz | granite | marble | quartzite | porcelain | sintered_stone | "
+        "laminate | solid_surface | recycled_glass | terrazzo | soapstone | slate | travertine | "
+        "limestone | onyx | other\n"
+        "- primary_color_family: white | off_white | gray | black | beige | cream | brown | taupe | "
+        "blue | green | red | pink | gold | multicolor\n"
+        "- finish: polished | honed | matte | leathered | brushed | sandblasted | flamed | "
+        "bush_hammered | satin\n"
+        "- pattern_type: solid | veined | flecked | marbled | speckled | linear | geometric | "
+        "organic | null\n"
+        "- applications (array): countertop | kitchen_island | bathroom_vanity | flooring | "
+        "wall_cladding | shower_surround | backsplash | fireplace_surround | outdoor_kitchen | "
+        "table_top | commercial\n"
+        "- weather_rating: excellent | good | fair | not_rated | null\n"
+        "- heat_resistance / scratch_resistance: excellent | good | moderate | low | null\n"
+        "- care_level: low | moderate | high | null\n"
+        "- price_tier: budget | mid | premium | luxury\n"
+        "- availability: in_stock | made_to_order | limited_stock | discontinued | coming_soon\n"
+        "- edge_profiles_available: eased | beveled | bullnose | ogee | waterfall | mitered | "
+        "dupont | chiseled\n"
+        "- certifications: NSF_51 | GREENGUARD_Gold | LEED_eligible | ISO_14001 | "
+        "recycled_content_certified\n"
+        "- country_of_origin: ISO 3166-1 alpha-2 code (e.g. US, IT, IN, BR) or null"
     )
-    user = (
-        "Enrich the following surface product. Return only the JSON object.\n\n"
-        f"Product input:\n{json.dumps(payload, indent=2)}"
-    )
+    # Build a readable product summary from whatever fields are in the payload
+    lines = ["Enrich the following surface product. Return only the JSON object.", "", "Product input:"]
+    for key, value in payload.items():
+        if value is not None:
+            lines.append(f"  {key}: {value}")
+    user = "\n".join(lines) + "\n\nOutput the enriched JSON now:"
     return system, user
 
 
@@ -204,14 +241,19 @@ async def _litellm_complete(
     system: str,
     user: str,
     timeout: float,
+    api_key: str = "",
 ) -> tuple[str | None, bool]:
     """
     Call LiteLLM gateway. Returns (content, timed_out).
     Returns (None, False) on non-timeout errors.
     """
+    headers = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
     try:
         resp = await client.post(
             f"{base_url}/v1/chat/completions",
+            headers=headers,
             json={
                 "model": model,
                 "messages": [
@@ -357,7 +399,8 @@ async def _process_row(
 
     # --- Primary tier ---
     content, timed_out = await _litellm_complete(
-        http_client, cfg.litellm_base_url, PRIMARY_MODEL, system, user, PRIMARY_TIMEOUT
+        http_client, cfg.litellm_base_url, PRIMARY_MODEL, system, user, PRIMARY_TIMEOUT,
+        api_key=cfg.litellm_api_key,
     )
     if content:
         try:
@@ -373,7 +416,8 @@ async def _process_row(
     # --- Fallback tier (if primary failed schema validation) ---
     if tier_used == "failed":
         content, timed_out = await _litellm_complete(
-            http_client, cfg.litellm_base_url, FALLBACK_MODEL, system, user, FALLBACK_TIMEOUT
+            http_client, cfg.litellm_base_url, FALLBACK_MODEL, system, user, FALLBACK_TIMEOUT,
+            api_key=cfg.litellm_api_key,
         )
         if content:
             try:

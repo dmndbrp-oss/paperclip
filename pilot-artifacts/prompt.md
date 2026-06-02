@@ -579,7 +579,7 @@ Price point (USD/sqft): 280
   "finish": "polished",
   "pattern_type": "organic",
   "thickness_options_mm": [20],
-  "applications": ["wall_cladding", "table_top", "commercial", "bar_top"],
+  "applications": ["wall_cladding", "table_top", "commercial"],
   "is_outdoor": false,
   "weather_rating": null,
   "uv_resistant": false,

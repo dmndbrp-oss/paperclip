@@ -208,7 +208,7 @@ class TestRowTierRouting(unittest.IsolatedAsyncioTestCase):
 
         call_count = [0]
 
-        async def mock_litellm_complete(client, base_url, model, system, user, timeout):
+        async def mock_litellm_complete(client, base_url, model, system, user, timeout, api_key=""):
             call_count[0] += 1
             if call_count[0] == 1:
                 return primary_content, False

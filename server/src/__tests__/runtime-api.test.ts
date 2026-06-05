@@ -3,6 +3,7 @@ import {
   buildRuntimeApiCandidateUrls,
   choosePrimaryRuntimeApiUrl,
   collectReachableInterfaceHosts,
+  detectRuntimeApiUrlMismatch,
 } from "../runtime-api.js";
 
 describe("runtime API discovery", () => {
@@ -190,5 +191,37 @@ describe("runtime API discovery", () => {
       "192.168.6.178",
       "fd7a:115c:a1e0::8a3a:a11d",
     ]);
+  });
+
+  // SAG-810 Part B: startup warning for allowedHostnames vs loopback bind mismatch
+  it("detectRuntimeApiUrlMismatch: warns when configuredApiUrl has a non-loopback host on loopback bind", () => {
+    const result = detectRuntimeApiUrlMismatch({
+      configuredApiUrl: "http://foo.tail.ts.net:3100",
+      runtimeApiUrl: "http://127.0.0.1:3100",
+      bindHost: "127.0.0.1",
+    });
+    expect(result).not.toBeNull();
+    expect(result).toContain("foo.tail.ts.net");
+    expect(result).toContain("127.0.0.1:3100");
+  });
+
+  it("detectRuntimeApiUrlMismatch: returns null when configuredApiUrl is loopback", () => {
+    expect(
+      detectRuntimeApiUrlMismatch({
+        configuredApiUrl: "http://localhost:3100",
+        runtimeApiUrl: "http://127.0.0.1:3100",
+        bindHost: "127.0.0.1",
+      }),
+    ).toBeNull();
+  });
+
+  it("detectRuntimeApiUrlMismatch: returns null when bind is wildcard (external hosts are reachable)", () => {
+    expect(
+      detectRuntimeApiUrlMismatch({
+        configuredApiUrl: "http://foo.tail.ts.net:3100",
+        runtimeApiUrl: "http://foo.tail.ts.net:3100",
+        bindHost: "0.0.0.0",
+      }),
+    ).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 import { constants as fsConstants, promises as fs, type Dirent } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -915,7 +915,30 @@ export function preferLoopbackApiUrl(rawUrl: string | undefined): string | undef
   return parsed.toString().replace(/\/+$/, "");
 }
 
-export function buildPaperclipEnv(agent: { id: string; companyId: string }): Record<string, string> {
+function mintDispatchJwt(agentId: string, companyId: string, adapterType: string, runId: string): string | null {
+  const secret = process.env.PAPERCLIP_AGENT_JWT_SECRET?.trim() || process.env.BETTER_AUTH_SECRET?.trim();
+  if (!secret) return null;
+  const ttl = parseInt(process.env.PAPERCLIP_AGENT_JWT_TTL_SECONDS ?? "", 10);
+  const ttlSec = Number.isFinite(ttl) && ttl >= 0 ? ttl : 60 * 60 * 48;
+  const iss = process.env.PAPERCLIP_AGENT_JWT_ISSUER ?? "paperclip";
+  const aud = process.env.PAPERCLIP_AGENT_JWT_AUDIENCE ?? "paperclip-api";
+  const now = Math.floor(Date.now() / 1000);
+  // When TTL=0, set exp one second before now so the token is immediately
+  // expired (verifyLocalAgentJwt uses exp < now, exclusive).
+  const exp = ttlSec === 0 ? now - 1 : now + ttlSec;
+  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({
+    sub: agentId, company_id: companyId, adapter_type: adapterType,
+    run_id: runId, iat: now, exp, iss, aud,
+  })).toString("base64url");
+  const sig = createHmac("sha256", secret).update(`${header}.${payload}`).digest("base64url");
+  return `${header}.${payload}.${sig}`;
+}
+
+export function buildPaperclipEnv(
+  agent: { id: string; companyId: string },
+  opts?: { apiKey?: string; runId?: string; adapterType?: string },
+): Record<string, string> {
   const resolveHostForUrl = (rawHost: string): string => {
     const host = rawHost.trim();
     if (!host || host === "0.0.0.0" || host === "::") return "localhost";
@@ -935,6 +958,13 @@ export function buildPaperclipEnv(agent: { id: string; companyId: string }): Rec
     preferLoopbackApiUrl(process.env.PAPERCLIP_API_URL) ??
     `http://${runtimeHost}:${runtimePort}`;
   vars.PAPERCLIP_API_URL = apiUrl;
+  const apiKey = opts?.apiKey?.trim() ??
+    (opts?.runId
+      ? mintDispatchJwt(agent.id, agent.companyId, opts.adapterType ?? "local", opts.runId) ?? undefined
+      : undefined);
+  if (apiKey) {
+    vars.PAPERCLIP_API_KEY = apiKey;
+  }
   return vars;
 }
 

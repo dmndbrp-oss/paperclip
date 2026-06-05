@@ -111,6 +111,41 @@ export function collectReachableInterfaceHosts(input: {
     .map((entry) => entry.host);
 }
 
+/**
+ * Part B: Detects when the environment-configured PAPERCLIP_API_URL resolves to
+ * a non-loopback host while the server is bound to loopback or wildcard. In that
+ * case co-located agents would receive an unreachable URL. Returns a warning
+ * message string when the mismatch is detected, or null when everything is consistent.
+ *
+ * Call this once at server startup after runtimeApiUrl is computed and log the
+ * result. See also: choosePrimaryRuntimeApiUrl (Part A fix) and SAG-810.
+ */
+export function detectRuntimeApiUrlMismatch(input: {
+  configuredApiUrl: string | null | undefined;
+  runtimeApiUrl: string;
+  bindHost: string;
+}): string | null {
+  const configuredUrl = input.configuredApiUrl?.trim();
+  if (!configuredUrl) return null;
+  const bindHost = normalizeHost(input.bindHost);
+  // Only warn when the server is bound to loopback — on wildcard (0.0.0.0/::)
+  // all interfaces are bound so external hostnames are genuinely reachable.
+  if (!isLoopbackHost(bindHost)) return null;
+  let configuredHostname: string;
+  try {
+    configuredHostname = new URL(configuredUrl).hostname;
+  } catch {
+    return null;
+  }
+  if (isLoopbackHost(configuredHostname)) return null;
+  return (
+    `PAPERCLIP_API_URL (${configuredUrl}) points to a non-loopback host but ` +
+    `the server bindHost is "${bindHost || "unset"}". Co-located agents will be ` +
+    `injected with a loopback URL (${input.runtimeApiUrl}) instead. ` +
+    `Set authPublicBaseUrl in config if off-box callers need the external URL.`
+  );
+}
+
 export function buildRuntimeApiCandidateUrls(input: {
   preferredApiUrl?: string | null;
   authPublicBaseUrl?: string | null;

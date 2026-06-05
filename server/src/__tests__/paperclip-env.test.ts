@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { buildPaperclipEnv } from "../adapters/utils.js";
+import { verifyLocalAgentJwt } from "../agent-auth-jwt.js";
 
+const ORIGINAL_PAPERCLIP_JWT_SECRET = process.env.PAPERCLIP_AGENT_JWT_SECRET;
+const ORIGINAL_BETTER_AUTH_SECRET = process.env.BETTER_AUTH_SECRET;
+const ORIGINAL_PAPERCLIP_JWT_TTL = process.env.PAPERCLIP_AGENT_JWT_TTL_SECONDS;
 const ORIGINAL_PAPERCLIP_RUNTIME_API_URL = process.env.PAPERCLIP_RUNTIME_API_URL;
 const ORIGINAL_PAPERCLIP_API_URL = process.env.PAPERCLIP_API_URL;
 const ORIGINAL_PAPERCLIP_LISTEN_HOST = process.env.PAPERCLIP_LISTEN_HOST;
@@ -9,6 +13,13 @@ const ORIGINAL_HOST = process.env.HOST;
 const ORIGINAL_PORT = process.env.PORT;
 
 afterEach(() => {
+  if (ORIGINAL_PAPERCLIP_JWT_SECRET === undefined) delete process.env.PAPERCLIP_AGENT_JWT_SECRET;
+  else process.env.PAPERCLIP_AGENT_JWT_SECRET = ORIGINAL_PAPERCLIP_JWT_SECRET;
+  if (ORIGINAL_BETTER_AUTH_SECRET === undefined) delete process.env.BETTER_AUTH_SECRET;
+  else process.env.BETTER_AUTH_SECRET = ORIGINAL_BETTER_AUTH_SECRET;
+  if (ORIGINAL_PAPERCLIP_JWT_TTL === undefined) delete process.env.PAPERCLIP_AGENT_JWT_TTL_SECONDS;
+  else process.env.PAPERCLIP_AGENT_JWT_TTL_SECONDS = ORIGINAL_PAPERCLIP_JWT_TTL;
+
   if (ORIGINAL_PAPERCLIP_RUNTIME_API_URL === undefined) delete process.env.PAPERCLIP_RUNTIME_API_URL;
   else process.env.PAPERCLIP_RUNTIME_API_URL = ORIGINAL_PAPERCLIP_RUNTIME_API_URL;
 
@@ -83,5 +94,59 @@ describe("buildPaperclipEnv", () => {
     const env = buildPaperclipEnv({ id: "agent-1", companyId: "company-1" });
 
     expect(env.PAPERCLIP_API_URL).toBe("http://[::1]:3101");
+  });
+
+  // SAG-2986: per-agent JWT injection for authenticated mode
+  it("injects PAPERCLIP_API_KEY as a valid agent JWT when runId and secret are provided", () => {
+    process.env.PAPERCLIP_AGENT_JWT_SECRET = "test-secret-for-unit-test";
+    const env = buildPaperclipEnv(
+      { id: "agent-abc", companyId: "company-xyz" },
+      { runId: "run-001", adapterType: "claude_local" },
+    );
+    expect(typeof env.PAPERCLIP_API_KEY).toBe("string");
+    expect(env.PAPERCLIP_API_KEY!.split(".")).toHaveLength(3);
+    const claims = verifyLocalAgentJwt(env.PAPERCLIP_API_KEY!);
+    expect(claims).not.toBeNull();
+    expect(claims?.sub).toBe("agent-abc");
+    expect(claims?.company_id).toBe("company-xyz");
+    expect(claims?.run_id).toBe("run-001");
+    expect(claims?.adapter_type).toBe("claude_local");
+  });
+
+  it("does not inject PAPERCLIP_API_KEY when no JWT secret is configured", () => {
+    delete process.env.PAPERCLIP_AGENT_JWT_SECRET;
+    delete process.env.BETTER_AUTH_SECRET;
+    const env = buildPaperclipEnv(
+      { id: "agent-abc", companyId: "company-xyz" },
+      { runId: "run-001", adapterType: "process" },
+    );
+    expect(env.PAPERCLIP_API_KEY).toBeUndefined();
+  });
+
+  it("uses explicit apiKey from opts without minting a JWT", () => {
+    process.env.PAPERCLIP_AGENT_JWT_SECRET = "test-secret-for-unit-test";
+    const env = buildPaperclipEnv(
+      { id: "agent-abc", companyId: "company-xyz" },
+      { apiKey: "explicit-token", runId: "run-001", adapterType: "process" },
+    );
+    expect(env.PAPERCLIP_API_KEY).toBe("explicit-token");
+  });
+
+  it("does not inject PAPERCLIP_API_KEY when runId is omitted", () => {
+    process.env.PAPERCLIP_AGENT_JWT_SECRET = "test-secret-for-unit-test";
+    const env = buildPaperclipEnv({ id: "agent-abc", companyId: "company-xyz" });
+    expect(env.PAPERCLIP_API_KEY).toBeUndefined();
+  });
+
+  it("expired token → verifyLocalAgentJwt returns null (unauthenticated)", () => {
+    // Build a JWT with a TTL of 0 so it is immediately expired.
+    process.env.PAPERCLIP_AGENT_JWT_SECRET = "test-secret-for-unit-test";
+    process.env.PAPERCLIP_AGENT_JWT_TTL_SECONDS = "0";
+    const env = buildPaperclipEnv(
+      { id: "agent-exp", companyId: "company-exp" },
+      { runId: "run-exp", adapterType: "process" },
+    );
+    // Token was minted with exp = iat + 0, so it is already expired.
+    expect(verifyLocalAgentJwt(env.PAPERCLIP_API_KEY ?? "")).toBeNull();
   });
 });

@@ -39,7 +39,7 @@ import {
   routineService,
 } from "./services/index.js";
 import { createFeedbackTraceShareClientFromConfig } from "./services/feedback-share-client.js";
-import { buildRuntimeApiCandidateUrls, choosePrimaryRuntimeApiUrl } from "./runtime-api.js";
+import { buildRuntimeApiCandidateUrls, choosePrimaryRuntimeApiUrl, detectRuntimeApiUrlMismatch } from "./runtime-api.js";
 import { createPluginWorkerManager } from "./services/plugin-worker-manager.js";
 import { createStorageServiceFromConfig } from "./storage/index.js";
 import { printStartupBanner } from "./startup-banner.js";
@@ -684,6 +684,19 @@ export async function startServer(): Promise<StartedServer> {
   process.env.PAPERCLIP_RUNTIME_API_URL = runtimeApiUrl;
   process.env.PAPERCLIP_RUNTIME_API_CANDIDATES_JSON = JSON.stringify(runtimeApiCandidates);
   process.env.PAPERCLIP_API_URL = configuredApiUrl;
+  // Part B: Warn when the externally-visible API URL would be injected into
+  // co-located agents that can only reach loopback. choosePrimaryRuntimeApiUrl
+  // already corrects the injected value; this warning surfaces the mismatch so
+  // operators can set authPublicBaseUrl explicitly instead of relying on the
+  // loopback fallback. See detectRuntimeApiUrlMismatch in runtime-api.ts.
+  const apiUrlMismatchWarning = detectRuntimeApiUrlMismatch({
+    configuredApiUrl: process.env.PAPERCLIP_API_URL,
+    runtimeApiUrl,
+    bindHost: runtimeListenHost,
+  });
+  if (apiUrlMismatchWarning) {
+    logger.warn({ bindHost: runtimeListenHost, runtimeApiUrl, configuredApiUrl }, apiUrlMismatchWarning);
+  }
   
   setupLiveEventsWebSocketServer(server, db as any, {
     deploymentMode: config.deploymentMode,

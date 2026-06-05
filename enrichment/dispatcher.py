@@ -44,6 +44,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pilot-artifact
 from validator import validate  # type: ignore[import]
 
 from cost_cap import CostCapTracker
+import headroom_compress  # SAG-3060: token-compression plugin scaffold
 
 logger = logging.getLogger(__name__)
 
@@ -421,6 +422,16 @@ async def _process_row(
     system, user = _build_enrichment_messages(payload)
     tier_used = "failed"
 
+    # --- SAG-3060: compress user prompt before LLM calls ---
+    cr = headroom_compress.compress(user)
+    if cr.original_len > 0 and cr.compressed_len < cr.original_len:
+        logger.info(
+            "headroom compress sku=%s orig=%d comp=%d ratio=%.1f%%",
+            source_row_id, cr.original_len, cr.compressed_len,
+            (1 - cr.compressed_len / cr.original_len) * 100,
+        )
+        user = cr.compressed
+
     # --- Primary tier ---
     content, timed_out = await _litellm_complete(
         http_client, cfg.litellm_base_url, PRIMARY_MODEL, system, user, PRIMARY_TIMEOUT,
@@ -520,6 +531,21 @@ class EnrichmentDispatcher:
         """
         cfg = self._cfg
         cap_paused = asyncio.Event()
+
+        # SAG-3060: verify headroom-compress health on startup
+        health = headroom_compress.check_health()
+        if health["headroomAvailable"]:
+            logger.info(
+                "headroom-compress ready: version=%s telemetry_off=%s library_mode_only=%s",
+                health.get("version"),
+                health.get("telemetryEnforced"),
+                health.get("libraryModeOnly"),
+            )
+        else:
+            logger.warning(
+                "headroom-compress unavailable — token compression disabled "
+                "(install: pip install 'headroom-ai>=0.23.0' with Python 3.12/3.13)"
+            )
 
         conn = await asyncio.to_thread(_db_connect, cfg.database_url)
         try:

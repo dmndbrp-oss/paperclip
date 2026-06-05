@@ -29,6 +29,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 import time
 import uuid
@@ -54,7 +55,7 @@ OPUS_OUTPUT_PER_1K = 0.075
 # so there is no model-swap overhead. llama3.3:70b caused 240s timeouts because
 # swap+queue-wait on the shared APU exceeded PRIMARY_TIMEOUT+FALLBACK_TIMEOUT.
 PRIMARY_MODEL = "qwen3-30b-moe"                       # LiteLLM alias → ollama/qwen3:30b-a3b
-FALLBACK_MODEL = "ollama/gemma4:26b-a4b-it-q4_K_M"   # 100% bench accuracy, 47 tok/s, ~16 GB
+FALLBACK_MODEL = "ollama/qwen2.5:14b-instruct-q4_K_M"  # SAG-3029 canary: gemma4 needs LiteLLM restart; qwen2.5:14b is already registered and passed SSI-QTZ-0100
 REVIEWER_MODEL = "claude-opus-4-7"
 
 # Timeouts must absorb APU queue-wait behind in-flight Paperclip agent inferences
@@ -272,6 +273,10 @@ async def _litellm_complete(
         resp.raise_for_status()
         data = resp.json()
         content = data["choices"][0]["message"]["content"]
+        # Strip qwen3 thinking tags — qwen3:30b-a3b emits <think>…</think> before JSON
+        content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
+        # Strip markdown JSON fences if present
+        content = re.sub(r"^```(?:json)?\s*", "", content).rstrip("`").strip()
         return content, False
     except httpx.TimeoutException:
         return None, True
@@ -369,6 +374,20 @@ async def _pause_routine(cfg: DispatcherConfig, weekly_spend: float) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Cross-field repair
+# ---------------------------------------------------------------------------
+
+def _repair_cross_fields(parsed: dict) -> None:
+    """Enforce schema cross-field invariants that models frequently miss.
+    Mutates parsed in-place; logs any repairs made.
+    """
+    # Rule: is_outdoor=true requires weather_rating != null
+    if parsed.get("is_outdoor") and not parsed.get("weather_rating"):
+        parsed["weather_rating"] = "not_rated"
+        logger.info("Cross-field repair: set weather_rating=not_rated for is_outdoor=true sku=%s", parsed.get("sku"))
+
+
+# ---------------------------------------------------------------------------
 # Row processor
 # ---------------------------------------------------------------------------
 
@@ -410,13 +429,20 @@ async def _process_row(
     if content:
         try:
             parsed = json.loads(content)
+            _repair_cross_fields(parsed)
             validation = validate(parsed)
             result["primary_output"] = parsed
             result["validator_result"] = validation
             if validation.get("valid"):
                 tier_used = "primary"
-        except (json.JSONDecodeError, Exception) as exc:
-            logger.debug("Primary output parse/validate error for %s: %s", source_row_id, exc)
+            else:
+                logger.info("Primary schema invalid for %s: %s", source_row_id, validation.get("errors"))
+        except json.JSONDecodeError as exc:
+            logger.warning("Primary JSON parse error for %s: %s", source_row_id, exc)
+        except Exception as exc:
+            logger.warning("Primary validate error for %s: %s", source_row_id, exc)
+    else:
+        logger.warning("Primary %s for %s (model=%s)", "timed out" if timed_out else "returned no content", source_row_id, PRIMARY_MODEL)
 
     # --- Fallback tier (if primary failed schema validation) ---
     if tier_used == "failed":
@@ -427,13 +453,20 @@ async def _process_row(
         if content:
             try:
                 parsed = json.loads(content)
+                _repair_cross_fields(parsed)
                 validation = validate(parsed)
                 result["fallback_output"] = parsed
                 result["validator_result"] = validation
                 if validation.get("valid"):
                     tier_used = "fallback"
-            except (json.JSONDecodeError, Exception) as exc:
-                logger.debug("Fallback output parse/validate error for %s: %s", source_row_id, exc)
+                else:
+                    logger.warning("Fallback schema invalid for %s: %s", source_row_id, validation.get("errors"))
+            except json.JSONDecodeError as exc:
+                logger.warning("Fallback JSON parse error for %s: %s", source_row_id, exc)
+            except Exception as exc:
+                logger.warning("Fallback validate error for %s: %s", source_row_id, exc)
+        else:
+            logger.warning("Fallback %s for %s (model=%s)", "timed out" if timed_out else "returned no content", source_row_id, FALLBACK_MODEL)
 
     # --- Reviewer tier (Opus, cost-cap gated) ---
     if tier_used in ("primary", "fallback") and cfg.anthropic_api_key:

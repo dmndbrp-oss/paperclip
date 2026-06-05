@@ -50,12 +50,17 @@ logger = logging.getLogger(__name__)
 OPUS_INPUT_PER_1K = 0.015
 OPUS_OUTPUT_PER_1K = 0.075
 
-PRIMARY_MODEL = "ollama/qwen2.5:14b-instruct-q4_K_M"
-FALLBACK_MODEL = "ollama/llama3.3:70b-instruct-q4_K_M"
+# SAG-3029: use qwen3:30b-a3b (always resident in Ollama as Paperclip's primary model)
+# so there is no model-swap overhead. llama3.3:70b caused 240s timeouts because
+# swap+queue-wait on the shared APU exceeded PRIMARY_TIMEOUT+FALLBACK_TIMEOUT.
+PRIMARY_MODEL = "qwen3-30b-moe"                       # LiteLLM alias → ollama/qwen3:30b-a3b
+FALLBACK_MODEL = "ollama/gemma4:26b-a4b-it-q4_K_M"   # 100% bench accuracy, 47 tok/s, ~16 GB
 REVIEWER_MODEL = "claude-opus-4-7"
 
-PRIMARY_TIMEOUT = 60.0
-FALLBACK_TIMEOUT = 180.0
+# Timeouts must absorb APU queue-wait behind in-flight Paperclip agent inferences
+# (can be 60-120s on a busy APU) plus model-load + inference time.
+PRIMARY_TIMEOUT = 600.0   # 10 min — qwen3:30b-a3b already warm, but queue-wait can be long
+FALLBACK_TIMEOUT = 300.0  # 5 min — gemma4:26b is fast once loaded
 REVIEWER_TIMEOUT = 60.0
 
 

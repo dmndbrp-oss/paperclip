@@ -95,6 +95,53 @@ describe("runtime API discovery", () => {
     ]);
   });
 
+  // SAG-810 / SAG-2986: loopback-bind cases
+  it("returns loopback URL when bindHost is loopback and allowedHostnames contains a public host", () => {
+    expect(
+      choosePrimaryRuntimeApiUrl({
+        allowedHostnames: ["foo.tail.ts.net"],
+        bindHost: "127.0.0.1",
+        port: 3100,
+      }),
+    ).toBe("http://127.0.0.1:3100");
+  });
+
+  it("returns public hostname URL when bindHost is wildcard and allowedHostnames has a host", () => {
+    expect(
+      choosePrimaryRuntimeApiUrl({
+        allowedHostnames: ["foo.tail.ts.net"],
+        bindHost: "0.0.0.0",
+        port: 3100,
+      }),
+    ).toBe("http://foo.tail.ts.net:3100");
+  });
+
+  it("authPublicBaseUrl wins over loopback bindHost", () => {
+    expect(
+      choosePrimaryRuntimeApiUrl({
+        authPublicBaseUrl: "https://foo.tail.ts.net",
+        allowedHostnames: ["foo.tail.ts.net"],
+        bindHost: "127.0.0.1",
+        port: 3100,
+      }),
+    ).toBe("https://foo.tail.ts.net");
+  });
+
+  it("places loopback candidate first when bindHost is loopback with a public allowedHostname", () => {
+    const candidates = buildRuntimeApiCandidateUrls({
+      allowedHostnames: ["foo.tail.ts.net"],
+      bindHost: "127.0.0.1",
+      port: 3100,
+      networkInterfacesMap: {},
+    });
+    expect(candidates[0]).toBe("http://127.0.0.1:3100");
+    // tailnet host must not appear before loopback (it's unreachable on loopback bind)
+    const tailnetIndex = candidates.indexOf("http://foo.tail.ts.net:3100");
+    if (tailnetIndex !== -1) {
+      expect(tailnetIndex).toBeGreaterThan(0);
+    }
+  });
+
   it("prefers usable interface hosts and skips link-local addresses", () => {
     expect(
       collectReachableInterfaceHosts({

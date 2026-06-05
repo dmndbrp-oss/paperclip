@@ -61,6 +61,14 @@ export function choosePrimaryRuntimeApiUrl(input: {
     }
   }
 
+  const bindHost = normalizeHost(input.bindHost);
+  // When the server is bound to loopback, allowedHostnames are unreachable —
+  // the server has no socket on those interfaces. Return the loopback URL so
+  // co-located agents don't get an unreachable host injected.
+  if (bindHost && isLoopbackHost(bindHost)) {
+    return formatOrigin("http:", bindHost, input.port);
+  }
+
   const allowedHostname = input.allowedHostnames
     .map((value) => value.trim())
     .find(Boolean);
@@ -68,7 +76,6 @@ export function choosePrimaryRuntimeApiUrl(input: {
     return formatOrigin("http:", allowedHostname, input.port);
   }
 
-  const bindHost = normalizeHost(input.bindHost);
   if (bindHost && !isWildcardHost(bindHost)) {
     return formatOrigin("http:", bindHost, input.port);
   }
@@ -128,14 +135,29 @@ export function buildRuntimeApiCandidateUrls(input: {
   pushCandidate(candidates, seen, input.preferredApiUrl);
   pushCandidate(candidates, seen, explicitOrigin);
 
+  const bindHost = normalizeHost(input.bindHost);
+  const bindIsLoopback = bindHost ? isLoopbackHost(bindHost) : false;
+
+  // When the server is bound to loopback, push the loopback candidate first so
+  // co-located callers get a reachable URL. Wildcard binds serve all interfaces
+  // so allowedHostnames come first (existing behaviour preserved).
+  if (bindIsLoopback) {
+    pushCandidate(candidates, seen, formatOrigin(protocol, bindHost, input.port));
+  }
+
   for (const rawHost of input.allowedHostnames) {
     const host = normalizeHost(rawHost);
     if (!host) continue;
+    // Skip allowedHostnames that are not bound — on a loopback bind they are
+    // unreachable, so only include them if they appear in actual interfaces.
+    if (bindIsLoopback) {
+      const reachable = collectReachableInterfaceHosts({ networkInterfacesMap: input.networkInterfacesMap });
+      if (!reachable.includes(host)) continue;
+    }
     pushCandidate(candidates, seen, formatOrigin(protocol, host, input.port));
   }
 
-  const bindHost = normalizeHost(input.bindHost);
-  if (bindHost && !isWildcardHost(bindHost)) {
+  if (!bindIsLoopback && bindHost && !isWildcardHost(bindHost)) {
     pushCandidate(candidates, seen, formatOrigin(protocol, bindHost, input.port));
   }
 

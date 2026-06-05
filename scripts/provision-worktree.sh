@@ -38,7 +38,7 @@ run_isolated_worktree_init() {
   if [[ -f "$base_cli_runner" && -f "$base_cli_entry" ]]; then
     (
       cd "$worktree_cwd"
-      node "$base_cli_runner" "$base_cli_entry" worktree init --force --seed-mode minimal --name "$worktree_name" --from-config "$source_config_path"
+      node "$base_cli_runner" "$base_cli_entry" worktree init --force --no-seed --name "$worktree_name" --from-config "$source_config_path"
     )
     return 0
   fi
@@ -46,7 +46,7 @@ run_isolated_worktree_init() {
   if command -v pnpm >/dev/null 2>&1 && pnpm paperclipai --help >/dev/null 2>&1; then
     (
       cd "$worktree_cwd"
-      pnpm paperclipai worktree init --force --seed-mode minimal --name "$worktree_name" --from-config "$source_config_path"
+      pnpm paperclipai worktree init --force --no-seed --name "$worktree_name" --from-config "$source_config_path"
     )
     return 0
   fi
@@ -54,7 +54,7 @@ run_isolated_worktree_init() {
   if command -v paperclipai >/dev/null 2>&1; then
     (
       cd "$worktree_cwd"
-      paperclipai worktree init --force --seed-mode minimal --name "$worktree_name" --from-config "$source_config_path"
+      paperclipai worktree init --force --no-seed --name "$worktree_name" --from-config "$source_config_path"
     )
     return 0
   fi

@@ -35,7 +35,6 @@ import {
   classifyStaleness,
   escalationStep,
   classifyBlockedSubtype,
-  classifyNoFirstClassBlocker,
   isWaitingOnBoard,
   shouldEmitMention,
   ticketHealthHash,
@@ -44,7 +43,6 @@ import {
   type HealthItem,
   type EscalationEmit,
   type IssueStatus,
-  type NoBlockerItem,
 } from '../src/staleness.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -123,7 +121,6 @@ interface RawIssue {
   lastActivityAt?: string | null;
   assigneeAgentId: string | null;
   assigneeUserId?: string | null;
-  blockedByIssueIds?: string[] | null;
   blockedBy?: Array<{
     identifier: string;
     status: string;
@@ -192,18 +189,6 @@ async function postComment(issueId: string, body: string): Promise<string> {
   }
   const data = (await res.json()) as { id: string };
   return data.id;
-}
-
-async function patchIssueStatus(id: string, status: string): Promise<void> {
-  const res = await fetch(`${API_URL}/api/issues/${id}`, {
-    method: 'PATCH',
-    headers: makeHeaders(),
-    body: JSON.stringify({ status }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`patchIssueStatus(${id}, ${status}): HTTP ${res.status} — ${text.slice(0, 200)}`);
-  }
 }
 
 async function listAgents(): Promise<AgentInfo[]> {
@@ -291,31 +276,6 @@ async function main(): Promise<void> {
       enrichedMap.set(issue.id, { detail, interactions });
     },
     CONCURRENCY,
-  );
-
-  // ── 2.5. Triage blocked tickets with no first-class blockedByIssueIds ────────
-
-  const noBlockerItems: NoBlockerItem[] = [];
-  const autoResumeCandidates: RawIssue[] = [];
-
-  for (const raw of allIssues) {
-    const decision = classifyNoFirstClassBlocker(raw);
-    if (decision === 'has_blocker') continue;
-    noBlockerItems.push({
-      id: raw.id,
-      identifier: raw.identifier,
-      title: raw.title,
-      priority: raw.priority,
-      assigneeAgentId: raw.assigneeAgentId,
-      assigneeUserId: raw.assigneeUserId,
-      decision,
-    });
-    if (decision === 'auto_resume') autoResumeCandidates.push(raw);
-  }
-
-  console.log(
-    `[ticket-health] no-first-class-blocker triage: ${autoResumeCandidates.length} auto-resume, ` +
-    `${noBlockerItems.length - autoResumeCandidates.length} digest-only`,
   );
 
   // ── 3. Load agent roster for manager lookup (Step 2 escalations) ──────────
@@ -562,7 +522,6 @@ async function main(): Promise<void> {
       escalationsEmitted,
       boardClassified: rankedBoardItems,
       boardAgentClassified: agentItems,
-      noBlockerItems,
     });
     console.log('[ticket-health] new or changed digest — rendering full report');
   }
@@ -575,30 +534,7 @@ async function main(): Promise<void> {
 
   if (DRY_RUN) {
     console.log('[ticket-health] --dry-run: skipping all API writes');
-    if (autoResumeCandidates.length > 0) {
-      console.log(`[ticket-health] --dry-run: would auto-resume ${autoResumeCandidates.length} issue(s):`);
-      for (const raw of autoResumeCandidates) {
-        console.log(`  → ${raw.identifier}: ${raw.title}`);
-      }
-    }
     return;
-  }
-
-  // ── 8.5. Execute no-first-class-blocker auto-resumes ─────────────────────
-
-  for (const raw of autoResumeCandidates) {
-    console.log(`[ticket-health] auto-resuming ${raw.identifier} (no blockedByIssueIds recorded)…`);
-    try {
-      await patchIssueStatus(raw.id, 'in_progress');
-      await postComment(
-        raw.id,
-        `Ticket Health auto-triage ([SAG-3082](/SAG/issues/SAG-3082)): this ticket is ` +
-        `\`blocked\` but has no \`blockedByIssueIds\` recorded — resuming to \`in_progress\`. ` +
-        `If genuinely blocked, please add the blocking issue via the Paperclip UI.`,
-      );
-    } catch (err) {
-      console.error(`[ticket-health] auto-resume failed for ${raw.identifier}: ${err}`);
-    }
   }
 
   // ── 9. Post escalation comments ───────────────────────────────────────────

@@ -220,6 +220,7 @@ export function renderTicketHealthDigest(
 
   const falseBlocked: HealthItem[] = [];
   const cancelledBlocker: HealthItem[] = [];
+  const freeTextBlocked: HealthItem[] = [];
   const waitingOnBoard: HealthItem[] = [];
   const allBreached: HealthItem[] = [];
 
@@ -234,6 +235,7 @@ export function renderTicketHealthDigest(
     }
     if (item.blockedSubclass === 'false_blocked') falseBlocked.push(item);
     if (item.blockedSubclass === 'cancelled_blocker') cancelledBlocker.push(item);
+    if (item.blockedSubclass === 'free_text_blocked') freeTextBlocked.push(item);
     if (item.isWaitingOnBoard) waitingOnBoard.push(item);
   }
 
@@ -296,6 +298,26 @@ export function renderTicketHealthDigest(
         : 'unassigned';
       lines.push(
         `- [${item.identifier}](/SAG/issues/${item.identifier}) — ${item.title} (${who}, idle ${idleLabel(item.idleHours)})`,
+      );
+    }
+    lines.push(``);
+  }
+
+  // No-blocker blocked — needs owner or cancel (SAG-3082)
+  if (freeTextBlocked.length > 0) {
+    lines.push(`### No-blocker blocked — needs owner or cancel (${freeTextBlocked.length})`);
+    lines.push(
+      `*These tickets are \`blocked\` but have no \`blockedBy\` dependency recorded. ` +
+      `The blocker link may have been dropped by the platform or the ticket was set to blocked via free text. ` +
+      `Board should add the correct blocker, assign an owner, or cancel.*`,
+    );
+    lines.push(``);
+    for (const item of freeTextBlocked) {
+      const who = item.assigneeAgentId
+        ? `agent \`${item.assigneeAgentId.slice(0, 8)}…\``
+        : 'unassigned';
+      lines.push(
+        `- [${item.identifier}](/SAG/issues/${item.identifier}) — ${item.title.slice(0, 60)} (${who}, idle ${idleLabel(item.idleHours)})`,
       );
     }
     lines.push(``);

@@ -5,9 +5,11 @@ import {
   classifyBlockedSubtype,
   isWaitingOnBoard,
   shouldEmitMention,
+  renderTicketHealthDigest,
   CEO_AGENT_ID,
   SLA_HOURS,
   MAX_MENTIONS,
+  type HealthItem,
 } from './staleness.js';
 
 const NOW = Date.now();
@@ -411,5 +413,102 @@ describe('mention cap', () => {
       }
     }
     expect(mentionCount).toBe(10);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// renderTicketHealthDigest — free_text_blocked section (SAG-3082)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function makeHealthItem(overrides: Partial<HealthItem>): HealthItem {
+  return {
+    id: 'test-id',
+    identifier: 'SAG-999',
+    title: 'Test issue',
+    priority: 'medium',
+    status: 'blocked',
+    idleHours: 48,
+    slaHours: 24,
+    breached: true,
+    multiplier: 2,
+    isWaitingOnBoard: false,
+    escalationStep: 0,
+    assigneeAgentId: null,
+    createdAt: '2026-06-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+const EMPTY_OPTS = {
+  runAt: '2026-06-06T00:00:00Z',
+  totalSwept: 10,
+  escalationsEmitted: [],
+  boardClassified: [],
+  boardAgentClassified: [],
+};
+
+describe('renderTicketHealthDigest — free_text_blocked section', () => {
+  it('no free_text_blocked items → section absent', () => {
+    const items: HealthItem[] = [
+      makeHealthItem({ blockedSubclass: 'genuinely_blocked', assigneeAgentId: 'agent-001' }),
+    ];
+    const digest = renderTicketHealthDigest(items, EMPTY_OPTS);
+    expect(digest).not.toContain('No-blocker blocked');
+    expect(digest).not.toContain('no blockedBy dependency');
+  });
+
+  it('free_text_blocked item → section appears with identifier', () => {
+    const items: HealthItem[] = [
+      makeHealthItem({
+        identifier: 'SAG-100',
+        title: 'Zombie blocked ticket',
+        blockedSubclass: 'free_text_blocked',
+        assigneeAgentId: 'agent-001-xyz',
+      }),
+    ];
+    const digest = renderTicketHealthDigest(items, EMPTY_OPTS);
+    expect(digest).toContain('No-blocker blocked');
+    expect(digest).toContain('SAG-100');
+    expect(digest).toContain('Zombie blocked ticket');
+  });
+
+  it('multiple free_text_blocked items → count in section header', () => {
+    const items: HealthItem[] = [
+      makeHealthItem({ identifier: 'SAG-101', blockedSubclass: 'free_text_blocked' }),
+      makeHealthItem({ identifier: 'SAG-102', blockedSubclass: 'free_text_blocked' }),
+      makeHealthItem({ identifier: 'SAG-103', blockedSubclass: 'free_text_blocked' }),
+    ];
+    const digest = renderTicketHealthDigest(items, EMPTY_OPTS);
+    expect(digest).toContain('No-blocker blocked');
+    expect(digest).toContain('(3)');
+    expect(digest).toContain('SAG-101');
+    expect(digest).toContain('SAG-102');
+    expect(digest).toContain('SAG-103');
+  });
+
+  it('genuinely_blocked items do NOT appear in the no-blocker section', () => {
+    const items: HealthItem[] = [
+      makeHealthItem({ identifier: 'SAG-200', blockedSubclass: 'genuinely_blocked' }),
+      makeHealthItem({ identifier: 'SAG-201', blockedSubclass: 'free_text_blocked' }),
+    ];
+    const digest = renderTicketHealthDigest(items, EMPTY_OPTS);
+    // Only SAG-201 in the no-blocker section
+    const sectionStart = digest.indexOf('No-blocker blocked');
+    const sectionEnd = digest.indexOf('\n###', sectionStart + 1);
+    const sectionText = sectionStart >= 0 ? digest.slice(sectionStart, sectionEnd > 0 ? sectionEnd : undefined) : '';
+    expect(sectionText).toContain('SAG-201');
+    expect(sectionText).not.toContain('SAG-200');
+  });
+
+  it('false_blocked items remain in their own section, not in no-blocker', () => {
+    const items: HealthItem[] = [
+      makeHealthItem({ identifier: 'SAG-300', blockedSubclass: 'false_blocked' }),
+      makeHealthItem({ identifier: 'SAG-301', blockedSubclass: 'free_text_blocked' }),
+    ];
+    const digest = renderTicketHealthDigest(items, EMPTY_OPTS);
+    expect(digest).toContain('False-blocked tickets');
+    expect(digest).toContain('SAG-300');
+    expect(digest).toContain('No-blocker blocked');
+    expect(digest).toContain('SAG-301');
   });
 });

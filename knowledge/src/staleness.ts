@@ -21,6 +21,19 @@ export type BlockedSubclass =
   | 'free_text_blocked'
   | 'genuinely_blocked';
 
+/** Decision for a blocked ticket that has no first-class `blockedByIssueIds` dependency. */
+export type NoBlockerTriageDecision = 'auto_resume' | 'digest_only' | 'has_blocker';
+
+export interface NoBlockerItem {
+  id: string;
+  identifier: string;
+  title: string;
+  priority: string;
+  assigneeAgentId: string | null;
+  assigneeUserId?: string | null;
+  decision: 'auto_resume' | 'digest_only';
+}
+
 export type EscalationStep = 0 | 1 | 2 | 3;
 
 export interface StalenessResult {
@@ -145,6 +158,25 @@ export function classifyBlockedSubtype(
 }
 
 /**
+ * Classify a blocked ticket that has no first-class `blockedByIssueIds` dependency.
+ * - has_blocker: ticket has real blockers OR is not blocked — leave untouched
+ * - auto_resume: no blockers + has active assignee → resume to in_progress
+ * - digest_only: no blockers + no assignee → surface in digest for board decision
+ */
+export function classifyNoFirstClassBlocker(issue: {
+  status: string;
+  blockedByIssueIds?: string[] | null;
+  assigneeAgentId?: string | null;
+  assigneeUserId?: string | null;
+}): NoBlockerTriageDecision {
+  if (issue.status !== 'blocked') return 'has_blocker';
+  const ids = issue.blockedByIssueIds ?? [];
+  if (ids.length > 0) return 'has_blocker';
+  if (issue.assigneeAgentId || issue.assigneeUserId) return 'auto_resume';
+  return 'digest_only';
+}
+
+/**
  * Returns true when an in_review ticket is parked on a board/human/CEO decision.
  * These go to the "Waiting on board" section — no per-ticket @-mention ping.
  */
@@ -204,6 +236,7 @@ export interface TicketHealthDigestOpts {
   escalationsEmitted: EscalationEmit[];
   boardClassified: ClassifiedIssue[];
   boardAgentClassified: ClassifiedIssue[];
+  noBlockerItems?: NoBlockerItem[];
 }
 
 /** Render the full unified Ticket Health markdown digest. */
@@ -296,6 +329,43 @@ export function renderTicketHealthDigest(
         : 'unassigned';
       lines.push(
         `- [${item.identifier}](/SAG/issues/${item.identifier}) — ${item.title} (${who}, idle ${idleLabel(item.idleHours)})`,
+      );
+    }
+    lines.push(``);
+  }
+
+  // No-first-class-blocker triage (SAG-3082)
+  const noBlockerAutoResumed = (opts.noBlockerItems ?? []).filter((i) => i.decision === 'auto_resume');
+  const noBlockerNeedsOwner = (opts.noBlockerItems ?? []).filter((i) => i.decision === 'digest_only');
+
+  if (noBlockerAutoResumed.length > 0) {
+    lines.push(`### Auto-triaged: blocked with no first-class dependency (${noBlockerAutoResumed.length})`);
+    lines.push(
+      `*These tickets were \`blocked\` with empty \`blockedByIssueIds\` and an active assignee — auto-resumed to \`in_progress\` this run.*`,
+    );
+    lines.push(``);
+    for (const item of noBlockerAutoResumed) {
+      const who = item.assigneeAgentId
+        ? `agent \`${item.assigneeAgentId.slice(0, 8)}…\``
+        : item.assigneeUserId
+          ? 'human user'
+          : 'unassigned';
+      lines.push(
+        `- [${item.identifier}](/SAG/issues/${item.identifier}) — ${item.title} (${who})`,
+      );
+    }
+    lines.push(``);
+  }
+
+  if (noBlockerNeedsOwner.length > 0) {
+    lines.push(`### No-blocker blocked — needs owner or cancel (${noBlockerNeedsOwner.length})`);
+    lines.push(
+      `*These tickets are \`blocked\` with no \`blockedByIssueIds\` AND no active assignee. Board should assign an owner or cancel.*`,
+    );
+    lines.push(``);
+    for (const item of noBlockerNeedsOwner) {
+      lines.push(
+        `- [${item.identifier}](/SAG/issues/${item.identifier}) — ${item.title} (\`${item.priority}\`)`,
       );
     }
     lines.push(``);

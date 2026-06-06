@@ -512,3 +512,60 @@ describe('renderTicketHealthDigest — free_text_blocked section', () => {
     expect(digest).toContain('SAG-301');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Blocker-read-path regression (SAG-3098)
+//
+// The list endpoint (GET /api/companies/{co}/issues) omits the blockedBy join
+// unless ?includeBlockedBy=true is passed.  The runner uses single-GET for
+// enrichment, which always returns the hydrated join.  These tests document the
+// behavioral gap so a future read-path regression is caught immediately.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('blocker-read-path regression (SAG-3098)', () => {
+  it('(a) default list shape — no blockedBy join → free_text_blocked', () => {
+    // The list endpoint returns issues without blockedBy populated.
+    // Passing such data to classifyBlockedSubtype must return free_text_blocked,
+    // which is WHY the runner must never use list data for this classification.
+    expect(classifyBlockedSubtype({ blockedBy: undefined })).toBe('free_text_blocked');
+    expect(classifyBlockedSubtype({ blockedBy: null })).toBe('free_text_blocked');
+    expect(classifyBlockedSubtype({ blockedBy: [] })).toBe('free_text_blocked');
+  });
+
+  it('(b) single-GET hydrated shape — non-empty active blockedBy → genuinely_blocked', () => {
+    // Single-GET (or ?includeBlockedBy=true) returns the populated join.
+    // A ticket with an active upstream blocker must be classified genuinely_blocked.
+    const hydratedDetail = {
+      blockedBy: [
+        { status: 'in_progress', terminalBlockers: [{ status: 'in_progress' }] },
+      ],
+    };
+    expect(classifyBlockedSubtype(hydratedDetail)).toBe('genuinely_blocked');
+  });
+
+  it('(c) hydrated non-empty blockedBy is never free_text_blocked — no false auto-resume signal', () => {
+    // Core guard: a ticket whose blockedBy join is hydrated and non-empty must
+    // never produce the free_text_blocked subclass regardless of terminal state
+    // (as long as at least one blocker is still active).
+    const activeBlocker = {
+      blockedBy: [{ status: 'blocked', terminalBlockers: [{ status: 'in_progress' }] }],
+    };
+    const result = classifyBlockedSubtype(activeBlocker);
+    expect(result).not.toBe('free_text_blocked');
+    expect(result).toBe('genuinely_blocked');
+  });
+
+  it('(d) enrichment-failure safe fallback: genuinely_blocked beats free_text_blocked when join is unavailable', () => {
+    // When getIssueDetail fails, the runner falls back to 'genuinely_blocked'
+    // rather than calling classifyBlockedSubtype(raw) on data that lacks the join.
+    // This test documents the expected runner-level contract:
+    //   detail ? classifyBlockedSubtype(detail) : 'genuinely_blocked'
+    // Simulate: raw has no blockedBy (list endpoint shape), detail is unavailable.
+    const rawListShape = { blockedBy: undefined };
+    const detail: typeof rawListShape | undefined = undefined;
+    const subclass = detail ? classifyBlockedSubtype(detail) : ('genuinely_blocked' as const);
+    expect(subclass).toBe('genuinely_blocked');
+    // And that is strictly better than passing raw directly (which gives wrong answer):
+    expect(classifyBlockedSubtype(rawListShape)).toBe('free_text_blocked');
+  });
+});

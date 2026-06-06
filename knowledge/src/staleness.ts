@@ -307,9 +307,9 @@ export function renderTicketHealthDigest(
   if (freeTextBlocked.length > 0) {
     lines.push(`### No-blocker blocked — needs owner or cancel (${freeTextBlocked.length})`);
     lines.push(
-      `*These tickets are \`blocked\` but have no \`blockedBy\` dependency recorded. ` +
-      `The blocker link may have been dropped by the platform or the ticket was set to blocked via free text. ` +
-      `Board should add the correct blocker, assign an owner, or cancel.*`,
+      `*These tickets are \`blocked\` but have no \`blockedBy\` dependency recorded — ` +
+      `the blocker was captured in free text or a linked issue was never created. ` +
+      `Board should add the correct blocker link, assign an owner, or cancel.*`,
     );
     lines.push(``);
     for (const item of freeTextBlocked) {

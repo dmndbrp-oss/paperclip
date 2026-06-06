@@ -305,7 +305,11 @@ async function main(): Promise<void> {
     let waitingBoard = false;
 
     if (raw.status === 'blocked') {
-      blockedSubclass = classifyBlockedSubtype(detail ?? raw);
+      // Always use the single-GET `detail` for blocker classification — the list
+      // endpoint omits the blockedBy join, so `raw.blockedBy` is always empty.
+      // If enrichment failed, default to genuinely_blocked (conservative) rather
+      // than free_text_blocked (which would be a false signal from missing join data).
+      blockedSubclass = detail ? classifyBlockedSubtype(detail) : 'genuinely_blocked';
       if (detail) {
         blockedForBlockers.push({ raw, detail, interactions });
       }

@@ -18,6 +18,22 @@ const HEARTBEAT_RETENTION_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_STALENESS_THRESHOLD_SEC = 120;
 const RECONNECT_COMMENT_AUTHOR_TYPE = "system" as const;
 
+/**
+ * Parses LAD_WATCHDOG_IGNORED_HOSTS (comma-separated) into a Set of hostnames.
+ * Allowlisted hosts are skipped by scanStale() — no incident issue is created.
+ * Default: "test-lad-host" (covers phantom LAD alerts from the platform test harness).
+ */
+export function parseIgnoredHosts(
+  raw = process.env.LAD_WATCHDOG_IGNORED_HOSTS ?? "test-lad-host",
+): Set<string> {
+  return new Set(
+    raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
+}
+
 export type LadHeartbeatBody = {
   wallClockIso: string;
   workers?: unknown[];
@@ -266,6 +282,7 @@ export function ladWatchdogService(db: Db) {
      */
     scanStale: async (): Promise<{ tripped: number; alreadyOpen: number }> => {
       const now = new Date();
+      const ignoredHosts = parseIgnoredHosts();
 
       // Load all lad_records that have sent at least one heartbeat
       const allLads = await db
@@ -289,6 +306,15 @@ export function ladWatchdogService(db: Db) {
         const thresholdMs = lad.stalenessThresholdSec * 1000;
         const msSinceHeartbeat = now.getTime() - lad.lastHeartbeatAt.getTime();
         if (msSinceHeartbeat <= thresholdMs) continue;
+
+        // Skip incident creation for known test/ephemeral hosts (LAD_WATCHDOG_IGNORED_HOSTS).
+        if (ignoredHosts.has(lad.hostname)) {
+          logger.debug(
+            { ladId: lad.ladId, hostname: lad.hostname },
+            "lad-watchdog: ignored host — skipping incident",
+          );
+          continue;
+        }
 
         // LAD is stale
         // Dedupe: check for existing open incident

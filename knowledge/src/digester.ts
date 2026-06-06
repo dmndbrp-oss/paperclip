@@ -346,6 +346,7 @@ export async function runDigester(config: DigesterConfig, _summarizer?: Summariz
     companyId: config.companyId,
     summarizerAgentId: config.summarizerAgentId,
     runId: process.env['PAPERCLIP_RUN_ID'],
+    kbBaseDir: config.baseDir,
   });
 
   console.log(`[digester] polling issues updated since ${state.lastRunAt}`);

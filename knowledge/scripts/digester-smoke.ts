@@ -11,9 +11,13 @@
  * Required env vars:
  *   PAPERCLIP_API_KEY, PAPERCLIP_API_URL
  *   PAPERCLIP_COMPANY_ID (optional, has a default)
+ *   PAPERCLIP_COMPANY_KB_DIR (optional) — path to the production company KB dir where the
+ *     Knowledge Digester worker writes YAML files directly (SAG-2520 fallback).
+ *     Defaults to ~/.paperclip/instances/default/companies/{companyId}/knowledge.
  */
 
 import path from 'node:path';
+import os from 'node:os';
 import fs from 'node:fs';
 import { parse as yamlParse } from 'yaml';
 import { digestIssue } from '../src/digester.js';
@@ -32,11 +36,19 @@ const BASELINES_DIR = path.resolve(SCRIPT_DIR, 'baselines');
 
 const SUMMARIZER_AGENT_ID = '11d0b5de-44a9-4f05-b130-846804e29955';
 
+const COMPANY_ID = process.env['PAPERCLIP_COMPANY_ID'] ?? '1dc911ed-ff05-4072-b2ae-a3e3177e3873';
+
+// The production KB dir where the Knowledge Digester worker writes YAML files directly.
+// Used as the kbBaseDir fallback in PaperclipTaskSummarizer (SAG-2520).
+const COMPANY_KB_DIR =
+  process.env['PAPERCLIP_COMPANY_KB_DIR'] ??
+  path.join(os.homedir(), '.paperclip', 'instances', 'default', 'companies', COMPANY_ID, 'knowledge');
+
 const config: DigesterConfig = {
   baseDir: SMOKE_DIR,
   stateFile: path.join(SMOKE_DIR, 'state.json'),
   failureLogFile: path.join(SMOKE_DIR, '_digestion_failures.jsonl'),
-  companyId: process.env['PAPERCLIP_COMPANY_ID'] ?? '1dc911ed-ff05-4072-b2ae-a3e3177e3873',
+  companyId: COMPANY_ID,
   apiUrl: process.env['PAPERCLIP_API_URL'] ?? 'http://127.0.0.1:3100',
   apiKey: process.env['PAPERCLIP_API_KEY'] ?? '',
   summarizerAgentId: SUMMARIZER_AGENT_ID,
@@ -130,6 +142,7 @@ async function main(): Promise<void> {
     companyId: config.companyId,
     summarizerAgentId: config.summarizerAgentId,
     runId: process.env['PAPERCLIP_RUN_ID'],
+    kbBaseDir: COMPANY_KB_DIR,
   });
 
   let totalDrift = 0;

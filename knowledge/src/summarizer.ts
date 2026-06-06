@@ -4,6 +4,9 @@
 // polling heartbeat would deadlock the summarization heartbeat. Re-pointing
 // the production routine to a different caller agent is tracked in SAG-2383.
 
+import fs from 'node:fs';
+import path from 'node:path';
+
 export interface Summarizer {
   summarize(system: string, user: string): Promise<string>;
 }
@@ -14,6 +17,15 @@ interface PaperclipTaskSummarizerConfig {
   companyId: string;
   summarizerAgentId: string;
   runId?: string;
+  /**
+   * When set, acts as a fallback KB directory. After the delegated issue is done,
+   * if no YAML comment is found (the actual Knowledge Digester worker writes the KB
+   * file directly instead), the summarizer reads from
+   * `{kbBaseDir}/tasks/{YYYY}/{MM}/{identifier}.yaml` and returns its contents.
+   * In production, pass `config.baseDir`. For smoke tests, pass the production KB dir.
+   * SAG-2520: fixes contract gap between PaperclipTaskSummarizer and the actual worker.
+   */
+  kbBaseDir?: string;
   /** Override poll cadence. Default: 3 000 ms. */
   pollIntervalMs?: number;
   /** Override total wait cap. Default: 180 000 ms (3 min). */
@@ -40,9 +52,12 @@ export class PaperclipTaskSummarizer implements Summarizer {
     };
     if (runId) mutatingHeaders['X-Paperclip-Run-Id'] = runId;
 
-    // Extract identifier from the trusted header section for a readable title.
+    // Extract identifier and completed_at from the trusted header section.
     const identifierMatch = user.match(/^identifier:\s+(.+)$/m);
     const identifier = identifierMatch?.[1]?.trim() ?? 'unknown';
+
+    const decidedAtMatch = user.match(/^completed_at:\s+(.+)$/m);
+    const decidedAt = decidedAtMatch?.[1]?.trim() ?? null;
 
     const description = [
       '## System instructions for knowledge digestion',
@@ -126,13 +141,25 @@ export class PaperclipTaskSummarizer implements Summarizer {
       const comments = (await commentsRes.json()) as Array<{ body: string }>;
       const yamlComment = comments.find((c) => c.body.includes('task_id:'));
 
-      if (!yamlComment) {
-        throw new Error(
-          `PaperclipTaskSummarizer: issue ${delegatedIssueId} done but no YAML comment found`,
-        );
+      if (yamlComment) {
+        return yamlComment.body;
       }
 
-      return yamlComment.body;
+      // SAG-2520: Knowledge Digester worker writes YAML directly to the KB file
+      // instead of posting a YAML comment. Fall back to reading that file.
+      if (this.cfg.kbBaseDir && identifier !== 'unknown' && decidedAt) {
+        const dt = new Date(decidedAt);
+        const yyyy = dt.getUTCFullYear().toString();
+        const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+        const kbFilePath = path.join(this.cfg.kbBaseDir, 'tasks', yyyy, mm, `${identifier}.yaml`);
+        if (fs.existsSync(kbFilePath)) {
+          return fs.readFileSync(kbFilePath, 'utf8');
+        }
+      }
+
+      throw new Error(
+        `PaperclipTaskSummarizer: issue ${delegatedIssueId} done but no YAML comment found`,
+      );
     }
 
     throw new Error(

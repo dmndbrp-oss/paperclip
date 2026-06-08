@@ -64,6 +64,8 @@ REVIEWER_MODEL = "claude-opus-4-7"
 PRIMARY_TIMEOUT = 600.0   # 10 min — qwen3:30b-a3b already warm, but queue-wait can be long
 FALLBACK_TIMEOUT = 300.0  # 5 min — gemma4:26b is fast once loaded
 REVIEWER_TIMEOUT = 60.0
+REVIEWER_MAX_RETRIES = 2
+REVIEWER_BACKOFF_BASE = 1.0  # seconds, doubled each retry
 
 
 # ---------------------------------------------------------------------------
@@ -280,6 +282,21 @@ async def _preflight_auth_check(
         logger.warning("Preflight probe failed with non-auth error: %s — continuing", exc)
 
 
+def _anthropic_preflight(api_key: str) -> bool:
+    """
+    SAG-3483: Check whether the Anthropic API key looks valid without any network call.
+    Returns False for empty or non-sk-ant- shaped keys (e.g. 'dev_key' placeholder).
+    Returns True for keys with the sk-ant- prefix.
+    """
+    if not api_key or not api_key.startswith("sk-ant-"):
+        logger.warning(
+            "Anthropic reviewer disabled: key is %s",
+            "empty" if not api_key else f"not sk-ant- shaped ({api_key[:8]!r}...)",
+        )
+        return False
+    return True
+
+
 async def _litellm_complete(
     client: httpx.AsyncClient,
     base_url: str,
@@ -329,35 +346,71 @@ async def _anthropic_reviewer(
     api_key: str,
     payload: dict,
     enriched: dict,
-) -> tuple[dict | None, float]:
+) -> tuple[dict | None, float, str | None]:
     """
-    Call Opus for anomaly review. Returns (verdict_dict, cost_usd).
-    On error returns (None, 0.0).
+    Call Opus for anomaly review. Returns (verdict_dict, cost_usd, error_class).
+    error_class is None on success; one of 'reviewer_auth_error', 'reviewer_rate_limited',
+    'reviewer_timeout', or 'reviewer_error' on failure.
+    Retries transient errors up to REVIEWER_MAX_RETRIES times. No retry on auth errors.
     """
-    try:
-        import anthropic as _ant
+    import anthropic as _ant
 
-        system, user = _build_reviewer_messages(payload, enriched)
-        aclient = _ant.AsyncAnthropic(api_key=api_key)
-        resp = await aclient.messages.create(
-            model=REVIEWER_MODEL,
-            max_tokens=512,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        )
-        content = resp.content[0].text if resp.content else ""
-        cost = (
-            (resp.usage.input_tokens / 1000) * OPUS_INPUT_PER_1K
-            + (resp.usage.output_tokens / 1000) * OPUS_OUTPUT_PER_1K
-        )
+    system, user = _build_reviewer_messages(payload, enriched)
+    aclient = _ant.AsyncAnthropic(api_key=api_key, timeout=REVIEWER_TIMEOUT)
+
+    for attempt in range(REVIEWER_MAX_RETRIES + 1):
         try:
-            verdict = json.loads(content)
-        except json.JSONDecodeError:
-            verdict = {"anomaly_score": None, "anomaly_reason": content[:300], "triggered_rules": []}
-        return verdict, cost
-    except Exception as exc:
-        logger.warning("Anthropic reviewer failed: %s", exc)
-        return None, 0.0
+            resp = await aclient.messages.create(
+                model=REVIEWER_MODEL,
+                max_tokens=512,
+                system=system,
+                messages=[{"role": "user", "content": user}],
+            )
+            content = resp.content[0].text if resp.content else ""
+            cost = (
+                (resp.usage.input_tokens / 1000) * OPUS_INPUT_PER_1K
+                + (resp.usage.output_tokens / 1000) * OPUS_OUTPUT_PER_1K
+            )
+            try:
+                verdict = json.loads(content)
+            except json.JSONDecodeError:
+                verdict = {"anomaly_score": None, "anomaly_reason": content[:300], "triggered_rules": []}
+            return verdict, cost, None
+
+        except Exception as exc:
+            status_code = getattr(exc, "status_code", None)
+            is_timeout = (
+                isinstance(exc, asyncio.TimeoutError)
+                or "timeout" in type(exc).__name__.lower()
+            )
+
+            if status_code in (401, 403):
+                logger.warning("Anthropic reviewer auth error (HTTP %s): %s", status_code, exc)
+                return None, 0.0, "reviewer_auth_error"
+
+            if status_code in (429, 529):
+                error_class = "reviewer_rate_limited"
+            elif is_timeout:
+                error_class = "reviewer_timeout"
+            else:
+                error_class = "reviewer_error"
+
+            if error_class in ("reviewer_rate_limited", "reviewer_timeout") and attempt < REVIEWER_MAX_RETRIES:
+                backoff = REVIEWER_BACKOFF_BASE * (2 ** attempt)
+                logger.warning(
+                    "Anthropic reviewer %s (attempt %d/%d), retrying in %.1fs: %s",
+                    error_class, attempt + 1, REVIEWER_MAX_RETRIES + 1, backoff, exc,
+                )
+                await asyncio.sleep(backoff)
+                continue
+
+            logger.warning(
+                "Anthropic reviewer %s after %d attempt(s): %s",
+                error_class, attempt + 1, exc,
+            )
+            return None, 0.0, error_class
+
+    return None, 0.0, "reviewer_error"
 
 
 # ---------------------------------------------------------------------------
@@ -439,6 +492,8 @@ async def _process_row(
     http_client: httpx.AsyncClient,
     conn,
     cap_paused: asyncio.Event,
+    reviewer_enabled: bool = True,
+    reviewer_auth_failed: asyncio.Event | None = None,
 ) -> str:
     """
     Process one enrichment queue row. Returns final tier: 'primary', 'fallback', 'failed'.
@@ -522,12 +577,15 @@ async def _process_row(
             logger.warning("Fallback %s for %s (model=%s)", "timed out" if timed_out else "returned no content", source_row_id, FALLBACK_MODEL)
 
     # --- Reviewer tier (Opus, cost-cap gated) ---
-    if tier_used in ("primary", "fallback") and cfg.anthropic_api_key:
-        enriched = result.get("primary_output") or result.get("fallback_output")
-        if cap_paused.is_set():
+    if tier_used in ("primary", "fallback"):
+        if not reviewer_enabled or (reviewer_auth_failed is not None and reviewer_auth_failed.is_set()):
+            result["reviewer_verdict"] = "reviewer_skipped"
+            logger.debug("Reviewer skipped for %s (disabled or auth failed)", source_row_id)
+        elif cap_paused.is_set():
             result["reviewer_verdict"] = "cap_paused"
             logger.debug("Reviewer skipped for %s (cap already paused)", source_row_id)
         else:
+            enriched = result.get("primary_output") or result.get("fallback_output")
             # Estimate cost conservatively (512 tokens in + 512 out)
             estimated_cost = (512 / 1000) * OPUS_INPUT_PER_1K + (512 / 1000) * OPUS_OUTPUT_PER_1K
             if cost_tracker.would_breach(estimated_cost):
@@ -535,10 +593,9 @@ async def _process_row(
                 logger.warning("Cost cap hit at $%.2f — pausing routine", weekly)
                 cap_paused.set()
                 result["reviewer_verdict"] = "cap_paused"
-                # Fire-and-forget pause notification
                 asyncio.create_task(_pause_routine(cfg, weekly))
             else:
-                verdict, actual_cost = await _anthropic_reviewer(
+                verdict, actual_cost, error_class = await _anthropic_reviewer(
                     cfg.anthropic_api_key, payload, enriched or {}
                 )
                 if verdict is not None:
@@ -546,7 +603,12 @@ async def _process_row(
                     result["anomaly_score"] = verdict.get("anomaly_score")
                     result["reviewer_verdict"] = json.dumps(verdict)
                 else:
-                    result["reviewer_verdict"] = "reviewer_error"
+                    result["reviewer_verdict"] = error_class or "reviewer_error"
+                    if error_class == "reviewer_auth_error" and reviewer_auth_failed is not None:
+                        reviewer_auth_failed.set()
+                        logger.warning(
+                            "Reviewer auth error — disabling reviewer for remaining batch rows"
+                        )
 
     # --- Write staging + update queue ---
     queue_status = "done" if tier_used != "failed" else "failed"
@@ -609,6 +671,8 @@ class EnrichmentDispatcher:
         batch_id = str(uuid.uuid4())
         logger.info("Batch %s: %d rows, concurrency=%d", batch_id, len(rows), cfg.concurrency)
 
+        reviewer_enabled = bool(cfg.anthropic_api_key) and _anthropic_preflight(cfg.anthropic_api_key)
+        reviewer_auth_failed = asyncio.Event()
         semaphore = asyncio.Semaphore(cfg.concurrency)
         totals = {"done": 0, "failed": 0}
 
@@ -617,6 +681,8 @@ class EnrichmentDispatcher:
                 tier = await _process_row(
                     row, batch_id, cfg, self._cost_tracker,
                     http_client, conn, cap_paused,
+                    reviewer_enabled=reviewer_enabled,
+                    reviewer_auth_failed=reviewer_auth_failed,
                 )
                 if tier != "failed":
                     totals["done"] += 1

@@ -27,6 +27,8 @@ from dispatcher import (
     _build_enrichment_messages,
     _preflight_auth_check,
     _process_row,
+    _anthropic_preflight,
+    _anthropic_reviewer,
 )
 from cost_cap import WEEKLY_CAP_USD
 
@@ -152,11 +154,14 @@ class TestCostCapEnforcement(unittest.IsolatedAsyncioTestCase):
 
         reviewer_response = {"anomaly_score": 0.1, "anomaly_reason": "ok", "triggered_rules": []}
 
-        with patch("dispatcher._anthropic_reviewer", new=AsyncMock(return_value=(reviewer_response, 0.05))), \
+        with patch("dispatcher._anthropic_reviewer", new=AsyncMock(return_value=(reviewer_response, 0.05, None))), \
              patch("dispatcher._mark_in_flight"), \
              patch("dispatcher._write_staging"), \
              patch("dispatcher._mark_queue_done"):
-            await _process_row(_make_row(), "batch-1", cfg, tracker, http_client, conn, cap_paused)
+            await _process_row(
+                _make_row(), "batch-1", cfg, tracker, http_client, conn, cap_paused,
+                reviewer_enabled=True, reviewer_auth_failed=asyncio.Event(),
+            )
 
         return {
             "cap_paused": cap_paused.is_set(),
@@ -224,7 +229,10 @@ class TestRowTierRouting(unittest.IsolatedAsyncioTestCase):
              patch("dispatcher._write_staging") as mock_write, \
              patch("dispatcher._mark_queue_done") as mock_done:
             http_client = AsyncMock()
-            tier = await _process_row(_make_row(), "batch-1", cfg, tracker, http_client, conn, cap_paused)
+            tier = await _process_row(
+                _make_row(), "batch-1", cfg, tracker, http_client, conn, cap_paused,
+                reviewer_enabled=False,
+            )
             queue_status = mock_done.call_args[0][2] if mock_done.called else None
 
         return tier
@@ -337,7 +345,10 @@ class TestNoThinkDirective(unittest.IsolatedAsyncioTestCase):
              patch("dispatcher._mark_in_flight"), \
              patch("dispatcher._write_staging"), \
              patch("dispatcher._mark_queue_done"):
-            await _process_row(_make_row(), "b", cfg, tracker, http_client, conn, cap_paused)
+            await _process_row(
+                _make_row(), "b", cfg, tracker, http_client, conn, cap_paused,
+                reviewer_enabled=False,
+            )
 
         return calls
 
@@ -361,6 +372,305 @@ class TestNoThinkDirective(unittest.IsolatedAsyncioTestCase):
                 fc["user"].startswith("/no_think"),
                 f"Fallback user prompt should not start with /no_think: {fc['user'][:60]!r}",
             )
+
+
+# ---------------------------------------------------------------------------
+# Tests: Anthropic preflight — pure function, no network (SAG-3483)
+# ---------------------------------------------------------------------------
+
+class TestAnthropicPreflight(unittest.TestCase):
+
+    def test_empty_key_returns_false(self):
+        self.assertFalse(_anthropic_preflight(""))
+
+    def test_placeholder_key_returns_false(self):
+        self.assertFalse(_anthropic_preflight("dev_key"))
+
+    def test_non_skant_long_key_returns_false(self):
+        self.assertFalse(_anthropic_preflight("some-random-key-that-is-long-enough"))
+
+    def test_valid_skant_prefix_returns_true(self):
+        self.assertTrue(_anthropic_preflight("sk-ant-api03-abc123"))
+
+    def test_skant_minimal_prefix_returns_true(self):
+        self.assertTrue(_anthropic_preflight("sk-ant-x"))
+
+    def test_almost_correct_prefix_returns_false(self):
+        self.assertFalse(_anthropic_preflight("sk-ant"))  # missing trailing dash
+
+
+# ---------------------------------------------------------------------------
+# Fake exception classes for _anthropic_reviewer unit tests (SAG-3483)
+# ---------------------------------------------------------------------------
+
+class _FakeAPIStatusError(Exception):
+    """Fake Anthropic HTTP error — carries status_code like the real SDK."""
+    def __init__(self, status_code: int):
+        self.status_code = status_code
+        super().__init__(f"HTTP {status_code}")
+
+
+class _FakeAPITimeoutError(Exception):
+    """Fake Anthropic timeout — class name contains 'timeout' (case-insensitive)."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# Tests: _anthropic_reviewer typed error classes (SAG-3483)
+# ---------------------------------------------------------------------------
+
+class TestAnthropicReviewerTypedErrors(unittest.IsolatedAsyncioTestCase):
+
+    def _mock_ant_module(self, side_effect=None):
+        mock_resp = MagicMock()
+        mock_resp.content = [MagicMock(
+            text='{"anomaly_score": 0.1, "anomaly_reason": "ok", "triggered_rules": []}'
+        )]
+        mock_resp.usage.input_tokens = 100
+        mock_resp.usage.output_tokens = 50
+
+        mock_client = MagicMock()
+        if side_effect is not None:
+            mock_client.messages.create = AsyncMock(side_effect=side_effect)
+        else:
+            mock_client.messages.create = AsyncMock(return_value=mock_resp)
+
+        mock_ant = MagicMock()
+        mock_ant.AsyncAnthropic.return_value = mock_client
+        return mock_ant
+
+    async def test_success_returns_none_error_class(self):
+        mock_ant = self._mock_ant_module()
+        with patch.dict(sys.modules, {'anthropic': mock_ant}):
+            verdict, cost, error_class = await _anthropic_reviewer(
+                "sk-ant-key", {"sku": "X"}, _minimal_valid_output()
+            )
+        self.assertIsNone(error_class)
+        self.assertIsNotNone(verdict)
+        self.assertGreater(cost, 0)
+
+    async def test_401_returns_reviewer_auth_error(self):
+        mock_ant = self._mock_ant_module(side_effect=_FakeAPIStatusError(401))
+        with patch.dict(sys.modules, {'anthropic': mock_ant}), \
+             patch("asyncio.sleep", new=AsyncMock()):
+            verdict, cost, error_class = await _anthropic_reviewer(
+                "sk-ant-key", {"sku": "X"}, _minimal_valid_output()
+            )
+        self.assertIsNone(verdict)
+        self.assertEqual(error_class, "reviewer_auth_error")
+
+    async def test_403_returns_reviewer_auth_error(self):
+        mock_ant = self._mock_ant_module(side_effect=_FakeAPIStatusError(403))
+        with patch.dict(sys.modules, {'anthropic': mock_ant}), \
+             patch("asyncio.sleep", new=AsyncMock()):
+            verdict, cost, error_class = await _anthropic_reviewer(
+                "sk-ant-key", {"sku": "X"}, _minimal_valid_output()
+            )
+        self.assertIsNone(verdict)
+        self.assertEqual(error_class, "reviewer_auth_error")
+
+    async def test_auth_error_does_not_retry(self):
+        """401/403 must not retry — no asyncio.sleep calls."""
+        mock_ant = self._mock_ant_module(side_effect=_FakeAPIStatusError(401))
+        with patch.dict(sys.modules, {'anthropic': mock_ant}), \
+             patch("asyncio.sleep", new=AsyncMock()) as mock_sleep:
+            await _anthropic_reviewer("sk-ant-key", {"sku": "X"}, _minimal_valid_output())
+        mock_sleep.assert_not_called()
+
+    async def test_429_retries_twice_then_returns_rate_limited(self):
+        mock_ant = self._mock_ant_module(side_effect=_FakeAPIStatusError(429))
+        mock_sleep = AsyncMock()
+        with patch.dict(sys.modules, {'anthropic': mock_ant}), \
+             patch("asyncio.sleep", new=mock_sleep):
+            verdict, cost, error_class = await _anthropic_reviewer(
+                "sk-ant-key", {"sku": "X"}, _minimal_valid_output()
+            )
+        self.assertIsNone(verdict)
+        self.assertEqual(error_class, "reviewer_rate_limited")
+        self.assertEqual(mock_sleep.call_count, 2)  # REVIEWER_MAX_RETRIES = 2
+
+    async def test_529_returns_rate_limited(self):
+        mock_ant = self._mock_ant_module(side_effect=_FakeAPIStatusError(529))
+        with patch.dict(sys.modules, {'anthropic': mock_ant}), \
+             patch("asyncio.sleep", new=AsyncMock()):
+            verdict, cost, error_class = await _anthropic_reviewer(
+                "sk-ant-key", {"sku": "X"}, _minimal_valid_output()
+            )
+        self.assertIsNone(verdict)
+        self.assertEqual(error_class, "reviewer_rate_limited")
+
+    async def test_timeout_retries_twice_then_returns_reviewer_timeout(self):
+        mock_ant = self._mock_ant_module(side_effect=_FakeAPITimeoutError("timed out"))
+        mock_sleep = AsyncMock()
+        with patch.dict(sys.modules, {'anthropic': mock_ant}), \
+             patch("asyncio.sleep", new=mock_sleep):
+            verdict, cost, error_class = await _anthropic_reviewer(
+                "sk-ant-key", {"sku": "X"}, _minimal_valid_output()
+            )
+        self.assertIsNone(verdict)
+        self.assertEqual(error_class, "reviewer_timeout")
+        self.assertEqual(mock_sleep.call_count, 2)
+
+    async def test_unexpected_exception_returns_reviewer_error(self):
+        mock_ant = self._mock_ant_module(side_effect=ValueError("unexpected"))
+        with patch.dict(sys.modules, {'anthropic': mock_ant}):
+            verdict, cost, error_class = await _anthropic_reviewer(
+                "sk-ant-key", {"sku": "X"}, _minimal_valid_output()
+            )
+        self.assertIsNone(verdict)
+        self.assertEqual(error_class, "reviewer_error")
+
+
+# ---------------------------------------------------------------------------
+# Tests: reviewer_skipped + auth flip in _process_row (SAG-3483)
+# ---------------------------------------------------------------------------
+
+class TestReviewerDisabledAndAuthFlip(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self._tmp = tempfile.mkdtemp()
+
+    async def _run_row_reviewer(
+        self,
+        reviewer_enabled: bool,
+        reviewer_auth_failed: asyncio.Event | None = None,
+        reviewer_mock_return=None,
+    ) -> dict:
+        cfg = _make_cfg(self._tmp)
+        tracker = CostCapTracker(cfg.cost_cap_ledger_path)
+        cap_paused = asyncio.Event()
+        if reviewer_auth_failed is None:
+            reviewer_auth_failed = asyncio.Event()
+        conn = MagicMock()
+        http_client = AsyncMock()
+
+        valid_json = json.dumps(_minimal_valid_output())
+        http_client.post.return_value = AsyncMock(
+            raise_for_status=MagicMock(),
+            json=MagicMock(return_value={"choices": [{"message": {"content": valid_json}}]}),
+        )
+
+        result_captured = {}
+
+        def mock_write_sync(conn_, batch_id_, source_row_id_, result_):
+            result_captured.update(result_)
+
+        reviewer_return = reviewer_mock_return or (
+            {"anomaly_score": 0.1, "anomaly_reason": "ok", "triggered_rules": []}, 0.05, None
+        )
+
+        with patch("dispatcher._anthropic_reviewer", new=AsyncMock(return_value=reviewer_return)) as mock_rev, \
+             patch("dispatcher._mark_in_flight"), \
+             patch("dispatcher._write_staging", side_effect=mock_write_sync), \
+             patch("dispatcher._mark_queue_done"):
+            await _process_row(
+                _make_row(), "batch-1", cfg, tracker, http_client, conn, cap_paused,
+                reviewer_enabled=reviewer_enabled,
+                reviewer_auth_failed=reviewer_auth_failed,
+            )
+
+        return {
+            "reviewer_verdict": result_captured.get("reviewer_verdict"),
+            "reviewer_auth_failed_set": reviewer_auth_failed.is_set(),
+            "mock_reviewer_called": mock_rev.called,
+        }
+
+    async def test_reviewer_skipped_when_disabled(self):
+        result = await self._run_row_reviewer(reviewer_enabled=False)
+        self.assertEqual(result["reviewer_verdict"], "reviewer_skipped")
+        self.assertFalse(result["mock_reviewer_called"])
+
+    async def test_reviewer_called_when_enabled(self):
+        result = await self._run_row_reviewer(reviewer_enabled=True)
+        self.assertTrue(result["mock_reviewer_called"])
+        self.assertNotEqual(result["reviewer_verdict"], "reviewer_skipped")
+
+    async def test_reviewer_skipped_after_auth_failed_event(self):
+        auth_failed = asyncio.Event()
+        auth_failed.set()
+        result = await self._run_row_reviewer(
+            reviewer_enabled=True, reviewer_auth_failed=auth_failed,
+        )
+        self.assertEqual(result["reviewer_verdict"], "reviewer_skipped")
+        self.assertFalse(result["mock_reviewer_called"])
+
+    async def test_reviewer_auth_error_sets_auth_failed_event(self):
+        auth_failed = asyncio.Event()
+        result = await self._run_row_reviewer(
+            reviewer_enabled=True,
+            reviewer_auth_failed=auth_failed,
+            reviewer_mock_return=(None, 0.0, "reviewer_auth_error"),
+        )
+        self.assertEqual(result["reviewer_verdict"], "reviewer_auth_error")
+        self.assertTrue(result["reviewer_auth_failed_set"])
+
+    async def test_reviewer_rate_limited_verdict_stored(self):
+        result = await self._run_row_reviewer(
+            reviewer_enabled=True,
+            reviewer_mock_return=(None, 0.0, "reviewer_rate_limited"),
+        )
+        self.assertEqual(result["reviewer_verdict"], "reviewer_rate_limited")
+
+    async def test_reviewer_timeout_verdict_stored(self):
+        result = await self._run_row_reviewer(
+            reviewer_enabled=True,
+            reviewer_mock_return=(None, 0.0, "reviewer_timeout"),
+        )
+        self.assertEqual(result["reviewer_verdict"], "reviewer_timeout")
+
+
+# ---------------------------------------------------------------------------
+# Tests: run_batch Anthropic preflight integration (SAG-3483)
+# ---------------------------------------------------------------------------
+
+class TestRunBatchAnthropicPreflight(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self._tmp = tempfile.mkdtemp()
+
+    async def test_placeholder_key_disables_reviewer(self):
+        """anthropic_api_key='dev_key' → reviewer never called, all rows get reviewer_skipped."""
+        cfg = _make_cfg(self._tmp, anthropic_key="dev_key")
+        reviewer_calls = [0]
+
+        async def counting_reviewer(*args, **kwargs):
+            reviewer_calls[0] += 1
+            return {"anomaly_score": 0.1, "anomaly_reason": "ok", "triggered_rules": []}, 0.05, None
+
+        with patch("dispatcher._preflight_auth_check", new=AsyncMock()), \
+             patch("dispatcher._db_connect"), \
+             patch("dispatcher._fetch_pending_rows", return_value=[_make_row()]), \
+             patch("dispatcher._mark_in_flight"), \
+             patch("dispatcher._write_staging"), \
+             patch("dispatcher._mark_queue_done"), \
+             patch("dispatcher._anthropic_reviewer", side_effect=counting_reviewer), \
+             patch("dispatcher._litellm_complete", new=AsyncMock(
+                 return_value=(json.dumps(_minimal_valid_output()), False)
+             )):
+            await EnrichmentDispatcher(cfg).run_batch()
+
+        self.assertEqual(reviewer_calls[0], 0, "Reviewer must not be called for placeholder key")
+
+    async def test_valid_skant_key_enables_reviewer(self):
+        """anthropic_api_key='sk-ant-key' → reviewer IS called."""
+        cfg = _make_cfg(self._tmp, anthropic_key="sk-ant-key")
+        reviewer_calls = [0]
+
+        async def counting_reviewer(*args, **kwargs):
+            reviewer_calls[0] += 1
+            return {"anomaly_score": 0.1, "anomaly_reason": "ok", "triggered_rules": []}, 0.05, None
+
+        with patch("dispatcher._preflight_auth_check", new=AsyncMock()), \
+             patch("dispatcher._db_connect"), \
+             patch("dispatcher._fetch_pending_rows", return_value=[_make_row()]), \
+             patch("dispatcher._mark_in_flight"), \
+             patch("dispatcher._write_staging"), \
+             patch("dispatcher._mark_queue_done"), \
+             patch("dispatcher._anthropic_reviewer", side_effect=counting_reviewer), \
+             patch("dispatcher._litellm_complete", new=AsyncMock(
+                 return_value=(json.dumps(_minimal_valid_output()), False)
+             )):
+            await EnrichmentDispatcher(cfg).run_batch()
+
+        self.assertEqual(reviewer_calls[0], 1, "Reviewer must be called for valid sk-ant- key")
 
 
 if __name__ == "__main__":

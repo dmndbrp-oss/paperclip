@@ -2,7 +2,7 @@
 Enrichment batch dispatcher — SAG-2160 sub-deliverable 2b.
 
 Pull pending rows from enrichment_staging.enrichment_queue, run:
-  primary (Qwen 2.5 14B via LiteLLM) → fallback (Llama 3.3 70B via LiteLLM)
+  primary (Qwen3 30B-A3B via LiteLLM, thinking disabled) → fallback (Qwen2.5 14B via LiteLLM)
   → reviewer (Opus via Anthropic, cost-cap gated)
 Write results to enrichment_staging.enrichment_staging.
 

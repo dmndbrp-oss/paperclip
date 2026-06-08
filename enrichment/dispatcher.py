@@ -2,7 +2,7 @@
 Enrichment batch dispatcher — SAG-2160 sub-deliverable 2b.
 
 Pull pending rows from enrichment_staging.enrichment_queue, run:
-  primary (Qwen3 30B-A3B via LiteLLM, thinking disabled) → fallback (Qwen2.5 14B via LiteLLM)
+  primary (Gemma4 26B-A4B via LiteLLM — SAG-3382 board-locked) → fallback (Qwen2.5 14B via LiteLLM)
   → reviewer (Opus via Anthropic, cost-cap gated)
 Write results to enrichment_staging.enrichment_staging.
 
@@ -52,11 +52,10 @@ logger = logging.getLogger(__name__)
 OPUS_INPUT_PER_1K = 0.015
 OPUS_OUTPUT_PER_1K = 0.075
 
-# SAG-3029: use qwen3:30b-a3b (always resident in Ollama as Paperclip's primary model)
-# so there is no model-swap overhead. llama3.3:70b caused 240s timeouts because
-# swap+queue-wait on the shared APU exceeded PRIMARY_TIMEOUT+FALLBACK_TIMEOUT.
-PRIMARY_MODEL = "qwen3-30b-moe"                       # LiteLLM alias → ollama/qwen3:30b-a3b
-FALLBACK_MODEL = "ollama/qwen2.5:14b-instruct-q4_K_M"  # SAG-3029 canary: gemma4 needs LiteLLM restart; qwen2.5:14b is already registered and passed SSI-QTZ-0100
+# SAG-3487: replace qwen3-30b-moe (HTTP 200 empty content — SAG-3481) with Gemma4 26B-A4B.
+# Gemma4 is the board-locked fleet standard (SAG-3382) and confirmed present in Ollama.
+PRIMARY_MODEL = "gemma4-enrichment"                    # LiteLLM alias → ollama/gemma4:26b-a4b-it-q4_K_M (SAG-3382)
+FALLBACK_MODEL = "ollama/qwen2.5:14b-instruct-q4_K_M"  # already registered and passed SSI-QTZ-0100
 REVIEWER_MODEL = "claude-opus-4-7"
 
 # Timeouts must absorb APU queue-wait behind in-flight Paperclip agent inferences
@@ -330,8 +329,6 @@ async def _litellm_complete(
         resp.raise_for_status()
         data = resp.json()
         content = data["choices"][0]["message"]["content"]
-        # Strip qwen3 thinking tags — qwen3:30b-a3b emits <think>…</think> before JSON
-        content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
         # Strip markdown JSON fences if present
         content = re.sub(r"^```(?:json)?\s*", "", content).rstrip("`").strip()
         return content, False
@@ -527,8 +524,8 @@ async def _process_row(
         user = cr.compressed
 
     # --- Primary tier ---
-    # SAG-3455: prepend /no_think for Qwen3 so <think> blocks don't exhaust the token budget
-    # before the JSON output. /no_think is a Qwen3-specific disable-thinking directive.
+    # SAG-3455: /no_think prefix was Qwen3-specific. Gemma4 does not emit thinking blocks,
+    # so this guard evaluates to False and primary_user equals user (no prefix appended).
     primary_user = f"/no_think\n\n{user}" if PRIMARY_MODEL.startswith("qwen3") else user
     content, timed_out = await _litellm_complete(
         http_client, cfg.litellm_base_url, PRIMARY_MODEL, system, primary_user, PRIMARY_TIMEOUT,

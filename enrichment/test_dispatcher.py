@@ -352,14 +352,14 @@ class TestNoThinkDirective(unittest.IsolatedAsyncioTestCase):
 
         return calls
 
-    async def test_primary_call_has_no_think_prefix(self):
-        """Primary (Qwen3) call must have /no_think prefix to suppress think-block token waste."""
+    async def test_primary_call_has_no_no_think_prefix(self):
+        """Primary (Gemma4) call must NOT carry /no_think — Gemma4 does not emit thinking blocks."""
         calls = await self._capture_litellm_calls(json.dumps(_minimal_valid_output()))
         primary_calls = [c for c in calls if c["model"] == PRIMARY_MODEL]
         self.assertEqual(len(primary_calls), 1, "Expected exactly one primary call")
-        self.assertTrue(
+        self.assertFalse(
             primary_calls[0]["user"].startswith("/no_think"),
-            f"Expected user prompt to start with /no_think, got: {primary_calls[0]['user'][:60]!r}",
+            f"Primary (Gemma4) user prompt must not start with /no_think: {primary_calls[0]['user'][:60]!r}",
         )
 
     async def test_fallback_call_has_no_no_think_prefix(self):

@@ -241,6 +241,45 @@ def _build_reviewer_messages(payload: dict, enriched: dict) -> tuple[str, str]:
     return system, user
 
 
+async def _preflight_auth_check(
+    client: httpx.AsyncClient,
+    base_url: str,
+    api_key: str,
+) -> None:
+    """
+    SAG-3455: Probe the LiteLLM gateway with a 1-token request before processing rows.
+    Raises RuntimeError with a clear LITELLM_API_KEY hint on 401/403.
+    Non-auth errors (network blips) log a warning and continue — infra issues
+    should not abort an otherwise-valid batch.
+    """
+    headers = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    try:
+        resp = await client.post(
+            f"{base_url}/v1/chat/completions",
+            headers=headers,
+            json={
+                "model": PRIMARY_MODEL,
+                "messages": [{"role": "user", "content": "hi"}],
+                "max_tokens": 1,
+            },
+            timeout=15.0,
+        )
+        if resp.status_code in (401, 403):
+            key_hint = "empty" if not api_key else "present but rejected by gateway"
+            raise RuntimeError(
+                f"LiteLLM gateway auth failed (HTTP {resp.status_code}). "
+                f"LITELLM_API_KEY is {key_hint}. "
+                "Set LITELLM_API_KEY in enrichment/.env and in the nightly routine env "
+                "so the batch does not silently fail with 10/10 zero-second rows."
+            )
+    except RuntimeError:
+        raise
+    except Exception as exc:
+        logger.warning("Preflight probe failed with non-auth error: %s — continuing", exc)
+
+
 async def _litellm_complete(
     client: httpx.AsyncClient,
     base_url: str,
@@ -267,7 +306,7 @@ async def _litellm_complete(
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
                 ],
-                "max_tokens": 2048,
+                "max_tokens": 4096,
             },
             timeout=timeout,
         )
@@ -433,8 +472,11 @@ async def _process_row(
         user = cr.compressed
 
     # --- Primary tier ---
+    # SAG-3455: prepend /no_think for Qwen3 so <think> blocks don't exhaust the token budget
+    # before the JSON output. /no_think is a Qwen3-specific disable-thinking directive.
+    primary_user = f"/no_think\n\n{user}" if PRIMARY_MODEL.startswith("qwen3") else user
     content, timed_out = await _litellm_complete(
-        http_client, cfg.litellm_base_url, PRIMARY_MODEL, system, user, PRIMARY_TIMEOUT,
+        http_client, cfg.litellm_base_url, PRIMARY_MODEL, system, primary_user, PRIMARY_TIMEOUT,
         api_key=cfg.litellm_api_key,
     )
     if content:
@@ -531,6 +573,10 @@ class EnrichmentDispatcher:
         """
         cfg = self._cfg
         cap_paused = asyncio.Event()
+
+        # SAG-3455: fail-loud auth preflight — raise before touching DB if gateway rejects auth
+        async with httpx.AsyncClient(timeout=None) as _probe_client:
+            await _preflight_auth_check(_probe_client, cfg.litellm_base_url, cfg.litellm_api_key)
 
         # SAG-3060: verify headroom-compress health on startup
         health = headroom_compress.check_health()

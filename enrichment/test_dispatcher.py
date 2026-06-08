@@ -16,12 +16,16 @@ import time
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
+
 sys.path.insert(0, os.path.dirname(__file__))
 from cost_cap import CostCapTracker
 from dispatcher import (
     DispatcherConfig,
     EnrichmentDispatcher,
+    PRIMARY_MODEL,
     _build_enrichment_messages,
+    _preflight_auth_check,
     _process_row,
 )
 from cost_cap import WEEKLY_CAP_USD
@@ -182,7 +186,8 @@ class TestCostCapEnforcement(unittest.IsolatedAsyncioTestCase):
         """run_batch with an empty DB returns a zero-row summary."""
         cfg = _make_cfg(self._tmp)
 
-        with patch("dispatcher._db_connect"), \
+        with patch("dispatcher._preflight_auth_check", new=AsyncMock()), \
+             patch("dispatcher._db_connect"), \
              patch("dispatcher._fetch_pending_rows", return_value=[]):
             dispatcher = EnrichmentDispatcher(cfg)
             summary = await dispatcher.run_batch()
@@ -241,6 +246,121 @@ class TestRowTierRouting(unittest.IsolatedAsyncioTestCase):
             fallback_content="also bad",
         )
         self.assertEqual(tier, "failed")
+
+
+# ---------------------------------------------------------------------------
+# Tests: preflight auth check (SAG-3455 fix 1)
+# ---------------------------------------------------------------------------
+
+class TestPreflightAuthCheck(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self._tmp = tempfile.mkdtemp()
+
+    async def test_preflight_raises_on_401(self):
+        """_preflight_auth_check raises RuntimeError mentioning LITELLM_API_KEY on 401."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 401
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_resp)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            await _preflight_auth_check(mock_client, "http://localhost:4000", "bad-key")
+
+        self.assertIn("LITELLM_API_KEY", str(ctx.exception))
+        self.assertIn("401", str(ctx.exception))
+
+    async def test_preflight_raises_on_403(self):
+        """_preflight_auth_check raises RuntimeError on 403 (forbidden)."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 403
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_resp)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            await _preflight_auth_check(mock_client, "http://localhost:4000", "key")
+
+        self.assertIn("LITELLM_API_KEY", str(ctx.exception))
+
+    async def test_preflight_no_raise_on_200(self):
+        """_preflight_auth_check does not raise when gateway returns 200."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.raise_for_status = MagicMock()
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(return_value=mock_resp)
+
+        await _preflight_auth_check(mock_client, "http://localhost:4000", "good-key")
+
+    async def test_preflight_warns_and_continues_on_network_error(self):
+        """Network errors log a warning and do not raise — infra blips don't abort batches."""
+        mock_client = AsyncMock()
+        mock_client.post = AsyncMock(side_effect=httpx.ConnectError("connection refused"))
+
+        # Should not raise
+        await _preflight_auth_check(mock_client, "http://localhost:4000", "key")
+
+    async def test_run_batch_propagates_preflight_auth_error(self):
+        """run_batch raises immediately when preflight detects 401 — no rows processed."""
+        cfg = _make_cfg(self._tmp)
+        with patch(
+            "dispatcher._preflight_auth_check",
+            new=AsyncMock(side_effect=RuntimeError("LITELLM_API_KEY missing or invalid: 401")),
+        ):
+            with self.assertRaises(RuntimeError) as ctx:
+                await EnrichmentDispatcher(cfg).run_batch()
+            self.assertIn("LITELLM_API_KEY", str(ctx.exception))
+
+
+# ---------------------------------------------------------------------------
+# Tests: /no_think directive for primary Qwen3 model (SAG-3455 fix 4)
+# ---------------------------------------------------------------------------
+
+class TestNoThinkDirective(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self._tmp = tempfile.mkdtemp()
+
+    async def _capture_litellm_calls(self, primary_content: str) -> list[dict]:
+        cfg = _make_cfg(self._tmp, anthropic_key="")
+        tracker = CostCapTracker(cfg.cost_cap_ledger_path)
+        cap_paused = asyncio.Event()
+        conn = MagicMock()
+        http_client = AsyncMock()
+        calls: list[dict] = []
+
+        async def _capture(client, base_url, model, system, user, timeout, api_key=""):
+            calls.append({"model": model, "system": system, "user": user})
+            if model == PRIMARY_MODEL:
+                return primary_content, False
+            return json.dumps(_minimal_valid_output()), False
+
+        with patch("dispatcher._litellm_complete", side_effect=_capture), \
+             patch("dispatcher._mark_in_flight"), \
+             patch("dispatcher._write_staging"), \
+             patch("dispatcher._mark_queue_done"):
+            await _process_row(_make_row(), "b", cfg, tracker, http_client, conn, cap_paused)
+
+        return calls
+
+    async def test_primary_call_has_no_think_prefix(self):
+        """Primary (Qwen3) call must have /no_think prefix to suppress think-block token waste."""
+        calls = await self._capture_litellm_calls(json.dumps(_minimal_valid_output()))
+        primary_calls = [c for c in calls if c["model"] == PRIMARY_MODEL]
+        self.assertEqual(len(primary_calls), 1, "Expected exactly one primary call")
+        self.assertTrue(
+            primary_calls[0]["user"].startswith("/no_think"),
+            f"Expected user prompt to start with /no_think, got: {primary_calls[0]['user'][:60]!r}",
+        )
+
+    async def test_fallback_call_has_no_no_think_prefix(self):
+        """Fallback model call must NOT carry the /no_think prefix."""
+        calls = await self._capture_litellm_calls("not valid json")  # force fallback
+        fallback_calls = [c for c in calls if c["model"] != PRIMARY_MODEL]
+        self.assertGreater(len(fallback_calls), 0, "Expected at least one fallback call")
+        for fc in fallback_calls:
+            self.assertFalse(
+                fc["user"].startswith("/no_think"),
+                f"Fallback user prompt should not start with /no_think: {fc['user'][:60]!r}",
+            )
 
 
 if __name__ == "__main__":

@@ -25,10 +25,22 @@ import asyncio
 import json
 import logging
 import os
+import pathlib
 import sys
 from datetime import datetime, timezone
 
 import httpx
+
+# SAG-3455: load enrichment/.env explicitly so LITELLM_API_KEY is present regardless
+# of whether the calling shell sourced the file. os.environ is not overridden for keys
+# already set, so injected routine env always wins over .env defaults.
+_ENV_FILE = pathlib.Path(__file__).parent / ".env"
+if _ENV_FILE.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_ENV_FILE, override=False)
+    except ImportError:
+        pass  # python-dotenv not installed; fall back to shell-sourced env
 
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))

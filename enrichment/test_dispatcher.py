@@ -673,5 +673,41 @@ class TestRunBatchAnthropicPreflight(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(reviewer_calls[0], 1, "Reviewer must be called for valid sk-ant- key")
 
 
+# ---------------------------------------------------------------------------
+# Tests: _repair_cross_fields availability null repair (SAG-3528)
+# ---------------------------------------------------------------------------
+
+class TestRepairCrossFieldsAvailability(unittest.TestCase):
+    def setUp(self):
+        from dispatcher import _repair_cross_fields
+        self._repair = _repair_cross_fields
+
+    def test_null_availability_defaults_to_in_stock(self):
+        """gemma4 emits null availability — repair must default to in_stock."""
+        row = {"sku": "SSI-QTZ-0109", "availability": None, "is_outdoor": False}
+        self._repair(row)
+        self.assertEqual(row["availability"], "in_stock")
+
+    def test_missing_availability_key_defaults_to_in_stock(self):
+        """Missing availability key (not present) is treated same as null."""
+        row = {"sku": "SSI-QTZ-0109", "is_outdoor": False}
+        self._repair(row)
+        self.assertEqual(row["availability"], "in_stock")
+
+    def test_valid_availability_is_not_overwritten(self):
+        """Pre-set availability values are preserved unchanged."""
+        for val in ("discontinued", "made_to_order", "limited_stock", "coming_soon"):
+            row = {"sku": "X", "availability": val, "is_outdoor": False}
+            self._repair(row)
+            self.assertEqual(row["availability"], val)
+
+    def test_weather_rating_repair_still_works(self):
+        """Existing weather_rating repair is not broken by the new availability fix."""
+        row = {"sku": "X", "availability": None, "is_outdoor": True, "weather_rating": None}
+        self._repair(row)
+        self.assertEqual(row["weather_rating"], "not_rated")
+        self.assertEqual(row["availability"], "in_stock")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -60,8 +60,8 @@ REVIEWER_MODEL = "claude-opus-4-7"
 
 # Timeouts must absorb APU queue-wait behind in-flight Paperclip agent inferences
 # (can be 60-120s on a busy APU) plus model-load + inference time.
-PRIMARY_TIMEOUT = 600.0   # 10 min — qwen3:30b-a3b already warm, but queue-wait can be long
-FALLBACK_TIMEOUT = 300.0  # 5 min — gemma4:26b is fast once loaded
+PRIMARY_TIMEOUT = 600.0   # 10 min — gemma4 always warm; absorbs queue-wait
+FALLBACK_TIMEOUT = 300.0  # 5 min — qwen2.5:14b; budget includes GPU model-swap overhead
 REVIEWER_TIMEOUT = 60.0
 REVIEWER_MAX_RETRIES = 2
 REVIEWER_BACKOFF_BASE = 1.0  # seconds, doubled each retry
@@ -475,6 +475,13 @@ def _repair_cross_fields(parsed: dict) -> None:
     if parsed.get("is_outdoor") and not parsed.get("weather_rating"):
         parsed["weather_rating"] = "not_rated"
         logger.info("Cross-field repair: set weather_rating=not_rated for is_outdoor=true sku=%s", parsed.get("sku"))
+
+    # SAG-3528: gemma4 emits null for availability when payload has no explicit stock info.
+    # availability is a required non-null field. Default to in_stock — catalog items are
+    # presumed active unless explicitly marked otherwise.
+    if parsed.get("availability") is None:
+        parsed["availability"] = "in_stock"
+        logger.info("Cross-field repair: set availability=in_stock (was null) sku=%s", parsed.get("sku"))
 
 
 # ---------------------------------------------------------------------------

@@ -22,11 +22,13 @@ OpenShell sandbox (SAG-2357 production routing flip):
 from __future__ import annotations
 
 import asyncio
+import fcntl
 import json
 import logging
 import os
 import pathlib
 import sys
+import tempfile
 from datetime import datetime, timezone
 
 import httpx
@@ -55,6 +57,40 @@ except ImportError:
     _OPENSH_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
+# SAG-3529: single-runner guard — only one batch_runner.py may drain at a time.
+# On Linux, flock() is process-scoped and auto-released on crash/exit, so no
+# stale-lock cleanup is needed.
+_LOCK_PATH: pathlib.Path = pathlib.Path(tempfile.gettempdir()) / "enrichment_batch_runner.lock"
+
+
+def _try_acquire_lock() -> "IO[str] | None":
+    """
+    Try to acquire an exclusive non-blocking flock on _LOCK_PATH.
+    Returns the open file descriptor on success, or None if another runner holds it.
+    Caller must release with _release_lock() when done.
+    """
+    try:
+        fd = open(_LOCK_PATH, "w")
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fd.write(str(os.getpid()))
+        fd.flush()
+        return fd
+    except BlockingIOError:
+        try:
+            fd.close()
+        except Exception:
+            pass
+        return None
+
+
+def _release_lock(fd: "IO[str]") -> None:
+    """Release a lock fd returned by _try_acquire_lock()."""
+    try:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        fd.close()
+    except OSError:
+        pass
 
 
 def _build_comment(summary: dict, started_at: datetime, finished_at: datetime) -> str:
@@ -160,6 +196,22 @@ async def run() -> int:
     Execute the nightly batch and post summary to Paperclip.
     Returns exit code: 0 on success or empty queue, 1 on dispatcher error.
     """
+    # SAG-3529: enforce single runner — exit clean if another drain is active.
+    lock_fd = _try_acquire_lock()
+    if lock_fd is None:
+        logger.info(
+            "enrichment drain already active — another batch_runner.py holds the run lock, exiting clean (SAG-3529)"
+        )
+        return 0
+
+    try:
+        return await _run_batch()
+    finally:
+        _release_lock(lock_fd)
+
+
+async def _run_batch() -> int:
+    """Inner batch execution, called only when the run lock is held."""
     cfg = DispatcherConfig.from_env()
 
     api_url = os.environ.get("PAPERCLIP_API_URL", "")

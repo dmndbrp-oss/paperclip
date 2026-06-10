@@ -83,6 +83,12 @@ class TestBuildComment(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 class TestRunFunction(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self._lock_path = pathlib.Path(tempfile.mkdtemp()) / "test_batch_runner.lock"
+        self._lock_patch = patch.object(batch_runner, "_LOCK_PATH", self._lock_path)
+        self._lock_patch.start()
+        self.addCleanup(self._lock_patch.stop)
+
     def _env(self, **overrides) -> dict:
         base = {
             "DATABASE_URL": "postgresql://test/test",
@@ -267,6 +273,12 @@ class TestSingleRunnerGuard(unittest.IsolatedAsyncioTestCase):
 class TestTerminalStates(unittest.IsolatedAsyncioTestCase):
     """Each TerminalState must be reachable; terminal record must carry the state name."""
 
+    def setUp(self):
+        self._lock_path = pathlib.Path(tempfile.mkdtemp()) / "test_batch_runner.lock"
+        self._lock_patch = patch.object(batch_runner, "_LOCK_PATH", self._lock_path)
+        self._lock_patch.start()
+        self.addCleanup(self._lock_patch.stop)
+
     def _env(self):
         return {
             "DATABASE_URL": "postgresql://test/test",
@@ -443,6 +455,12 @@ class TestClassifyDispatcherError(unittest.TestCase):
 
 class TestErrorClassInRecord(unittest.IsolatedAsyncioTestCase):
     """error_class must be set in the terminal record for DISPATCHER_ERROR paths."""
+
+    def setUp(self):
+        self._lock_path = pathlib.Path(tempfile.mkdtemp()) / "test_batch_runner.lock"
+        self._lock_patch = patch.object(batch_runner, "_LOCK_PATH", self._lock_path)
+        self._lock_patch.start()
+        self.addCleanup(self._lock_patch.stop)
 
     def _env(self):
         return {

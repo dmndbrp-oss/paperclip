@@ -1,9 +1,48 @@
 """
-Nightly catalog enrichment batch runner — SAG-2184.
+Loop Engineering Standard — ALE loop contract (LES §1 + §5)
+============================================================
+Nightly catalog enrichment batch runner — SAG-2184 / SAG-3587.
 
-Entry point for the Paperclip routine execution. Calls EnrichmentDispatcher.run_batch(),
-posts a summary comment to the execution issue, and exits 0 on success or partial success,
-1 on total failure (no rows processed and DB error).
+ALE §1 Five-Part Contract
+--------------------------
+1. GOAL / SUCCESS CRITERION
+   Drain up to ENRICHMENT_BATCH_SIZE pending rows from
+   enrichment_staging.enrichment_queue.  Checkable stop: queue empty
+   OR ≤batch_size rows attempted in a single pass.
+
+2. TOOLS — bounded action surface
+   - dispatcher.EnrichmentDispatcher.run_batch()   (DB read + AI enrichment)
+   - Paperclip PATCH /api/issues/{id}              (mark execution issue done
+                                                    with closing summary comment)
+   - flock()                                        (single-runner guard, SAG-3529)
+   No other side effects.
+
+3. CONTEXT — single-pass, stateless between runs
+   Each invocation fetches a fresh fixed row list (≤batch_size) from the DB.
+   No state is carried over between heartbeats beyond what is persisted in
+   enrichment_staging.
+
+4. TERMINATION — explicit, bounded, NEVER a daemon / NEVER "loop till empty"
+   Bound: a fixed item list of ≤batch_size rows, single-pass.
+   Terminal states (see TerminalState enum below):
+     EMPTY_QUEUE      — no pending rows (exit 0)
+     ALL_ENRICHED     — done == total > 0 (exit 0)
+     PARTIAL          — 0 < done < total (exit 0)
+     ALL_FAILED       — failed == total > 0, loud WARNING (exit 0)
+     DISPATCHER_ERROR — exception from run_batch() (exit 1)
+     SKIPPED_LOCKED   — flock held by another runner (exit 0)
+
+5. ERROR HANDLING — typed; no silent crash or silent exit (SAG-3587)
+   DISPATCHER_ERROR classified: auth | db | network | unknown.
+   Comment/mark-done failures surface in the terminal record (not swallowed).
+   SKIPPED_LOCKED previously exited silently — now logs + emits terminal record.
+   Secret sanitizer prevents LITELLM_API_KEY / ANTHROPIC_API_KEY / DATABASE_URL
+   password from reaching any log line, comment, or terminal record.
+
+§5 AUDITABILITY
+   One ENRICHMENT_TERMINAL_RECORD JSON line emitted to stdout per run.
+   Fields: batch_id, started_at, finished_at, terminal_state, total, done,
+           failed, cap_paused, error_class, comment_posted, runner_pid, run_id.
 
 Environment variables (beyond dispatcher's own set):
   PAPERCLIP_TASK_ID   current execution issue UUID (auto-injected by harness)
@@ -12,7 +51,7 @@ Environment variables (beyond dispatcher's own set):
   PAPERCLIP_API_KEY   scoped JWT for Paperclip API calls
 
 OpenShell sandbox (SAG-2357 production routing flip):
-  OPENSH_SANDBOX_ENABLED   1=on, 0=off (default 0; flip to 1 for production — CEO approved 2026-05-26)
+  OPENSH_SANDBOX_ENABLED   1=on, 0=off (default 0; CEO approved 2026-05-26)
   OPENSH_SANDBOX_TAG        openshell image tag (default 0.0.47)
   OPENSH_USE_GRPC           1=gRPC dispatcher, 0=CLI (default 1; gRPC is -24% latency)
   OPENSH_MACOS_FALLBACK     container|none (default container)
@@ -27,9 +66,12 @@ import json
 import logging
 import os
 import pathlib
+import re
 import sys
 import tempfile
+import uuid
 from datetime import datetime, timezone
+from enum import Enum
 
 import httpx
 
@@ -59,10 +101,98 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # SAG-3529: single-runner guard — only one batch_runner.py may drain at a time.
-# On Linux, flock() is process-scoped and auto-released on crash/exit, so no
-# stale-lock cleanup is needed.
+# On Linux, flock() is process-scoped and auto-released on crash/exit.
 _LOCK_PATH: pathlib.Path = pathlib.Path(tempfile.gettempdir()) / "enrichment_batch_runner.lock"
 
+
+# ---------------------------------------------------------------------------
+# ALE §1 part 4 — explicit terminal states
+# ---------------------------------------------------------------------------
+
+class TerminalState(str, Enum):
+    """Every exit path of the batch runner resolves to exactly one of these states."""
+    EMPTY_QUEUE      = "EMPTY_QUEUE"       # no pending rows; exit 0
+    ALL_ENRICHED     = "ALL_ENRICHED"      # done == total > 0; exit 0
+    PARTIAL          = "PARTIAL"           # 0 < done < total; exit 0
+    ALL_FAILED       = "ALL_FAILED"        # failed == total > 0; loud WARNING; exit 0
+    DISPATCHER_ERROR = "DISPATCHER_ERROR"  # exception from run_batch(); exit 1
+    SKIPPED_LOCKED   = "SKIPPED_LOCKED"   # flock held by another runner; exit 0
+
+
+# ---------------------------------------------------------------------------
+# ALE §1 part 5 — typed error classification
+# ---------------------------------------------------------------------------
+
+def _classify_dispatcher_error(exc: Exception) -> str:
+    """
+    Map an exception from EnrichmentDispatcher.run_batch() to a typed error class.
+    Returns one of: auth | db | network | unknown.
+    """
+    if isinstance(exc, httpx.HTTPStatusError):
+        if exc.response.status_code in (401, 403):
+            return "auth"
+
+    exc_msg = str(exc).lower()
+
+    if any(kw in exc_msg for kw in ("unauthorized", "forbidden", "authentication", "401", "403")):
+        return "auth"
+
+    try:
+        import psycopg2
+        if isinstance(exc, psycopg2.Error):
+            return "db"
+    except ImportError:
+        pass
+    if any(kw in exc_msg for kw in ("psycopg", "postgres", "database", "sqlalchemy", "asyncpg")):
+        return "db"
+
+    if isinstance(exc, (httpx.ConnectError, httpx.TimeoutException, ConnectionRefusedError)):
+        return "network"
+    if any(kw in exc_msg for kw in ("connection", "timeout", "network", "econnrefused", "socket")):
+        return "network"
+
+    return "unknown"
+
+
+# ---------------------------------------------------------------------------
+# Secret sanitizer (GOVERNANCE §5)
+# ---------------------------------------------------------------------------
+
+def _sanitize_message(msg: str) -> str:
+    """
+    Strip known secrets from a string before logging or including in a record.
+    Redacts: LITELLM_API_KEY value, ANTHROPIC_API_KEY value, DATABASE_URL password.
+    """
+    for var in ("LITELLM_API_KEY", "ANTHROPIC_API_KEY"):
+        val = os.environ.get(var, "")
+        if val:
+            msg = msg.replace(val, "[REDACTED]")
+
+    # Redact password in postgresql://user:PASSWORD@host URLs
+    msg = re.sub(
+        r"((?:postgresql|postgres)://[^:/?#\s]+:)([^@\s]+)(@)",
+        r"\1[REDACTED]\3",
+        msg,
+    )
+    return msg
+
+
+# ---------------------------------------------------------------------------
+# LES §5 — terminal record emitter
+# ---------------------------------------------------------------------------
+
+def _emit_terminal_record(record: dict) -> None:
+    """
+    Emit exactly one machine-readable terminal record per run (LES §5).
+    Printed to stdout so it is captured by the systemd journal.
+    Greppable tag: ENRICHMENT_TERMINAL_RECORD
+    """
+    print(f"ENRICHMENT_TERMINAL_RECORD {json.dumps(record)}", flush=True)
+
+
+# ---------------------------------------------------------------------------
+# Lock helpers (SAG-3529)
+# ---------------------------------------------------------------------------
 
 def _try_acquire_lock() -> "IO[str] | None":
     """
@@ -93,12 +223,17 @@ def _release_lock(fd: "IO[str]") -> None:
         pass
 
 
+# ---------------------------------------------------------------------------
+# Comment / issue helpers
+# ---------------------------------------------------------------------------
+
 def _build_comment(summary: dict, started_at: datetime, finished_at: datetime) -> str:
     duration_s = (finished_at - started_at).total_seconds()
     total = summary["total"]
     done = summary["done"]
     failed = summary["failed"]
     cap_paused = summary["cap_paused"]
+    terminal_state = summary.get("terminal_state", "unknown")
     pool_ram_mib = summary.get("opensh_pool_ram_mib")
     pool_size = summary.get("opensh_pool_size")
 
@@ -112,12 +247,13 @@ def _build_comment(summary: dict, started_at: datetime, finished_at: datetime) -
         status_line = f"Batch complete — {done}/{total} rows enriched successfully."
 
     lines = [
-        f"## Nightly enrichment batch",
-        f"",
+        "## Nightly enrichment batch",
+        "",
         status_line,
-        f"",
-        f"| Metric | Value |",
-        f"|--------|-------|",
+        "",
+        "| Metric | Value |",
+        "|--------|-------|",
+        f"| Terminal state | {terminal_state} |",
         f"| Rows processed | {total} |",
         f"| Enriched (primary + fallback) | {done} |",
         f"| Failed (both tiers) | {failed} |",
@@ -133,9 +269,9 @@ def _build_comment(summary: dict, started_at: datetime, finished_at: datetime) -
 
     if cap_paused:
         lines += [
-            f"",
-            f"> **Opus reviewer cost cap hit.** The routine has been auto-paused. "
-            f"Manual unpause required on [SAG-2160](/SAG/issues/SAG-2160).",
+            "",
+            "> **Opus reviewer cost cap hit.** The routine has been auto-paused. "
+            "Manual unpause required on [SAG-2160](/SAG/issues/SAG-2160).",
         ]
 
     return "\n".join(lines)
@@ -172,7 +308,12 @@ async def _mark_issue_done(
     run_id: str,
     issue_id: str,
     comment: str,
-) -> None:
+) -> bool:
+    """
+    Mark the execution issue done with a closing summary comment.
+    Returns True on success, False on failure.
+    Failures are logged so they surface in the terminal record (not silently dropped).
+    """
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -187,41 +328,78 @@ async def _mark_issue_done(
             )
             r.raise_for_status()
             logger.info("Issue %s marked done", issue_id)
+            return True
         except Exception as exc:
             logger.warning("Failed to mark issue done: %s", exc)
+            return False
 
+
+# ---------------------------------------------------------------------------
+# Batch execution
+# ---------------------------------------------------------------------------
 
 async def run() -> int:
     """
     Execute the nightly batch and post summary to Paperclip.
     Returns exit code: 0 on success or empty queue, 1 on dispatcher error.
     """
+    started_at = datetime.now(timezone.utc)
+    run_id = os.environ.get("PAPERCLIP_RUN_ID", "")
+    runner_pid = os.getpid()
+
     # SAG-3529: enforce single runner — exit clean if another drain is active.
     lock_fd = _try_acquire_lock()
     if lock_fd is None:
-        logger.info(
-            "enrichment drain already active — another batch_runner.py holds the run lock, exiting clean (SAG-3529)"
+        # SAG-3587: previously silent exit; now logs terminal_state by name + emits record.
+        logger.warning(
+            "terminal_state=%s — enrichment drain already active, another "
+            "batch_runner.py holds the run lock (SAG-3529)",
+            TerminalState.SKIPPED_LOCKED.value,
         )
+        _emit_terminal_record({
+            "batch_id": None,
+            "started_at": started_at.isoformat(),
+            "finished_at": datetime.now(timezone.utc).isoformat(),
+            "terminal_state": TerminalState.SKIPPED_LOCKED.value,
+            "total": 0,
+            "done": 0,
+            "failed": 0,
+            "cap_paused": False,
+            "error_class": None,
+            "comment_posted": False,
+            "runner_pid": runner_pid,
+            "run_id": run_id,
+        })
         return 0
 
     try:
-        return await _run_batch()
+        exit_code, _ = await _run_batch()
     finally:
         _release_lock(lock_fd)
 
+    return exit_code
 
-async def _run_batch() -> int:
-    """Inner batch execution, called only when the run lock is held."""
+
+async def _run_batch() -> "tuple[int, dict]":
+    """
+    Inner batch execution, called only when the run lock is held.
+    Returns (exit_code, summary). summary["terminal_state"] is always set.
+    """
     cfg = DispatcherConfig.from_env()
 
     api_url = os.environ.get("PAPERCLIP_API_URL", "")
     api_key = os.environ.get("PAPERCLIP_API_KEY", "")
     run_id = os.environ.get("PAPERCLIP_RUN_ID", "")
     task_id = os.environ.get("PAPERCLIP_TASK_ID", "")
+    runner_pid = os.getpid()
+    batch_id = str(uuid.uuid4())
+    started_at = datetime.now(timezone.utc)
+    exit_code = 0
+    error_class = None
 
     # --- OpenShell sandbox pool initialization (SAG-2357) ---
-    sandbox_pool: SandboxPool | None = None
-    pool_monitor: PoolMonitor | None = None
+    sandbox_pool = None
+    pool_monitor = None
     if _OPENSH_AVAILABLE:
         shim_cfg = ShimConfig.from_env()
         if shim_cfg.enabled:
@@ -237,17 +415,47 @@ async def _run_batch() -> int:
                 shim_cfg.sandbox_tag, shim_cfg.pool_size, shim_cfg.use_grpc,
             )
 
-    started_at = datetime.now(timezone.utc)
-    exit_code = 0
-
     try:
         dispatcher = EnrichmentDispatcher(cfg)
         summary = await dispatcher.run_batch()
         logger.info("Batch summary: %s", json.dumps(summary))
     except Exception as exc:
-        logger.error("Dispatcher error: %s", exc)
-        summary = {"total": 0, "done": 0, "failed": 0, "cap_paused": False, "error": str(exc)}
+        error_class = _classify_dispatcher_error(exc)
+        safe_msg = _sanitize_message(str(exc))
+        logger.error("Dispatcher error class=%s: %s", error_class, safe_msg)
+        summary = {
+            "total": 0, "done": 0, "failed": 0, "cap_paused": False,
+            "error": safe_msg,
+        }
         exit_code = 1
+
+    # --- Determine terminal state (LES §1 part 4) ---
+    total = summary["total"]
+    done = summary["done"]
+    failed = summary["failed"]
+    cap_paused = summary["cap_paused"]
+
+    if exit_code == 1:
+        ts = TerminalState.DISPATCHER_ERROR
+        logger.error("terminal_state=%s error_class=%s", ts.value, error_class)
+    elif total == 0:
+        ts = TerminalState.EMPTY_QUEUE
+        logger.info("terminal_state=%s", ts.value)
+    elif done == total:
+        ts = TerminalState.ALL_ENRICHED
+        logger.info("terminal_state=%s", ts.value)
+    elif failed == total:
+        ts = TerminalState.ALL_FAILED
+        logger.warning(
+            "terminal_state=%s — all %d/%d rows failed enrichment; investigate dispatcher logs",
+            ts.value, failed, total,
+        )
+    else:
+        ts = TerminalState.PARTIAL
+        logger.info("terminal_state=%s done=%d failed=%d total=%d", ts.value, done, failed, total)
+
+    summary["terminal_state"] = ts.value
+    summary["error_class"] = error_class
 
     # --- Pool RAM check + alert ---
     if pool_monitor:
@@ -260,15 +468,36 @@ async def _run_batch() -> int:
     if sandbox_pool:
         sandbox_pool.teardown()
 
+    # --- Post closing summary + mark issue done ---
+    comment_posted = False
     if api_url and api_key and task_id:
         comment = _build_comment(summary, started_at, finished_at)
-        status_word = "done" if exit_code == 0 else "Dispatcher failed"
-        close_comment = f"{status_word}\n\n" + comment if exit_code != 0 else comment
-        await _mark_issue_done(api_url, api_key, run_id, task_id, close_comment)
+        close_comment = f"Dispatcher failed\n\n{comment}" if exit_code != 0 else comment
+        comment_posted = bool(
+            await _mark_issue_done(api_url, api_key, run_id, task_id, close_comment)
+        )
     else:
         logger.warning("PAPERCLIP_API_URL/API_KEY/TASK_ID not set — skipping issue update")
 
-    return exit_code
+    summary["comment_posted"] = comment_posted
+
+    # --- Emit terminal record (LES §5) ---
+    _emit_terminal_record({
+        "batch_id": batch_id,
+        "started_at": started_at.isoformat(),
+        "finished_at": finished_at.isoformat(),
+        "terminal_state": ts.value,
+        "total": total,
+        "done": done,
+        "failed": failed,
+        "cap_paused": cap_paused,
+        "error_class": error_class,
+        "comment_posted": comment_posted,
+        "runner_pid": runner_pid,
+        "run_id": run_id,
+    })
+
+    return exit_code, summary
 
 
 def main() -> None:

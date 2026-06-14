@@ -23,7 +23,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 sys.path.insert(0, os.path.dirname(__file__))
 import batch_runner
-from batch_runner import _build_comment, run
+from batch_runner import _build_comment, _load_dotenv, run
+from dispatcher import DispatcherConfig
 
 
 # ---------------------------------------------------------------------------
@@ -605,6 +606,47 @@ class TestSecretNotInTerminalRecord(unittest.IsolatedAsyncioTestCase):
                          "ANTHROPIC_API_KEY must not appear in terminal record")
         self.assertNotIn("db-password-secret", record_str,
                          "DATABASE_URL password must not appear in terminal record")
+
+
+# ---------------------------------------------------------------------------
+# _load_dotenv — SAG-3952
+# ---------------------------------------------------------------------------
+
+class TestLoadDotenv(unittest.TestCase):
+    def test_populates_missing_database_url_and_config_succeeds(self):
+        """Loader sets DATABASE_URL from .env when absent; DispatcherConfig.from_env does not raise."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
+            f.write("DATABASE_URL=postgresql://user:pass@localhost/testdb\n")
+            tmp_path = f.name
+        try:
+            with patch.dict(os.environ, {}, clear=False):
+                os.environ.pop("DATABASE_URL", None)
+                _load_dotenv(tmp_path)
+                self.assertEqual(os.environ["DATABASE_URL"], "postgresql://user:pass@localhost/testdb")
+                cfg = DispatcherConfig.from_env()
+                self.assertEqual(cfg.database_url, "postgresql://user:pass@localhost/testdb")
+        finally:
+            os.unlink(tmp_path)
+
+    def test_does_not_overwrite_existing_database_url(self):
+        """Existing DATABASE_URL in os.environ wins; .env value is silently ignored."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
+            f.write("DATABASE_URL=postgresql://from-file/db\n")
+            tmp_path = f.name
+        try:
+            original = "postgresql://from-env/existing"
+            with patch.dict(os.environ, {"DATABASE_URL": original}, clear=False):
+                _load_dotenv(tmp_path)
+                self.assertEqual(os.environ["DATABASE_URL"], original)
+        finally:
+            os.unlink(tmp_path)
+
+    def test_missing_env_file_is_noop(self):
+        """Missing .env file is a no-op — no exception raised."""
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("DATABASE_URL", None)
+            _load_dotenv("/nonexistent/__does_not_exist__.env")  # must not raise
+            self.assertNotIn("DATABASE_URL", os.environ)
 
 
 if __name__ == "__main__":

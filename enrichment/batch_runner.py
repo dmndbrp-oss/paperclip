@@ -227,6 +227,40 @@ def _release_lock(fd: "IO[str]") -> None:
 # Comment / issue helpers
 # ---------------------------------------------------------------------------
 
+def _load_dotenv(env_path: str | None = None) -> None:
+    """Load KEY=VALUE pairs from enrichment/.env into os.environ.
+
+    Existing os.environ values WIN — only absent/empty keys are set.
+    Uses a minimal inline parser with no external dependencies.
+    If the file does not exist, logs a warning and returns (no crash).
+    """
+    if env_path is None:
+        env_path = os.path.join(os.path.dirname(__file__), ".env")
+    try:
+        with open(env_path) as fh:
+            lines = fh.readlines()
+    except FileNotFoundError:
+        logger.warning("enrichment/.env not found at %s — skipping auto-load", env_path)
+        return
+
+    loaded: list[str] = []
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+            value = value[1:-1]
+        if not os.environ.get(key):
+            os.environ[key] = value
+            loaded.append(key)
+
+    if loaded:
+        logger.info("Auto-loaded %d key(s) from .env: %s", len(loaded), ", ".join(loaded))
+
+
 def _build_comment(summary: dict, started_at: datetime, finished_at: datetime) -> str:
     duration_s = (finished_at - started_at).total_seconds()
     total = summary["total"]
@@ -505,6 +539,7 @@ def main() -> None:
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
+    _load_dotenv()
     sys.exit(asyncio.run(run()))
 
 

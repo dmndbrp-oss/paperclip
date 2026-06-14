@@ -2,9 +2,9 @@ import { createHash, randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, count, eq, gte, inArray, max } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { companies, companySkills } from "@paperclipai/db";
+import { companies, companySkills, heartbeatRuns } from "@paperclipai/db";
 import { readPaperclipSkillSyncPreference } from "@paperclipai/adapter-utils/server-utils";
 import type { PaperclipSkillEntry } from "@paperclipai/adapter-utils/server-utils";
 import type {
@@ -1874,7 +1874,12 @@ function enrichSkill(skill: CompanySkill, attachedAgentCount: number, usedByAgen
   };
 }
 
-function toCompanySkillListItem(skill: CompanySkillListRow, attachedAgentCount: number): CompanySkillListItem {
+function toCompanySkillListItem(
+  skill: CompanySkillListRow,
+  attachedAgentCount: number,
+  lastInvokedAt: string | null,
+  invocationCount30d: number,
+): CompanySkillListItem {
   const source = deriveSkillSourceInfo(skill);
   const metadata = getSkillMeta(skill);
   const catalogKind = skill.sourceType === "catalog" && (metadata.catalogKind === "bundled" || metadata.catalogKind === "optional")
@@ -1908,6 +1913,8 @@ function toCompanySkillListItem(skill: CompanySkillListRow, attachedAgentCount: 
     originHash,
     packageName,
     packageVersion,
+    lastInvokedAt,
+    invocationCount30d,
   };
 }
 
@@ -2053,12 +2060,66 @@ export function companySkillService(db: Db) {
       .orderBy(asc(companySkills.name), asc(companySkills.key))
       .then((entries) => entries.map((entry) => toCompanySkillListRow(entry as CompanySkillListDbRow)));
     const agentRows = await agents.list(companyId);
+
+    // Build map: skillKey → agentIds[] for counting invocations
+    const skillAgentMap = new Map<string, string[]>();
+    for (const agent of agentRows) {
+      const desiredSkills = resolveDesiredSkillKeys(rows, agent.adapterConfig as Record<string, unknown>);
+      for (const skillKey of desiredSkills) {
+        const agentIds = skillAgentMap.get(skillKey);
+        if (agentIds) {
+          agentIds.push(agent.id);
+        } else {
+          skillAgentMap.set(skillKey, [agent.id]);
+        }
+      }
+    }
+
+    // Fetch heartbeat run stats (last 30 days) for all agents that have at least one skill
+    const allAttachedAgentIds = Array.from(new Set(Array.from(skillAgentMap.values()).flat()));
+    const agentRunStats = new Map<string, { lastRunAt: Date | null; count30d: number }>();
+    if (allAttachedAgentIds.length > 0) {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const runRows = await db
+        .select({
+          agentId: heartbeatRuns.agentId,
+          lastRunAt: max(heartbeatRuns.startedAt),
+          count30d: count(),
+        })
+        .from(heartbeatRuns)
+        .where(and(
+          eq(heartbeatRuns.companyId, companyId),
+          inArray(heartbeatRuns.agentId, allAttachedAgentIds),
+          gte(heartbeatRuns.startedAt, thirtyDaysAgo),
+        ))
+        .groupBy(heartbeatRuns.agentId);
+      for (const row of runRows) {
+        agentRunStats.set(row.agentId, { lastRunAt: row.lastRunAt ?? null, count30d: row.count30d });
+      }
+    }
+
     return rows.map((skill) => {
-      const attachedAgentCount = agentRows.filter((agent) => {
-        const desiredSkills = resolveDesiredSkillKeys(rows, agent.adapterConfig as Record<string, unknown>);
-        return desiredSkills.includes(skill.key);
-      }).length;
-      return toCompanySkillListItem(skill, attachedAgentCount);
+      const attachedAgentIds = skillAgentMap.get(skill.key) ?? [];
+      const attachedAgentCount = attachedAgentIds.length;
+
+      // Aggregate invocation stats across all agents that have this skill
+      let lastRunAt: Date | null = null;
+      let totalCount30d = 0;
+      for (const agentId of attachedAgentIds) {
+        const stats = agentRunStats.get(agentId);
+        if (!stats) continue;
+        totalCount30d += stats.count30d;
+        if (stats.lastRunAt && (!lastRunAt || stats.lastRunAt > lastRunAt)) {
+          lastRunAt = stats.lastRunAt;
+        }
+      }
+
+      return toCompanySkillListItem(
+        skill,
+        attachedAgentCount,
+        lastRunAt ? lastRunAt.toISOString() : null,
+        totalCount30d,
+      );
     });
   }
 

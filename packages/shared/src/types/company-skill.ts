@@ -55,6 +55,8 @@ export interface CompanySkillListItem {
   originHash: string | null;
   packageName: string | null;
   packageVersion: string | null;
+  lastInvokedAt: string | null;
+  invocationCount30d: number;
 }
 
 export interface CompanySkillUsageAgent {

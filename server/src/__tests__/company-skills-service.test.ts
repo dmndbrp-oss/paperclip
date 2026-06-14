@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import { agents, companies, companySkills, createDb } from "@paperclipai/db";
+import { agents, companies, companySkills, createDb, heartbeatRuns } from "@paperclipai/db";
 import {
   getEmbeddedPostgresTestSupport,
   startEmbeddedPostgresTestDatabase,
@@ -37,6 +37,7 @@ describeEmbeddedPostgres("companySkillService.list", () => {
   }, 20_000);
 
   afterEach(async () => {
+    await db.delete(heartbeatRuns);
     await db.delete(agents);
     await db.delete(companySkills);
     await db.delete(companies);
@@ -428,5 +429,102 @@ describeEmbeddedPostgres("companySkillService.list", () => {
     await expect(fs.readFile(path.join(entry!.source, "SKILL.md"), "utf8")).resolves.toBe(
       "# Runtime Coach\n\nRecovered from DB.\n",
     );
+  });
+
+  it("returns lastInvokedAt and invocationCount30d from heartbeat runs for attached agents", async () => {
+    const companyId = randomUUID();
+    const agentId = randomUUID();
+    const skillKey = `company/${companyId}/planning`;
+    const skillDir = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-skill-invocation-"));
+    cleanupDirs.add(skillDir);
+    await fs.writeFile(path.join(skillDir, "SKILL.md"), "---\nname: planning\n---\n# Planning\n", "utf8");
+
+    await db.insert(companies).values({
+      id: companyId,
+      name: "InvocationCo",
+      issuePrefix: `I${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`,
+      requireBoardApprovalForNewAgents: false,
+    });
+    await db.insert(companySkills).values({
+      id: randomUUID(),
+      companyId,
+      key: skillKey,
+      slug: "planning",
+      name: "Planning",
+      description: null,
+      markdown: "---\nname: planning\n---\n# Planning\n",
+      sourceType: "local_path",
+      sourceLocator: skillDir,
+      trustLevel: "markdown_only",
+      compatibility: "compatible",
+      fileInventory: [{ path: "SKILL.md", kind: "skill" }],
+      metadata: { sourceKind: "local_path" },
+    });
+    await db.insert(agents).values({
+      id: agentId,
+      companyId,
+      name: "Planner",
+      role: "engineer",
+      status: "active",
+      adapterType: "codex_local",
+      adapterConfig: { paperclipSkillSync: { desiredSkills: [skillKey] } },
+    });
+
+    // Two runs in the last 30 days
+    const recent1 = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);   // 2 days ago
+    const recent2 = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);   // 5 days ago
+    // One run outside the 30-day window (should not count)
+    const old = new Date(Date.now() - 35 * 24 * 60 * 60 * 1000);      // 35 days ago
+
+    await db.insert(heartbeatRuns).values([
+      { id: randomUUID(), companyId, agentId, startedAt: recent1, status: "done" },
+      { id: randomUUID(), companyId, agentId, startedAt: recent2, status: "done" },
+      { id: randomUUID(), companyId, agentId, startedAt: old, status: "done" },
+    ]);
+
+    const listed = await svc.list(companyId);
+    const skill = listed.find((s) => s.key === skillKey);
+
+    expect(skill).toBeDefined();
+    expect(skill!.invocationCount30d).toBe(2);
+    // lastInvokedAt should be the most recent run's startedAt as ISO string
+    expect(skill!.lastInvokedAt).toBe(recent1.toISOString());
+  });
+
+  it("returns null lastInvokedAt and zero invocationCount30d for skills with no runs", async () => {
+    const companyId = randomUUID();
+    const skillDir = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-skill-no-runs-"));
+    cleanupDirs.add(skillDir);
+    await fs.writeFile(path.join(skillDir, "SKILL.md"), "---\nname: orphan\n---\n# Orphan\n", "utf8");
+
+    await db.insert(companies).values({
+      id: companyId,
+      name: "NoRunCo",
+      issuePrefix: `N${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`,
+      requireBoardApprovalForNewAgents: false,
+    });
+    await db.insert(companySkills).values({
+      id: randomUUID(),
+      companyId,
+      key: `company/${companyId}/orphan`,
+      slug: "orphan",
+      name: "Orphan",
+      description: null,
+      markdown: "---\nname: orphan\n---\n# Orphan\n",
+      sourceType: "local_path",
+      sourceLocator: skillDir,
+      trustLevel: "markdown_only",
+      compatibility: "compatible",
+      fileInventory: [{ path: "SKILL.md", kind: "skill" }],
+      metadata: { sourceKind: "local_path" },
+    });
+    // No agents, no runs
+
+    const listed = await svc.list(companyId);
+    const skill = listed.find((s) => s.slug === "orphan");
+
+    expect(skill).toBeDefined();
+    expect(skill!.lastInvokedAt).toBeNull();
+    expect(skill!.invocationCount30d).toBe(0);
   });
 });

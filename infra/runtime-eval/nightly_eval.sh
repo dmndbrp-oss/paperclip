@@ -47,8 +47,8 @@ trap 'flock -u 9; echo "$(ts) [nightly_eval] Lock released." >> "$LOG_FILE"' EXI
 # Run eval
 # ---------------------------------------------------------------------------
 echo "$(ts) [nightly_eval] Running run_eval.py ..." >> "$LOG_FILE"
-python3 "$SCRIPT_DIR/run_eval.py" >> "$LOG_FILE" 2>&1
-EVAL_EXIT=$?
+EVAL_EXIT=0
+python3 "$SCRIPT_DIR/run_eval.py" >> "$LOG_FILE" 2>&1 || EVAL_EXIT=$?
 
 if [ $EVAL_EXIT -ne 0 ]; then
   echo "$(ts) [nightly_eval] run_eval.py exited with code $EVAL_EXIT" >> "$LOG_FILE"
@@ -69,8 +69,8 @@ echo "$(ts) [nightly_eval] run_eval.py complete. Running digest_and_alert.py ...
 # ---------------------------------------------------------------------------
 # Digest + alert
 # ---------------------------------------------------------------------------
-python3 "$SCRIPT_DIR/digest_and_alert.py" >> "$LOG_FILE" 2>&1
-DIGEST_EXIT=$?
+DIGEST_EXIT=0
+python3 "$SCRIPT_DIR/digest_and_alert.py" >> "$LOG_FILE" 2>&1 || DIGEST_EXIT=$?
 
 echo "$(ts) [nightly_eval] digest_and_alert.py exited with code $DIGEST_EXIT" >> "$LOG_FILE"
 

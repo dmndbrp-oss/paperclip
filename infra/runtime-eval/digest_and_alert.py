@@ -256,15 +256,20 @@ def run(
 
     regressions = compute_regressions(current, prior) if prior else []
 
-    if demo_alert and not regressions:
-        log.info("--demo-alert: injecting synthetic regression for demonstration")
-        regressions = [{
-            "class": "doc_extraction",
-            "metric": "task_correct_rate",
-            "cur": 0.10,
-            "prev": 1.00,
-            "drop": 0.90,
-        }]
+    if demo_alert:
+        # --demo-alert forces no-post to prevent synthetic alerts from polluting live issues.
+        if not no_post:
+            log.info("--demo-alert: implying --no-post (demo must not write to live issues)")
+            no_post = True
+        if not regressions:
+            log.info("--demo-alert: injecting synthetic regression for demonstration")
+            regressions = [{
+                "class": "doc_extraction",
+                "metric": "task_correct_rate",
+                "cur": 0.10,
+                "prev": 1.00,
+                "drop": 0.90,
+            }]
 
     digest = format_digest(current, prior, regressions)
     print("\n" + "=" * 60)

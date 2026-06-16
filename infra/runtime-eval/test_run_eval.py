@@ -242,3 +242,53 @@ class TestLoadGoldSet:
 
     def test_gold_dir_constant_exists(self):
         assert pathlib.Path(GOLD_DIR).is_dir()
+
+
+# ---------------------------------------------------------------------------
+# TestIncrementalWrite — proves run_eval writes JSON after each class completes,
+# not only at the very end (SAG-4217 root-cause fix)
+# ---------------------------------------------------------------------------
+
+class TestIncrementalWrite:
+    """Incremental-persistence contract: file must contain class N's summary
+    even when class N+1 raises before completion."""
+
+    def _fake_summary(self, cls: str) -> dict:
+        return {
+            "class": cls,
+            "model": "test-model",
+            "n": 1,
+            "task_correct_rate": 0.75,
+            "task_correct_ci_95": [0.3, 0.95],
+            "tool_call_correct_rate": None,
+            "clean_rate": 1.0,
+            "clean_ci_95": [0.5, 1.0],
+            "errors": 0,
+            "per_row": [],
+        }
+
+    def test_first_class_persisted_before_second_completes(self, tmp_path, monkeypatch):
+        """If class 2 raises, the file must already contain class 1's summary."""
+        import run_eval as re_mod
+
+        call_count = {"n": 0}
+
+        def fake_eval_class(cls, model=None, dry_run=False):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return self._fake_summary(cls)
+            raise RuntimeError("second class explodes — simulating mid-sweep crash")
+
+        monkeypatch.setattr(re_mod, "RESULTS_DIR", tmp_path)
+        monkeypatch.setattr(re_mod, "eval_class", fake_eval_class)
+
+        with pytest.raises(RuntimeError, match="second class explodes"):
+            re_mod.run_eval(classes=["enrichment_sku", "doc_extraction"], dry_run=False)
+
+        result_files = list(tmp_path.glob("*.json"))
+        assert len(result_files) == 1, "Expected exactly one results file to have been created"
+
+        data = json.loads(result_files[0].read_text())
+        assert "enrichment_sku" in data["classes"], "First class must be persisted before crash"
+        assert data["classes"]["enrichment_sku"]["task_correct_rate"] == 0.75
+        assert "doc_extraction" not in data["classes"], "Crashed class must not appear"

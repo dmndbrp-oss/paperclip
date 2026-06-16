@@ -323,8 +323,10 @@ def run_eval(
     for cls in classes:
         summary = eval_class(cls, model=model, dry_run=dry_run)
         results["classes"][cls] = summary
+        # Incremental write: persists after each class so a mid-sweep crash loses no data
+        out_path.write_text(json.dumps(results, indent=2))
 
-    out_path.write_text(json.dumps(results, indent=2))
+    # Final write (idempotent — ensures file is up-to-date even if loop exits cleanly)
     log.info("Results written to %s", out_path)
     return results
 

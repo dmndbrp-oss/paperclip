@@ -3,7 +3,7 @@ run_eval.py — SAG-4191
 
 Nightly local-AI regression scoring runner.
 
-Drives each gold-set class through the on-box Ollama model (gemma4:26b-a4b)
+Drives each gold-set class through the on-box Ollama model (qwen3.6:latest)
 SERIALLY (one row at a time, one model, respects OLLAMA_MAX_LOADED_MODELS=1).
 Emits per-agent JSON results with three scores per class:
   (a) task_correct    — schema-valid / task-correct rate
@@ -18,8 +18,10 @@ Usage:
 
 Environment variables:
   OLLAMA_URL          default http://localhost:11434
-  EVAL_MODEL          override model (default gemma4:26b-a4b-it-q4_K_M)
+  EVAL_MODEL          override model (default qwen3.6:latest)
   EVAL_TIMEOUT_S      per-row timeout seconds (default 300)
+  NO_TEMP_OVERRIDE    if set, omit temperature from per-request options so the
+                      Modelfile's baked temperature is used (production path)
 """
 from __future__ import annotations
 
@@ -27,10 +29,12 @@ import json
 import logging
 import math
 import os
+import re
 import sys
 import time
 import urllib.request
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -44,8 +48,12 @@ RESULTS_DIR = HERE / "results"
 # Constants
 # ---------------------------------------------------------------------------
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
-DEFAULT_MODEL = os.environ.get("EVAL_MODEL", "gemma4:26b-a4b-it-q4_K_M")
+DEFAULT_MODEL = os.environ.get("EVAL_MODEL", "qwen3.6:latest")
 EVAL_TIMEOUT = float(os.environ.get("EVAL_TIMEOUT_S", "300"))
+
+INVALID_ERROR_THRESHOLD = 0.50   # classes with ≥ 50% errors are marked invalid/skipped
+RETRY_COUNT = 2                  # per-call retries on transient URLError
+RETRY_DELAY_S = 10               # seconds between retries
 
 ALL_CLASSES = [
     "enrichment_sku",
@@ -56,7 +64,26 @@ ALL_CLASSES = [
     "paralegal",
 ]
 
+# Gold classes whose scorer expects JSON output from the model.
+# tool_call and any future free-text check types are NOT in this set.
+JSON_CHECK_TYPES = {"json_values", "json_values_normalized", "json_list_min"}
+
 log = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Endpoint health check
+# ---------------------------------------------------------------------------
+
+def check_endpoint_health(url: str = OLLAMA_URL, timeout: float = 10.0) -> bool:
+    """Return True if the Ollama /api/tags endpoint responds with HTTP 200."""
+    try:
+        req = urllib.request.Request(f"{url}/api/tags", method="GET")
+        with urllib.request.urlopen(req, timeout=timeout):
+            return True
+    except Exception:
+        return False
+
 
 # ---------------------------------------------------------------------------
 # Import clean_parser (sibling module)
@@ -85,13 +112,19 @@ def load_gold_set(class_name: str) -> list[dict]:
 # Scoring functions (pure — no I/O, tested in test_run_eval.py)
 # ---------------------------------------------------------------------------
 
-def score_json_values(output_text: str, expected: dict) -> float:
-    """Parse output as JSON; return 1.0 if all expected key=value pairs match."""
+def _parse_json_dict(output_text: str) -> dict | None:
+    """Parse output_text as JSON and return it if it is a dict, else None."""
     try:
         parsed = json.loads(output_text.strip())
     except (json.JSONDecodeError, ValueError, AttributeError):
-        return 0.0
-    if not isinstance(parsed, dict):
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+def score_json_values(output_text: str, expected: dict) -> float:
+    """Parse output as JSON; return 1.0 if all expected key=value pairs match."""
+    parsed = _parse_json_dict(output_text)
+    if parsed is None:
         return 0.0
     for key, val in expected.items():
         if parsed.get(key) != val:
@@ -99,13 +132,60 @@ def score_json_values(output_text: str, expected: dict) -> float:
     return 1.0
 
 
+_DATE_FORMATS = ('%B %d, %Y', '%B %d %Y', '%Y-%m-%d', '%m/%d/%Y')
+_CURRENCY_STRIP = re.compile(r'[$€£¥,\s]')
+
+
+def _normalize_value(val):
+    """Canonical form for normalized comparison: bool→bool, None→None,
+    list→comma-joined string, numeric strings→Decimal (strips currency/commas),
+    date strings→date, all other strings→case-folded."""
+    if isinstance(val, bool):
+        return val
+    if val is None:
+        return val
+    # Lists: join to comma-separated string so model-as-list matches gold-as-string
+    if isinstance(val, list):
+        val = ', '.join(str(item) for item in val)
+    s = str(val).strip()
+    if not s:
+        return s
+    # Numeric: strip currency symbols and thousand-separators, compare as Decimal
+    num_str = _CURRENCY_STRIP.sub('', s)
+    if num_str:
+        try:
+            return Decimal(num_str)
+        except InvalidOperation:
+            pass
+    # Date: common textual and ISO formats
+    for fmt in _DATE_FORMATS:
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            pass
+    return s.casefold()
+
+
+def score_json_values_normalized(output_text: str, expected: dict) -> float:
+    """Like score_json_values but applies case/numeric/date normalization.
+
+    Accepts: case variants, int/float vs numeric-string, currency-prefixed
+    numbers, comma thousand-separators, and common date format differences.
+    The strict score_json_values variant remains for classes that need exact
+    matching."""
+    parsed = _parse_json_dict(output_text)
+    if parsed is None:
+        return 0.0
+    for key, val in expected.items():
+        if _normalize_value(parsed.get(key)) != _normalize_value(val):
+            return 0.0
+    return 1.0
+
+
 def score_json_list_min(output_text: str, expected: dict) -> float:
     """Parse output as JSON; return 1.0 if output[key] is a list with >= min items."""
-    try:
-        parsed = json.loads(output_text.strip())
-    except (json.JSONDecodeError, ValueError, AttributeError):
-        return 0.0
-    if not isinstance(parsed, dict):
+    parsed = _parse_json_dict(output_text)
+    if parsed is None:
         return 0.0
     key = expected.get("key", "")
     min_count = expected.get("min", 1)
@@ -138,6 +218,8 @@ def score_row(row: dict, output_text: str, tool_calls: list | None) -> dict:
     # (a) task_correct
     if check_type == "json_values":
         task_correct = score_json_values(output_text, expected)
+    elif check_type == "json_values_normalized":
+        task_correct = score_json_values_normalized(output_text, expected)
     elif check_type == "json_list_min":
         task_correct = score_json_list_min(output_text, expected)
     elif check_type == "tool_call":
@@ -145,10 +227,10 @@ def score_row(row: dict, output_text: str, tool_calls: list | None) -> dict:
     else:
         task_correct = 0.0
 
-    # (b) tool_call_correct — only for explicit tool_call tasks
+    # (b) tool_call_correct — only for explicit tool_call tasks or rows with a tool definition
     tool_call_correct: float | None = None
     if check_type == "tool_call":
-        tool_call_correct = score_tool_call(tool_calls, expected)
+        tool_call_correct = task_correct  # already computed above — no need to call again
     elif row.get("tool_def"):
         tool_call_correct = score_tool_call(tool_calls, expected)
 
@@ -173,6 +255,7 @@ def _ollama_call(
     user: str,
     tools: list | None = None,
     timeout: float = EVAL_TIMEOUT,
+    want_json: bool = False,
 ) -> dict:
     msgs = []
     if system:
@@ -185,9 +268,9 @@ def _ollama_call(
         "stream": False,
         "think": False,
         "keep_alive": "10m",
-        "options": {"temperature": 0, "num_predict": 2048},
+        "options": ({} if os.environ.get("NO_TEMP_OVERRIDE") else {"temperature": 0}) | {"num_predict": 2048},
     }
-    if model.startswith("gemma4") or "gemma" in model.lower():
+    if want_json:
         body["format"] = "json"
 
     if tools:
@@ -244,12 +327,30 @@ def eval_class(class_name: str, model: str = DEFAULT_MODEL, dry_run: bool = Fals
             continue
 
         try:
-            resp = _ollama_call(
-                model=model,
-                system=row.get("system", ""),
-                user=row.get("input", ""),
-                tools=row.get("tool_def"),
-            )
+            check_type = row.get("check_type", "json_values")
+            last_exc: Exception | None = None
+            resp = None
+            for attempt in range(RETRY_COUNT + 1):
+                try:
+                    resp = _ollama_call(
+                        model=model,
+                        system=row.get("system", ""),
+                        user=row.get("input", ""),
+                        tools=row.get("tool_def"),
+                        want_json=check_type in JSON_CHECK_TYPES,
+                    )
+                    break
+                except urllib.error.URLError as exc:
+                    last_exc = exc
+                    if attempt < RETRY_COUNT:
+                        log.warning(
+                            "[%s] row %s attempt %d/%d URLError (%s) — retrying in %ds",
+                            class_name, row["id"], attempt + 1, RETRY_COUNT, exc, RETRY_DELAY_S,
+                        )
+                        time.sleep(RETRY_DELAY_S)
+                    else:
+                        raise
+            assert resp is not None
             msg = resp.get("message", {})
             content = msg.get("content", "") or ""
             tool_calls = msg.get("tool_calls") or []
@@ -291,6 +392,13 @@ def eval_class(class_name: str, model: str = DEFAULT_MODEL, dry_run: bool = Fals
         "errors": sum(1 for r in per_row if r.get("error")),
         "per_row": per_row,
     }
+    n_errors = summary["errors"]
+    error_rate = n_errors / n if n else 1.0
+    summary["invalid"] = error_rate >= INVALID_ERROR_THRESHOLD
+    summary["invalid_reason"] = (
+        f"error rate {n_errors}/{n} ({error_rate:.0%}) ≥ threshold {INVALID_ERROR_THRESHOLD:.0%}"
+        if summary["invalid"] else None
+    )
     log.info(
         "[%s] done: task_correct=%.1f%% clean=%.1f%% errors=%d",
         class_name,
@@ -308,6 +416,14 @@ def run_eval(
 ) -> dict:
     if classes is None:
         classes = ALL_CLASSES
+
+    if not dry_run and not check_endpoint_health():
+        msg = (
+            f"Pre-flight health check failed: Ollama endpoint {OLLAMA_URL} is unreachable. "
+            "Aborting eval — no results written."
+        )
+        log.error(msg)
+        raise RuntimeError(msg)
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -361,7 +477,11 @@ def main() -> int:
         handlers=[logging.StreamHandler(sys.stdout)],
     )
     args = _parse_args(sys.argv[1:])
-    results = run_eval(**args)
+    try:
+        results = run_eval(**args)
+    except RuntimeError as exc:
+        log.error("%s", exc)
+        return 1
 
     print("\n=== EVAL SUMMARY ===")
     for cls, summary in results["classes"].items():
@@ -370,9 +490,10 @@ def main() -> int:
         ci = summary["task_correct_ci_95"]
         tool = summary.get("tool_call_correct_rate")
         tool_str = f"  tool_call={tool:.1%}" if tool is not None else ""
+        invalid_note = " [INVALID]" if summary.get("invalid") else ""
         print(
             f"  {cls}: task_correct={tc:.1%} CI95[{ci[0]:.2f},{ci[1]:.2f}]"
-            f"  clean={cl:.1%}{tool_str}  errors={summary['errors']}/{summary['n']}"
+            f"  clean={cl:.1%}{tool_str}  errors={summary['errors']}/{summary['n']}{invalid_note}"
         )
     return 0
 

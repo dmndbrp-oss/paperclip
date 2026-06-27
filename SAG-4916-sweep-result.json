@@ -1,0 +1,40 @@
+{
+  "mode": "live",
+  "at": "2026-06-24T12:53:33Z",
+  "errorAgentsCleared": [
+    "Researcher (Sonnet 4.6) [PATCH active -> 403] (#1)",
+    "QA Integration 1 (Sonnet 4.6) [PATCH active -> 403] (#1)",
+    "CTO (Opus 4.8) [PATCH active -> 403] (#1)",
+    "Director of Engineering (Sonnet 4.6) [PATCH active -> 403] (#1)",
+    "Director of Pricing (Opus 4.8) [PATCH active -> 403] (#1)",
+    "Director of SSI (Sonnet 4.6) [PATCH active -> 403] (#1)",
+    "QA Unit Tests (Sonnet 4.6) [PATCH active -> 403] (#1)",
+    "Code Engineer (Sonnet 4.6) [PATCH active -> 403] (#1)",
+    "CFO (Opus 4.8) [PATCH active -> 403] (#1)"
+  ],
+  "runsNudged": [
+    "SAG-4912->CTO (Opus 4.8) [mention-comment -> 403] (#1)",
+    "SAG-4911->CTO (Opus 4.8) [mention-comment -> 403] (#1)",
+    "SAG-4713->Director of Engineering (Sonnet 4.6) [mention-comment -> 403] (#1)",
+    "SAG-4893->CTO (Opus 4.8) [mention-comment -> 403] (#1)",
+    "SAG-4850->CTO (Opus 4.8) [mention-comment -> 403] (#1)",
+    "SAG-4890->Researcher (Sonnet 4.6) [mention-comment -> 403] (#1)",
+    "SAG-4906->Director of Engineering (Sonnet 4.6) [mention-comment -> 403] (#1)",
+    "SAG-4889->Director of Pricing (Opus 4.8) [mention-comment -> 403] (#1)"
+  ],
+  "handoffsRequested": [],
+  "recoveryActionNudged": [],
+  "escalated": [],
+  "surfacedOnly": [
+    "28 blocked tickets with NO first-class blocker (surface-only; no auto-resume per SAG-3082 sec 1)",
+    "SAG-4615 recovery_action nudge 403 -- surface to digest only",
+    "SAG-4864 recovery_action nudge 403 -- surface to digest only",
+    "SAG-4713 recovery_action nudge 403 -- surface to digest only",
+    "SAG-4825 recovery_action nudge 403 -- surface to digest only",
+    "SAG-4876 recovery_action nudge 403 -- surface to digest only"
+  ],
+  "skippedByCap": [],
+  "recovered": [],
+  "escalation": "doc-only(no-wake)",
+  "ledger": "saved(409)"
+}

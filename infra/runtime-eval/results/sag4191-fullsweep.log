@@ -1,0 +1,49 @@
+2026-06-16 00:48:50,910 INFO [enrichment_sku] 20 rows, model=gemma4:26b-a4b-it-q4_K_M
+2026-06-16 00:48:50,910 INFO [enrichment_sku] row 1/20 id=enr-001
+2026-06-16 00:48:53,011 INFO [enrichment_sku] row 2/20 id=enr-002
+2026-06-16 00:50:16,507 INFO [enrichment_sku] row 3/20 id=enr-003
+2026-06-16 00:51:39,601 INFO [enrichment_sku] row 4/20 id=enr-004
+2026-06-16 00:53:02,863 INFO [enrichment_sku] row 5/20 id=enr-005
+2026-06-16 00:54:27,185 INFO [enrichment_sku] row 6/20 id=enr-006
+2026-06-16 00:55:50,790 INFO [enrichment_sku] row 7/20 id=enr-007
+2026-06-16 00:57:17,134 INFO [enrichment_sku] row 8/20 id=enr-008
+2026-06-16 00:58:42,048 INFO [enrichment_sku] row 9/20 id=enr-009
+2026-06-16 01:00:13,671 INFO [enrichment_sku] row 10/20 id=enr-010
+2026-06-16 01:00:15,562 INFO [enrichment_sku] row 11/20 id=enr-011
+2026-06-16 01:00:17,448 INFO [enrichment_sku] row 12/20 id=enr-012
+2026-06-16 01:00:19,402 INFO [enrichment_sku] row 13/20 id=enr-013
+2026-06-16 01:00:21,366 INFO [enrichment_sku] row 14/20 id=enr-014
+2026-06-16 01:00:23,368 INFO [enrichment_sku] row 15/20 id=enr-015
+2026-06-16 01:00:48,821 INFO [enrichment_sku] row 16/20 id=enr-016
+2026-06-16 01:02:24,640 INFO [enrichment_sku] row 17/20 id=enr-017
+2026-06-16 01:04:14,437 INFO [enrichment_sku] row 18/20 id=enr-018
+2026-06-16 01:05:53,424 INFO [enrichment_sku] row 19/20 id=enr-019
+2026-06-16 01:07:34,533 INFO [enrichment_sku] row 20/20 id=enr-020
+2026-06-16 01:09:09,065 INFO [enrichment_sku] done: task_correct=85.0% clean=100.0% errors=0
+2026-06-16 01:09:09,066 INFO [doc_extraction] 20 rows, model=gemma4:26b-a4b-it-q4_K_M
+2026-06-16 01:09:09,066 INFO [doc_extraction] row 1/20 id=doc-001
+2026-06-16 01:12:20,124 INFO [doc_extraction] row 2/20 id=doc-002
+2026-06-16 01:16:23,110 INFO [doc_extraction] row 3/20 id=doc-003
+2026-06-16 01:19:23,538 INFO [doc_extraction] row 4/20 id=doc-004
+2026-06-16 01:21:49,149 INFO [doc_extraction] row 5/20 id=doc-005
+2026-06-16 01:24:33,358 INFO [doc_extraction] row 6/20 id=doc-006
+2026-06-16 01:27:06,934 INFO [doc_extraction] row 7/20 id=doc-007
+2026-06-16 01:29:46,790 INFO [doc_extraction] row 8/20 id=doc-008
+2026-06-16 01:34:46,890 WARNING [doc_extraction] row doc-008 error: timed out
+2026-06-16 01:34:46,890 INFO [doc_extraction] row 9/20 id=doc-009
+2026-06-16 01:39:46,991 WARNING [doc_extraction] row doc-009 error: timed out
+2026-06-16 01:39:46,991 INFO [doc_extraction] row 10/20 id=doc-010
+2026-06-16 01:42:10,163 INFO [doc_extraction] row 11/20 id=doc-011
+2026-06-16 01:44:30,867 INFO [doc_extraction] row 12/20 id=doc-012
+2026-06-16 01:46:34,784 INFO [doc_extraction] row 13/20 id=doc-013
+2026-06-16 01:48:45,873 INFO [doc_extraction] row 14/20 id=doc-014
+2026-06-16 01:51:10,367 INFO [doc_extraction] row 15/20 id=doc-015
+2026-06-16 01:53:02,298 INFO [doc_extraction] row 16/20 id=doc-016
+2026-06-16 01:56:35,135 INFO [doc_extraction] row 17/20 id=doc-017
+2026-06-16 01:59:21,797 INFO [doc_extraction] row 18/20 id=doc-018
+2026-06-16 02:00:19,727 INFO [doc_extraction] row 19/20 id=doc-019
+2026-06-16 02:02:49,962 INFO [doc_extraction] row 20/20 id=doc-020
+2026-06-16 02:03:44,362 WARNING [doc_extraction] row doc-020 error: HTTP Error 500: Internal Server Error
+2026-06-16 02:03:44,362 INFO [doc_extraction] done: task_correct=10.0% clean=85.0% errors=3
+2026-06-16 02:03:44,363 INFO [pricing] 20 rows, model=gemma4:26b-a4b-it-q4_K_M
+2026-06-16 02:03:44,363 INFO [pricing] row 1/20 id=price-001

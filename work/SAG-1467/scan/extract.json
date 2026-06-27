@@ -1,0 +1,2337 @@
+{
+  "skills": {
+    "0": {
+      "package": "0-lowesime-preflight_v1.3.0",
+      "skill_id": "0",
+      "files": [],
+      "workbooks": [],
+      "sheets": [],
+      "columns": []
+    },
+    "1-1": {
+      "package": "1-1-lowesime-workorders_v1.0.3",
+      "skill_id": "1-1",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/1-1-lowesime-workorders_v1.0.3/1-1-lowesime-workorders/scripts/workorder_pull.py",
+          "workbooks": [],
+          "sheets": [
+            "WorkOrder"
+          ],
+          "sheet_rw": {
+            "WorkOrder": {
+              "read": true,
+              "write": false
+            }
+          },
+          "columns": [],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 259
+        }
+      ],
+      "workbooks": [],
+      "sheets": [
+        "WorkOrder"
+      ],
+      "columns": []
+    },
+    "1": {
+      "package": "1-lowesime-appeasements_v1.4.3",
+      "skill_id": "1",
+      "files": [],
+      "workbooks": [],
+      "sheets": [],
+      "columns": []
+    },
+    "11": {
+      "package": "11-lowesime-creditmemo-docbld_v11.7.0",
+      "skill_id": "11",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/11-lowesime-creditmemo-docbld_v11.7.0/11-lowesime-creditmemo-docbld/scripts/credit_memo_builder.py",
+          "workbooks": [
+            "Lowes_IME_CheckRemits*.xlsx"
+          ],
+          "sheets": [
+            "CreditMemo",
+            "IME LOWESLINK",
+            "SP PAYMENT FREEZE",
+            "WARRANTY AUDIT",
+            "_STATUS_"
+          ],
+          "sheet_rw": {
+            "_STATUS_": {
+              "read": true,
+              "write": true
+            },
+            "WARRANTY AUDIT": {
+              "read": true,
+              "write": false
+            },
+            "IME LOWESLINK": {
+              "read": true,
+              "write": false
+            },
+            "SP PAYMENT FREEZE": {
+              "read": true,
+              "write": false
+            },
+            "CreditMemo": {
+              "read": true,
+              "write": false
+            }
+          },
+          "columns": [
+            "37115047 APP",
+            "Check #",
+            "Check Date",
+            "Class",
+            "Credit Memo",
+            "Customer",
+            "Hold Reason",
+            "Investigation Category",
+            "Invoice #",
+            "Item",
+            "Lowes IME",
+            "Memo",
+            "Net Amount",
+            "Other",
+            "Other1",
+            "Other2",
+            "PO Number",
+            "Price",
+            "Project #",
+            "RefNumber",
+            "Returns Dealer",
+            "Suggested Invoice",
+            "Transaction Date",
+            "Type"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 805
+        }
+      ],
+      "workbooks": [
+        "Lowes_IME_CheckRemits*.xlsx"
+      ],
+      "sheets": [
+        "CreditMemo",
+        "IME LOWESLINK",
+        "SP PAYMENT FREEZE",
+        "WARRANTY AUDIT",
+        "_STATUS_"
+      ],
+      "columns": [
+        "37115047 APP",
+        "Check #",
+        "Check Date",
+        "Class",
+        "Credit Memo",
+        "Customer",
+        "Hold Reason",
+        "Investigation Category",
+        "Invoice #",
+        "Item",
+        "Lowes IME",
+        "Memo",
+        "Net Amount",
+        "Other",
+        "Other1",
+        "Other2",
+        "PO Number",
+        "Price",
+        "Project #",
+        "RefNumber",
+        "Returns Dealer",
+        "Suggested Invoice",
+        "Transaction Date",
+        "Type"
+      ]
+    },
+    "12": {
+      "package": "12-lowesime-vendorcredit-docbld_v14.2.0",
+      "skill_id": "12",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/12-lowesime-vendorcredit-docbld_v14.2.0/12-lowesime-vendorcredit-docbld/scripts/vendor_credit_builder.py",
+          "workbooks": [
+            "/sessions/gracious-great-volta/mnt/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+            "Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+            "CFI_Vendor_Reference.xlsx",
+            "Lowes_IME_CheckRemits*.xlsx",
+            "Settlement_Customer.xlsx",
+            "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+            "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/Settlement_Customer.xlsx"
+          ],
+          "sheets": [
+            "SP PAYMENT FREEZE",
+            "Settlement",
+            "VendorCredit",
+            "WARRANTY AUDIT",
+            "_STATUS_"
+          ],
+          "sheet_rw": {
+            "_STATUS_": {
+              "read": true,
+              "write": true
+            },
+            "WARRANTY AUDIT": {
+              "read": true,
+              "write": false
+            },
+            "VendorCredit": {
+              "read": true,
+              "write": false
+            },
+            "Settlement": {
+              "read": true,
+              "write": false
+            },
+            "SP PAYMENT FREEZE": {
+              "read": true,
+              "write": false
+            }
+          },
+          "columns": [
+            "-DBT",
+            "Check #",
+            "Check Date",
+            "Investigation Category",
+            "Invoice #",
+            "Item Class",
+            "Items Cost",
+            "Items Item",
+            "Memo",
+            "Memo 2",
+            "Net Amount",
+            "Other",
+            "Pending Reason",
+            "Project #",
+            "Project Number",
+            "RefNumber",
+            "Return CFI Labor",
+            "Service Provider",
+            "Suggested Invoice",
+            "Transaction Date",
+            "Transaction Type",
+            "Vendor",
+            "Vendor Credit",
+            "Vendor Number"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append"
+          ],
+          "loc": 1183
+        }
+      ],
+      "workbooks": [
+        "/sessions/gracious-great-volta/mnt/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+        "Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+        "CFI_Vendor_Reference.xlsx",
+        "Lowes_IME_CheckRemits*.xlsx",
+        "Settlement_Customer.xlsx",
+        "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+        "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/Settlement_Customer.xlsx"
+      ],
+      "sheets": [
+        "SP PAYMENT FREEZE",
+        "Settlement",
+        "VendorCredit",
+        "WARRANTY AUDIT",
+        "_STATUS_"
+      ],
+      "columns": [
+        "-DBT",
+        "Check #",
+        "Check Date",
+        "Investigation Category",
+        "Invoice #",
+        "Item Class",
+        "Items Cost",
+        "Items Item",
+        "Memo",
+        "Memo 2",
+        "Net Amount",
+        "Other",
+        "Pending Reason",
+        "Project #",
+        "Project Number",
+        "RefNumber",
+        "Return CFI Labor",
+        "Service Provider",
+        "Suggested Invoice",
+        "Transaction Date",
+        "Transaction Type",
+        "Vendor",
+        "Vendor Credit",
+        "Vendor Number"
+      ]
+    },
+    "15": {
+      "package": "15-lowesime-tab3-enrichment_v1.7.0",
+      "skill_id": "15",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/15-lowesime-tab3-enrichment_v1.7.0/15-lowesime-tab3-enrichment/scripts/tab3_enrichment.py",
+          "workbooks": [
+            "Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+            "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx"
+          ],
+          "sheets": [
+            "2LowesIme SSIAuditRelease",
+            "IME LOWESLINK",
+            "RULE AUDIT",
+            "WARRANTY AUDIT",
+            "WorkOrder"
+          ],
+          "sheet_rw": {
+            "2LowesIme SSIAuditRelease": {
+              "read": true,
+              "write": false
+            },
+            "WARRANTY AUDIT": {
+              "read": true,
+              "write": false
+            },
+            "IME LOWESLINK": {
+              "read": true,
+              "write": false
+            },
+            "WorkOrder": {
+              "read": true,
+              "write": false
+            },
+            "RULE AUDIT": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style=",
+            ", color=",
+            "Dealer City",
+            "Dealer State",
+            "Product Line",
+            "Tie-Out Variance",
+            "currency"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 1391
+        }
+      ],
+      "workbooks": [
+        "Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+        "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx"
+      ],
+      "sheets": [
+        "2LowesIme SSIAuditRelease",
+        "IME LOWESLINK",
+        "RULE AUDIT",
+        "WARRANTY AUDIT",
+        "WorkOrder"
+      ],
+      "columns": [
+        "), bottom=Side(style=",
+        "), right=Side(style=",
+        ", color=",
+        "Dealer City",
+        "Dealer State",
+        "Product Line",
+        "Tie-Out Variance",
+        "currency"
+      ]
+    },
+    "16": {
+      "package": "16-ssi-audit-master_v16.3.0",
+      "skill_id": "16",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/16-ssi-audit-master_v16.3.0/16-ssi-audit-master/scripts/ssi_audit_master.py",
+          "workbooks": [
+            "/mnt/Check Remits/Lowes_IME_CheckRemits032326.xlsx",
+            "SSI_AUDIT_Master.xlsx"
+          ],
+          "sheets": [
+            "SSI AUDIT Master"
+          ],
+          "sheet_rw": {
+            "SSI AUDIT Master": {
+              "read": false,
+              "write": false
+            }
+          },
+          "columns": [
+            "),  bottom=Side(style=",
+            "), right=Side(style=",
+            "AR AP Code",
+            "Audit Flag",
+            "Investigation Category",
+            "Recon Status",
+            "Rule(s) Applied"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append"
+          ],
+          "loc": 431
+        }
+      ],
+      "workbooks": [
+        "/mnt/Check Remits/Lowes_IME_CheckRemits032326.xlsx",
+        "SSI_AUDIT_Master.xlsx"
+      ],
+      "sheets": [
+        "SSI AUDIT Master"
+      ],
+      "columns": [
+        "),  bottom=Side(style=",
+        "), right=Side(style=",
+        "AR AP Code",
+        "Audit Flag",
+        "Investigation Category",
+        "Recon Status",
+        "Rule(s) Applied"
+      ]
+    },
+    "17": {
+      "package": "17-lowesime-sp-freeze-tracker_v1.4.0",
+      "skill_id": "17",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/17-lowesime-sp-freeze-tracker_v1.4.0/17-lowesime-sp-freeze-tracker/scripts/sp_freeze_tracker.py",
+          "workbooks": [],
+          "sheets": [
+            "IME LOWESLINK",
+            "SP PAYMENT FREEZE",
+            "_STATUS_"
+          ],
+          "sheet_rw": {
+            "_STATUS_": {
+              "read": true,
+              "write": true
+            },
+            "SP PAYMENT FREEZE": {
+              "read": true,
+              "write": false
+            },
+            "IME LOWESLINK": {
+              "read": true,
+              "write": true
+            }
+          },
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 552
+        }
+      ],
+      "workbooks": [],
+      "sheets": [
+        "IME LOWESLINK",
+        "SP PAYMENT FREEZE",
+        "_STATUS_"
+      ],
+      "columns": [
+        "), bottom=Side(style=",
+        "), right=Side(style="
+      ]
+    },
+    "18": {
+      "package": "18-lowesime-cfi-bills_v1.2.3",
+      "skill_id": "18",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/18-lowesime-cfi-bills_v1.2.3/18-lowesime-cfi-bills/scripts/cfi_bills_builder.py",
+          "workbooks": [
+            ".staging.xlsx"
+          ],
+          "sheets": [
+            "CFIBills",
+            "IME LOWESLINK",
+            "ServiceProvider AP Hold",
+            "WARRANTY AUDIT",
+            "_STATUS_"
+          ],
+          "sheet_rw": {
+            "_STATUS_": {
+              "read": true,
+              "write": false
+            },
+            "WARRANTY AUDIT": {
+              "read": true,
+              "write": false
+            },
+            "IME LOWESLINK": {
+              "read": true,
+              "write": false
+            },
+            "ServiceProvider AP Hold": {
+              "read": true,
+              "write": false
+            },
+            "CFIBills": {
+              "read": true,
+              "write": true
+            }
+          },
+          "columns": [
+            "3Audit: Accounting",
+            "3Audit: Action Required",
+            "3Audit: Labor $",
+            "3Audit: Order Status",
+            "Accounting",
+            "Bill Due",
+            "Check Number",
+            "Invoice Number",
+            "Items Class",
+            "Items Cost",
+            "Items Item",
+            "Memo",
+            "Net_Amount_Paid",
+            "Project_Number",
+            "RefNumber",
+            "Rule Tags",
+            "Svc Provider Fee/Deduction",
+            "Transaction Date",
+            "Transaction Type",
+            "Vendor",
+            "_ad_adj",
+            "_cost",
+            "_flag",
+            "_status",
+            "validate",
+            "\u26a0  DO NOT UPLOAD \u2014 HOLD SECTION (audit-visible only) \u26a0"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 868
+        }
+      ],
+      "workbooks": [
+        ".staging.xlsx"
+      ],
+      "sheets": [
+        "CFIBills",
+        "IME LOWESLINK",
+        "ServiceProvider AP Hold",
+        "WARRANTY AUDIT",
+        "_STATUS_"
+      ],
+      "columns": [
+        "3Audit: Accounting",
+        "3Audit: Action Required",
+        "3Audit: Labor $",
+        "3Audit: Order Status",
+        "Accounting",
+        "Bill Due",
+        "Check Number",
+        "Invoice Number",
+        "Items Class",
+        "Items Cost",
+        "Items Item",
+        "Memo",
+        "Net_Amount_Paid",
+        "Project_Number",
+        "RefNumber",
+        "Rule Tags",
+        "Svc Provider Fee/Deduction",
+        "Transaction Date",
+        "Transaction Type",
+        "Vendor",
+        "_ad_adj",
+        "_cost",
+        "_flag",
+        "_status",
+        "validate",
+        "\u26a0  DO NOT UPLOAD \u2014 HOLD SECTION (audit-visible only) \u26a0"
+      ]
+    },
+    "19": {
+      "package": "19-lowesime-sales-receipts_v0.4.0",
+      "skill_id": "19",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/19-lowesime-sales-receipts_v0.4.0/19-lowesime-sales-receipts/scripts/sales_receipts_builder.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [
+            "Check Number",
+            "Customer",
+            "Item",
+            "Item Line Class",
+            "Memo",
+            "Other",
+            "Other1",
+            "Other2",
+            "Price",
+            "RefNumber",
+            "Rep",
+            "Template Name",
+            "Transaction Date",
+            "Transaction Type"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append"
+          ],
+          "loc": 438
+        }
+      ],
+      "workbooks": [],
+      "sheets": [],
+      "columns": [
+        "Check Number",
+        "Customer",
+        "Item",
+        "Item Line Class",
+        "Memo",
+        "Other",
+        "Other1",
+        "Other2",
+        "Price",
+        "RefNumber",
+        "Rep",
+        "Template Name",
+        "Transaction Date",
+        "Transaction Type"
+      ]
+    },
+    "2": {
+      "package": "2-lowesime-ssi-order-lookup_v1.6.4",
+      "skill_id": "2",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/2-lowesime-ssi-order-lookup_v1.6.4/2-lowesime-ssi-order-lookup/scripts/ssi_order_lookup.py",
+          "workbooks": [
+            "/Users/pinsono/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/SSI_ID_Mappings.xlsx",
+            "/mnt/Claude/Accounting/Warranty/SSI_ID_Mappings.xlsx",
+            "/sessions/upbeat-charming-maxwell/mnt/Claude/Accounting/Warranty/SSI_ID_Mappings.xlsx",
+            "Lowes_IME/SSI_Lowes_Order_Details.xlsx",
+            "Retail_Orders*.xlsx",
+            "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/SSI_ID_Mappings.xlsx"
+          ],
+          "sheets": [
+            "REVIEW",
+            "SSI RO DATA"
+          ],
+          "sheet_rw": {
+            "REVIEW": {
+              "read": true,
+              "write": false
+            },
+            "SSI RO DATA": {
+              "read": false,
+              "write": false
+            }
+          },
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style=",
+            "Action Required",
+            "Actual Delivery Date",
+            "Actual Install Date",
+            "Actual Measure Date",
+            "CFI Amount",
+            "CFI Date Paid",
+            "CFI Phone Number",
+            "Cabinets",
+            "Check Number",
+            "Customer Contact Date",
+            "Customer Name",
+            "Date Paid",
+            "Dealer City",
+            "Dealer Name",
+            "Dealer State",
+            "Estimate Number",
+            "IME Status",
+            "IMS Status",
+            "Invoice #",
+            "Measure Date",
+            "Order Date",
+            "Order Type",
+            "Product Line",
+            "Project #",
+            "Proxy Store #",
+            "RO Amount",
+            "RO Creation Date",
+            "RO Number",
+            "Ready to Measure/Template Date",
+            "Region",
+            "Release Invoice Date",
+            "Sage Sales Manager",
+            "Sage Territory Manager",
+            "Scheduled Delivery Date",
+            "Scheduled Install Date",
+            "Service Provider",
+            "Status",
+            "Sterling Store",
+            "Store #",
+            "Support Specialist",
+            "Template Date"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 1325
+        }
+      ],
+      "workbooks": [
+        "/Users/pinsono/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/SSI_ID_Mappings.xlsx",
+        "/mnt/Claude/Accounting/Warranty/SSI_ID_Mappings.xlsx",
+        "/sessions/upbeat-charming-maxwell/mnt/Claude/Accounting/Warranty/SSI_ID_Mappings.xlsx",
+        "Lowes_IME/SSI_Lowes_Order_Details.xlsx",
+        "Retail_Orders*.xlsx",
+        "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/SSI_ID_Mappings.xlsx"
+      ],
+      "sheets": [
+        "REVIEW",
+        "SSI RO DATA"
+      ],
+      "columns": [
+        "), bottom=Side(style=",
+        "), right=Side(style=",
+        "Action Required",
+        "Actual Delivery Date",
+        "Actual Install Date",
+        "Actual Measure Date",
+        "CFI Amount",
+        "CFI Date Paid",
+        "CFI Phone Number",
+        "Cabinets",
+        "Check Number",
+        "Customer Contact Date",
+        "Customer Name",
+        "Date Paid",
+        "Dealer City",
+        "Dealer Name",
+        "Dealer State",
+        "Estimate Number",
+        "IME Status",
+        "IMS Status",
+        "Invoice #",
+        "Measure Date",
+        "Order Date",
+        "Order Type",
+        "Product Line",
+        "Project #",
+        "Proxy Store #",
+        "RO Amount",
+        "RO Creation Date",
+        "RO Number",
+        "Ready to Measure/Template Date",
+        "Region",
+        "Release Invoice Date",
+        "Sage Sales Manager",
+        "Sage Territory Manager",
+        "Scheduled Delivery Date",
+        "Scheduled Install Date",
+        "Service Provider",
+        "Status",
+        "Sterling Store",
+        "Store #",
+        "Support Specialist",
+        "Template Date"
+      ]
+    },
+    "20": {
+      "package": "20-lowesime-audit-reconciliation_v1.3.0",
+      "skill_id": "20",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/20-lowesime-audit-reconciliation_v1.3.0/20-lowesime-audit-reconciliation/scripts/audit_reconciliation_builder.py",
+          "workbooks": [
+            "LowesIme_AR_AP_Active.xlsx"
+          ],
+          "sheets": [
+            "1. EXEC SUMMARY",
+            "2. MONEY FLOW",
+            "3. TAB-BY-TAB TIES",
+            "4. DEDUCT-APP TRACE",
+            "5. APPEASEMENT TRACE",
+            "6. EXCLUSIONS WALK",
+            "7. VARIANCE DRILL-DOWN",
+            "8. SOURCE TRACEABILITY",
+            "IME LOWESLINK"
+          ],
+          "sheet_rw": {
+            "2. MONEY FLOW": {
+              "read": false,
+              "write": true
+            },
+            "IME LOWESLINK": {
+              "read": true,
+              "write": true
+            },
+            "1. EXEC SUMMARY": {
+              "read": false,
+              "write": false
+            },
+            "8. SOURCE TRACEABILITY": {
+              "read": false,
+              "write": true
+            },
+            "4. DEDUCT-APP TRACE": {
+              "read": false,
+              "write": true
+            },
+            "7. VARIANCE DRILL-DOWN": {
+              "read": false,
+              "write": true
+            },
+            "5. APPEASEMENT TRACE": {
+              "read": false,
+              "write": true
+            },
+            "6. EXCLUSIONS WALK": {
+              "read": false,
+              "write": true
+            },
+            "3. TAB-BY-TAB TIES": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [
+            ", color=",
+            "_TOTAL"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws["
+          ],
+          "loc": 1070
+        }
+      ],
+      "workbooks": [
+        "LowesIme_AR_AP_Active.xlsx"
+      ],
+      "sheets": [
+        "1. EXEC SUMMARY",
+        "2. MONEY FLOW",
+        "3. TAB-BY-TAB TIES",
+        "4. DEDUCT-APP TRACE",
+        "5. APPEASEMENT TRACE",
+        "6. EXCLUSIONS WALK",
+        "7. VARIANCE DRILL-DOWN",
+        "8. SOURCE TRACEABILITY",
+        "IME LOWESLINK"
+      ],
+      "columns": [
+        ", color=",
+        "_TOTAL"
+      ]
+    },
+    "21": {
+      "package": "21-lowesime-weekly-output-map_v1.2.0",
+      "skill_id": "21",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/21-lowesime-weekly-output-map_v1.2.0/21-lowesime-weekly-output-map/scripts/weekly_output_map_builder.py",
+          "workbooks": [
+            "CFI_Vendor_Reference.xlsx",
+            "LowesIme_AR_AP_Active.xlsx",
+            "LowesIme_Audit_Reconciliation_MMDDYYYY.xlsx",
+            "Lowes_IME_CheckRemitsMMDDYY.xlsx",
+            "SSI_AUDIT_Master.xlsx",
+            "Settlement_Customer.xlsx"
+          ],
+          "sheets": [
+            "FILE ROADMAP",
+            "README",
+            "Weekly Review Checklist"
+          ],
+          "sheet_rw": {
+            "README": {
+              "read": false,
+              "write": false
+            },
+            "FILE ROADMAP": {
+              "read": false,
+              "write": true
+            },
+            "Weekly Review Checklist": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [
+            ", color="
+          ],
+          "read_hints": [],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws["
+          ],
+          "loc": 314
+        }
+      ],
+      "workbooks": [
+        "CFI_Vendor_Reference.xlsx",
+        "LowesIme_AR_AP_Active.xlsx",
+        "LowesIme_Audit_Reconciliation_MMDDYYYY.xlsx",
+        "Lowes_IME_CheckRemitsMMDDYY.xlsx",
+        "SSI_AUDIT_Master.xlsx",
+        "Settlement_Customer.xlsx"
+      ],
+      "sheets": [
+        "FILE ROADMAP",
+        "README",
+        "Weekly Review Checklist"
+      ],
+      "columns": [
+        ", color="
+      ]
+    },
+    "22": {
+      "package": "22-lowesime-dbase-append_v1.0.3",
+      "skill_id": "22",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/22-lowesime-dbase-append_v1.0.3/22-lowesime-dbase-append/scripts/dbase_append.py",
+          "workbooks": [
+            "Lowes_IME_CheckRemits*.xlsx",
+            "Lowes_IME_CheckRemits05042026.xlsx",
+            "Lowes_IME_CheckRemits050426.xlsx"
+          ],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [
+            ".parse(",
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 1192
+        }
+      ],
+      "workbooks": [
+        "Lowes_IME_CheckRemits*.xlsx",
+        "Lowes_IME_CheckRemits05042026.xlsx",
+        "Lowes_IME_CheckRemits050426.xlsx"
+      ],
+      "sheets": [],
+      "columns": []
+    },
+    "23": {
+      "package": "23-operational-view-v113-install",
+      "skill_id": "23",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/23-operational-view-v113-install/23-lowesime-active-operational-view/scripts/operational_view.py",
+          "workbooks": [],
+          "sheets": [
+            "_INFO"
+          ],
+          "sheet_rw": {
+            "_INFO": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [
+            "# Proj Pmts",
+            "Alpha Suffix",
+            "Appease: Lowes Retail",
+            "Appease: SP Fee",
+            "Appease: Sage Cost",
+            "Bill Due",
+            "CM Status",
+            "Chain Run Date",
+            "Check #",
+            "Check Date",
+            "Customer",
+            "Dealer City",
+            "Dealer State",
+            "Escalation Owner",
+            "Follow-Up Date",
+            "Frankie Notes",
+            "Investigation Category",
+            "Invoice #",
+            "Items Cost (Labor)",
+            "Items Item",
+            "Last Refreshed",
+            "Net Amount Paid",
+            "Notes (source)",
+            "Prior Entries",
+            "Product Line",
+            "Proj Net Total",
+            "Proj Variance",
+            "Project #",
+            "RO Status",
+            "Recon Status",
+            "Reference",
+            "Resolution Status",
+            "Rule Tags / _Surfaced Reason",
+            "SP Vendor Number",
+            "SSI Invoiced",
+            "Service Provider",
+            "Settlement: Customer Payout",
+            "Settlement: SP Deduction",
+            "Settlement: Sage Deduction",
+            "Source Tab",
+            "Store Number",
+            "Suggested Acctg Invoice",
+            "Type",
+            "VC Status",
+            "Variance"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 1015
+        }
+      ],
+      "workbooks": [],
+      "sheets": [
+        "_INFO"
+      ],
+      "columns": [
+        "# Proj Pmts",
+        "Alpha Suffix",
+        "Appease: Lowes Retail",
+        "Appease: SP Fee",
+        "Appease: Sage Cost",
+        "Bill Due",
+        "CM Status",
+        "Chain Run Date",
+        "Check #",
+        "Check Date",
+        "Customer",
+        "Dealer City",
+        "Dealer State",
+        "Escalation Owner",
+        "Follow-Up Date",
+        "Frankie Notes",
+        "Investigation Category",
+        "Invoice #",
+        "Items Cost (Labor)",
+        "Items Item",
+        "Last Refreshed",
+        "Net Amount Paid",
+        "Notes (source)",
+        "Prior Entries",
+        "Product Line",
+        "Proj Net Total",
+        "Proj Variance",
+        "Project #",
+        "RO Status",
+        "Recon Status",
+        "Reference",
+        "Resolution Status",
+        "Rule Tags / _Surfaced Reason",
+        "SP Vendor Number",
+        "SSI Invoiced",
+        "Service Provider",
+        "Settlement: Customer Payout",
+        "Settlement: SP Deduction",
+        "Settlement: Sage Deduction",
+        "Source Tab",
+        "Store Number",
+        "Suggested Acctg Invoice",
+        "Type",
+        "VC Status",
+        "Variance"
+      ]
+    },
+    "26": {
+      "package": "26-cfi-vendor-mining_v1.1.0",
+      "skill_id": "26",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/26-cfi-vendor-mining_v1.1.0/26-cfi-vendor-mining/scripts/cfi_vendor_mining.py",
+          "workbooks": [],
+          "sheets": [
+            "Appeasements",
+            "IME LOWESLINK",
+            "Vendor Reference"
+          ],
+          "sheet_rw": {
+            "IME LOWESLINK": {
+              "read": true,
+              "write": false
+            },
+            "Appeasements": {
+              "read": true,
+              "write": false
+            },
+            "Vendor Reference": {
+              "read": false,
+              "write": false
+            }
+          },
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 401
+        }
+      ],
+      "workbooks": [],
+      "sheets": [
+        "Appeasements",
+        "IME LOWESLINK",
+        "Vendor Reference"
+      ],
+      "columns": [
+        "), bottom=Side(style=",
+        "), right=Side(style="
+      ]
+    },
+    "27": {
+      "package": "27-productvalidation-mo-po_v2.3.2",
+      "skill_id": "27",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/27-productvalidation-mo-po_v2.3.2/27-productvalidation-mo-po/scripts/msi_invoice_master.py",
+          "workbooks": [
+            "MSI_Invoice_Master.xlsx"
+          ],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [
+            "Description",
+            "Freight",
+            "Line #",
+            "Line Count",
+            "SQFT",
+            "Source PDF",
+            "Total Weight Lbs",
+            "U/M"
+          ],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 662
+        }
+      ],
+      "workbooks": [
+        "MSI_Invoice_Master.xlsx"
+      ],
+      "sheets": [],
+      "columns": [
+        "Description",
+        "Freight",
+        "Line #",
+        "Line Count",
+        "SQFT",
+        "Source PDF",
+        "Total Weight Lbs",
+        "U/M"
+      ]
+    },
+    "28": {
+      "package": "28-msi-freight-validation_v1.2.0",
+      "skill_id": "28",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/28-msi-freight-validation_v1.2.0/28-msi-freight-validation/scripts/freight_inplace.py",
+          "workbooks": [
+            "/Vendor Profile/Freight_Type_Assignments.xlsx"
+          ],
+          "sheets": [
+            "Freight Groups",
+            "Freight Rate Gaps",
+            "PO Audit Master"
+          ],
+          "sheet_rw": {
+            "PO Audit Master": {
+              "read": true,
+              "write": false
+            },
+            "Freight Groups": {
+              "read": false,
+              "write": true
+            },
+            "Freight Rate Gaps": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 415
+        }
+      ],
+      "workbooks": [
+        "/Vendor Profile/Freight_Type_Assignments.xlsx"
+      ],
+      "sheets": [
+        "Freight Groups",
+        "Freight Rate Gaps",
+        "PO Audit Master"
+      ],
+      "columns": []
+    },
+    "29": {
+      "package": "29-mfg-data-refresh_v1.1.6",
+      "skill_id": "29",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/29-mfg-data-refresh_v1.1.6/29-mfg-data-refresh/scripts/check_cache.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 123
+        },
+        {
+          "path": "SAG-1459/unpacked/29-mfg-data-refresh_v1.1.6/29-mfg-data-refresh/scripts/inspect_distributors.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 109
+        },
+        {
+          "path": "SAG-1459/unpacked/29-mfg-data-refresh_v1.1.6/29-mfg-data-refresh/scripts/mfg_data_refresh.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 1099
+        },
+        {
+          "path": "SAG-1459/unpacked/29-mfg-data-refresh_v1.1.6/29-mfg-data-refresh/scripts/probe_api.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 149
+        },
+        {
+          "path": "SAG-1459/unpacked/29-mfg-data-refresh_v1.1.6/29-mfg-data-refresh/tests/adversarial.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 350
+        }
+      ],
+      "workbooks": [],
+      "sheets": [],
+      "columns": []
+    },
+    "3": {
+      "package": "3-lowesime-check-remits_v2.8.1",
+      "skill_id": "3",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/3-lowesime-check-remits_v2.8.1/3-lowesime-check-remits/scripts/build_workbook.py",
+          "workbooks": [
+            "*remittances*.csv"
+          ],
+          "sheets": [
+            "CLAUDE AUDIT",
+            "Claude Improve",
+            "IME LOWESLINK",
+            "SSI AUDIT"
+          ],
+          "sheet_rw": {
+            "IME LOWESLINK": {
+              "read": false,
+              "write": false
+            },
+            "SSI AUDIT": {
+              "read": false,
+              "write": true
+            },
+            "CLAUDE AUDIT": {
+              "read": false,
+              "write": true
+            },
+            "Claude Improve": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [
+            "Accounting",
+            "Check #",
+            "Check Number",
+            "Check_Date",
+            "Customer",
+            "Inv_Date",
+            "Inv_Description",
+            "Invoice Number",
+            "Name",
+            "Net_Amount_Paid",
+            "Order_Number",
+            "Project_Number",
+            "Reference",
+            "Source_Tab",
+            "Store Number",
+            "Vendor_No"
+          ],
+          "read_hints": [
+            "read_csv"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 1520
+        }
+      ],
+      "workbooks": [
+        "*remittances*.csv"
+      ],
+      "sheets": [
+        "CLAUDE AUDIT",
+        "Claude Improve",
+        "IME LOWESLINK",
+        "SSI AUDIT"
+      ],
+      "columns": [
+        "Accounting",
+        "Check #",
+        "Check Number",
+        "Check_Date",
+        "Customer",
+        "Inv_Date",
+        "Inv_Description",
+        "Invoice Number",
+        "Name",
+        "Net_Amount_Paid",
+        "Order_Number",
+        "Project_Number",
+        "Reference",
+        "Source_Tab",
+        "Store Number",
+        "Vendor_No"
+      ]
+    },
+    "30": {
+      "package": "30-msi-po-audit-chain_v2.3.1",
+      "skill_id": "30",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/canonical_schema.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 125
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/filter_msi_from_cache.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 108
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/freight_inplace.py",
+          "workbooks": [
+            "/Vendor Profile/Freight_Type_Assignments.xlsx"
+          ],
+          "sheets": [
+            "Freight Groups",
+            "Freight Rate Gaps",
+            "PO Audit Master"
+          ],
+          "sheet_rw": {
+            "PO Audit Master": {
+              "read": true,
+              "write": false
+            },
+            "Freight Groups": {
+              "read": false,
+              "write": true
+            },
+            "Freight Rate Gaps": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 428
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase1_v2_dataprep.py",
+          "workbooks": [
+            "/Vendor Profile/Sales_Tax_Reference.xlsx"
+          ],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [],
+          "loc": 422
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase2_10_repair_master.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 120
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase2_11_table_for_filters.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 161
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase2_4_dq_cleanup.py",
+          "workbooks": [],
+          "sheets": [
+            "DQ - SKU Cleanup"
+          ],
+          "sheet_rw": {
+            "DQ - SKU Cleanup": {
+              "read": true,
+              "write": true
+            }
+          },
+          "columns": [
+            ", color="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 287
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase2_5_decision_view.py",
+          "workbooks": [],
+          "sheets": [
+            "MSI-Data"
+          ],
+          "sheet_rw": {
+            "MSI-Data": {
+              "read": true,
+              "write": true
+            }
+          },
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style=",
+            "\ud83c\udfaf DECISION VIEW \u2014 Sr Controller"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append"
+          ],
+          "loc": 334
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase2_8_tab_reorg.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 145
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase2_v4_po_master.py",
+          "workbooks": [
+            "/Vendor Profile/Freight_Type_Assignments.xlsx"
+          ],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [
+            "pricingType"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [],
+          "loc": 762
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase3_msi_audit_vs_sage.py",
+          "workbooks": [],
+          "sheets": [
+            "MSI Audit vs Sage Reality"
+          ],
+          "sheet_rw": {
+            "MSI Audit vs Sage Reality": {
+              "read": true,
+              "write": true
+            }
+          },
+          "columns": [
+            ", color="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 506
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase4_tax_branch_unmatched_check.py",
+          "workbooks": [
+            "/Vendor Profile/Sales_Tax_Reference.xlsx"
+          ],
+          "sheets": [
+            "Branch Audit Report",
+            "CheckNumAmt",
+            "Tax by State",
+            "Unmatched POs"
+          ],
+          "sheet_rw": {
+            "CheckNumAmt": {
+              "read": false,
+              "write": true
+            },
+            "Branch Audit Report": {
+              "read": false,
+              "write": true
+            },
+            "Tax by State": {
+              "read": false,
+              "write": true
+            },
+            "Unmatched POs": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [
+            ", color=",
+            "pricingType"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws["
+          ],
+          "loc": 440
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase5_peer_cohort.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 424
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase6_decision_engine.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 465
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase6_executive_summary.py",
+          "workbooks": [
+            "MSI Submitted/MSI_Audit_HAUSPRO_04062026.xlsx",
+            "OneDrive/Claude/Accounting/Financial/Sales_Tax_Reference.xlsx"
+          ],
+          "sheets": [
+            "Executive Summary",
+            "MSI Audit vs Sage Reality"
+          ],
+          "sheet_rw": {
+            "Executive Summary": {
+              "read": true,
+              "write": true
+            },
+            "MSI Audit vs Sage Reality": {
+              "read": true,
+              "write": true
+            }
+          },
+          "columns": [
+            ", color="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws["
+          ],
+          "loc": 389
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase6_sanity_report.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 146
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase7_audit_health.py",
+          "workbooks": [
+            "/Vendor Profile/Freight_Type_Assignments.xlsx",
+            "/Vendor Profile/Sales_Tax_Reference.xlsx",
+            "Add to Vendor Profile/Freight_Type_Assignments.xlsx",
+            "Freight_Type_Assignments.xlsx",
+            "Sales_Tax_Reference.xlsx"
+          ],
+          "sheets": [
+            "PO Audit Master"
+          ],
+          "sheet_rw": {
+            "PO Audit Master": {
+              "read": true,
+              "write": false
+            }
+          },
+          "columns": [
+            ", color="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 404
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase7_branch_patterns_ops_qty.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append"
+          ],
+          "loc": 397
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase8_controller_one_pager.py",
+          "workbooks": [
+            "/Vendor Profile/Freight_Type_Assignments.xlsx",
+            "/Vendor Profile/Sales_Tax_Reference.xlsx",
+            "Vendor Profile/Freight_Type_Assignments.xlsx"
+          ],
+          "sheets": [
+            "Audit Health & Data Gaps",
+            "DQ - SKU Cleanup",
+            "Executive Summary",
+            "Freight Groups",
+            "Freight Rate Gaps",
+            "PO Audit Master",
+            "Tax by State"
+          ],
+          "sheet_rw": {
+            "Executive Summary": {
+              "read": false,
+              "write": true
+            },
+            "DQ - SKU Cleanup": {
+              "read": true,
+              "write": true
+            },
+            "Freight Groups": {
+              "read": true,
+              "write": false
+            },
+            "Tax by State": {
+              "read": true,
+              "write": true
+            },
+            "Freight Rate Gaps": {
+              "read": true,
+              "write": false
+            },
+            "PO Audit Master": {
+              "read": true,
+              "write": false
+            },
+            "Audit Health & Data Gaps": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [
+            ", color=",
+            "Tax $"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 554
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase8_controller_one_pager_v2.py",
+          "workbooks": [],
+          "sheets": [
+            "MSI-Data"
+          ],
+          "sheet_rw": {
+            "MSI-Data": {
+              "read": true,
+              "write": true
+            }
+          },
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style=",
+            "total_$",
+            "\ud83c\udfaf MSI Audit v2.0 \u2014 Controller One-Pager"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 546
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/msi_audit_phase9_msi_response.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append"
+          ],
+          "loc": 390
+        },
+        {
+          "path": "SAG-1459/unpacked/30-msi-po-audit-chain_v2.3.1/30-msi-po-audit-chain/scripts/run_v2_audit_chain.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [],
+          "write_hints": [],
+          "loc": 109
+        }
+      ],
+      "workbooks": [
+        "/Vendor Profile/Freight_Type_Assignments.xlsx",
+        "/Vendor Profile/Sales_Tax_Reference.xlsx",
+        "Add to Vendor Profile/Freight_Type_Assignments.xlsx",
+        "Freight_Type_Assignments.xlsx",
+        "MSI Submitted/MSI_Audit_HAUSPRO_04062026.xlsx",
+        "OneDrive/Claude/Accounting/Financial/Sales_Tax_Reference.xlsx",
+        "Sales_Tax_Reference.xlsx",
+        "Vendor Profile/Freight_Type_Assignments.xlsx"
+      ],
+      "sheets": [
+        "Audit Health & Data Gaps",
+        "Branch Audit Report",
+        "CheckNumAmt",
+        "DQ - SKU Cleanup",
+        "Executive Summary",
+        "Freight Groups",
+        "Freight Rate Gaps",
+        "MSI Audit vs Sage Reality",
+        "MSI-Data",
+        "PO Audit Master",
+        "Tax by State",
+        "Unmatched POs"
+      ],
+      "columns": [
+        "), bottom=Side(style=",
+        "), right=Side(style=",
+        ", color=",
+        "Tax $",
+        "pricingType",
+        "total_$",
+        "\ud83c\udfaf DECISION VIEW \u2014 Sr Controller",
+        "\ud83c\udfaf MSI Audit v2.0 \u2014 Controller One-Pager"
+      ]
+    },
+    "4": {
+      "package": "4-lowesime-ssi-ro-detail_v3.34.0",
+      "skill_id": "4",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/4-lowesime-ssi-ro-detail_v3.34.0/4-lowesime-ssi-ro-detail/scripts/ssi_audit.py",
+          "workbooks": [
+            "*.xlsx",
+            "Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+            "Lowes_IME_CheckRemits*.xlsx",
+            "SSI_Lowes_Order_Details.xlsx",
+            "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx"
+          ],
+          "sheets": [
+            "IME LOWESLINK",
+            "SSI ANALYSIS",
+            "SSI AUDIT",
+            "SSI RO DATA"
+          ],
+          "sheet_rw": {
+            "SSI AUDIT": {
+              "read": true,
+              "write": true
+            },
+            "SSI ANALYSIS": {
+              "read": false,
+              "write": true
+            },
+            "SSI RO DATA": {
+              "read": true,
+              "write": false
+            },
+            "IME LOWESLINK": {
+              "read": true,
+              "write": false
+            }
+          },
+          "columns": [
+            "Action Required",
+            "Dealer City",
+            "Dealer State",
+            "IME Status",
+            "Net_Amount_Paid",
+            "Product Line",
+            "Project #",
+            "Project_Number",
+            "Region",
+            "Rule(s) Applied",
+            "SP Vendor Number",
+            "Status"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 3076
+        }
+      ],
+      "workbooks": [
+        "*.xlsx",
+        "Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+        "Lowes_IME_CheckRemits*.xlsx",
+        "SSI_Lowes_Order_Details.xlsx",
+        "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx"
+      ],
+      "sheets": [
+        "IME LOWESLINK",
+        "SSI ANALYSIS",
+        "SSI AUDIT",
+        "SSI RO DATA"
+      ],
+      "columns": [
+        "Action Required",
+        "Dealer City",
+        "Dealer State",
+        "IME Status",
+        "Net_Amount_Paid",
+        "Product Line",
+        "Project #",
+        "Project_Number",
+        "Region",
+        "Rule(s) Applied",
+        "SP Vendor Number",
+        "Status"
+      ]
+    },
+    "5": {
+      "package": "5-LowesIme-SSI-ClosedOrder-Lookup",
+      "skill_id": "5",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/5-LowesIme-SSI-ClosedOrder-Lookup/5-lowesime-ssi-closedorder-lookup/scripts/ssi_closed_lookup.py",
+          "workbooks": [
+            "*.xlsx"
+          ],
+          "sheets": [
+            "IME LOWESLINK"
+          ],
+          "sheet_rw": {
+            "IME LOWESLINK": {
+              "read": true,
+              "write": true
+            }
+          },
+          "columns": [],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [],
+          "loc": 219
+        }
+      ],
+      "workbooks": [
+        "*.xlsx"
+      ],
+      "sheets": [
+        "IME LOWESLINK"
+      ],
+      "columns": []
+    },
+    "6-5": {
+      "package": "6-5-lowesime-suffix-manager_v1.2.0",
+      "skill_id": "6-5",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/6-5-lowesime-suffix-manager_v1.2.0/6-5-lowesime-suffix-manager/scripts/suffix_manager.py",
+          "workbooks": [],
+          "sheets": [
+            "Suffix Ledger"
+          ],
+          "sheet_rw": {
+            "Suffix Ledger": {
+              "read": false,
+              "write": true
+            }
+          },
+          "columns": [
+            "Rule(s) Applied"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws["
+          ],
+          "loc": 1197
+        }
+      ],
+      "workbooks": [],
+      "sheets": [
+        "Suffix Ledger"
+      ],
+      "columns": [
+        "Rule(s) Applied"
+      ]
+    },
+    "6": {
+      "package": "6-lowesime-warranty-audit_v4.50.0",
+      "skill_id": "6",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/6-lowesime-warranty-audit_v4.50.0/6-lowesime-warranty-audit/scripts/warranty_audit.py",
+          "workbooks": [
+            "Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+            "Lowes_IME_CheckRemits*.xlsx",
+            "Settlement_Customer.xlsx",
+            "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx"
+          ],
+          "sheets": [
+            "IME LOWESLINK",
+            "SSI ANALYSIS",
+            "SSI AUDIT",
+            "WARRANTY AUDIT"
+          ],
+          "sheet_rw": {
+            "SSI ANALYSIS": {
+              "read": true,
+              "write": false
+            },
+            "SSI AUDIT": {
+              "read": true,
+              "write": false
+            },
+            "WARRANTY AUDIT": {
+              "read": false,
+              "write": true
+            },
+            "IME LOWESLINK": {
+              "read": true,
+              "write": false
+            }
+          },
+          "columns": [
+            "Accounting",
+            "Invoice Number",
+            "POSSIBLE APPEASEMENT MATCH \u2014 Overpaid rows w/ APPEASE record (Jen R29 \u2014 match only, decide handling later)",
+            "Project #",
+            "Recon Status",
+            "Rule(s) Applied",
+            "SSI Match Count",
+            "Service Provider"
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 4683
+        }
+      ],
+      "workbooks": [
+        "Accounting/Warranty/CFI_Vendor_Reference.xlsx",
+        "Lowes_IME_CheckRemits*.xlsx",
+        "Settlement_Customer.xlsx",
+        "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/CFI_Vendor_Reference.xlsx"
+      ],
+      "sheets": [
+        "IME LOWESLINK",
+        "SSI ANALYSIS",
+        "SSI AUDIT",
+        "WARRANTY AUDIT"
+      ],
+      "columns": [
+        "Accounting",
+        "Invoice Number",
+        "POSSIBLE APPEASEMENT MATCH \u2014 Overpaid rows w/ APPEASE record (Jen R29 \u2014 match only, decide handling later)",
+        "Project #",
+        "Recon Status",
+        "Rule(s) Applied",
+        "SSI Match Count",
+        "Service Provider"
+      ]
+    },
+    "7": {
+      "package": "7-lowesime-ssi-ar-chkremit-file_v8.3.0",
+      "skill_id": "7",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/7-lowesime-ssi-ar-chkremit-file_v8.3.0/7-lowesime-ssi-ar-chkremit-file/scripts/ar_ssi_chkremit.py",
+          "workbooks": [
+            "/mnt/Lowes_IME/Check Remits/Lowes_IME_CheckRemits032326.xlsx",
+            "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/Settlement_Customer.xlsx"
+          ],
+          "sheets": [
+            "IME LOWESLINK",
+            "SSI AUDIT",
+            "WorkOrder"
+          ],
+          "sheet_rw": {
+            "WorkOrder": {
+              "read": true,
+              "write": false
+            },
+            "SSI AUDIT": {
+              "read": true,
+              "write": false
+            },
+            "IME LOWESLINK": {
+              "read": true,
+              "write": false
+            }
+          },
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append"
+          ],
+          "loc": 1079
+        }
+      ],
+      "workbooks": [
+        "/mnt/Lowes_IME/Check Remits/Lowes_IME_CheckRemits032326.xlsx",
+        "~/Library/CloudStorage/OneDrive-SageSurfaces/Claude/Accounting/Warranty/Settlement_Customer.xlsx"
+      ],
+      "sheets": [
+        "IME LOWESLINK",
+        "SSI AUDIT",
+        "WorkOrder"
+      ],
+      "columns": [
+        "), bottom=Side(style=",
+        "), right=Side(style="
+      ]
+    },
+    "8": {
+      "package": "8-lowesime-ssi-audit-release-file_v9.3.0",
+      "skill_id": "8",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/8-lowesime-ssi-audit-release-file_v9.3.0/8-lowesime-ssi-audit-release-file/scripts/ssi_audit_release.py",
+          "workbooks": [
+            "/mnt/Check Remits/Lowes_IME_CheckRemits032326.xlsx"
+          ],
+          "sheets": [
+            "2LowesIme SSIAuditRelease",
+            "CLAUDE AUDIT",
+            "IME LOWESLINK",
+            "SSI ANALYSIS"
+          ],
+          "sheet_rw": {
+            "2LowesIme SSIAuditRelease": {
+              "read": true,
+              "write": true
+            },
+            "SSI ANALYSIS": {
+              "read": true,
+              "write": false
+            },
+            "CLAUDE AUDIT": {
+              "read": true,
+              "write": false
+            },
+            "IME LOWESLINK": {
+              "read": true,
+              "write": false
+            }
+          },
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "ws.append",
+            "ws["
+          ],
+          "loc": 1185
+        }
+      ],
+      "workbooks": [
+        "/mnt/Check Remits/Lowes_IME_CheckRemits032326.xlsx"
+      ],
+      "sheets": [
+        "2LowesIme SSIAuditRelease",
+        "CLAUDE AUDIT",
+        "IME LOWESLINK",
+        "SSI ANALYSIS"
+      ],
+      "columns": [
+        "), bottom=Side(style=",
+        "), right=Side(style="
+      ]
+    },
+    "9": {
+      "package": "9-lowesime-ssi-chk-audit-uplds_v1.8.1",
+      "skill_id": "9",
+      "files": [
+        {
+          "path": "SAG-1459/unpacked/9-lowesime-ssi-chk-audit-uplds_v1.8.1/9-lowesime-ssi-chk-audit-uplds/scripts/prep_uploads.py",
+          "workbooks": [],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save"
+          ],
+          "loc": 81
+        },
+        {
+          "path": "SAG-1459/unpacked/9-lowesime-ssi-chk-audit-uplds_v1.8.1/9-lowesime-ssi-chk-audit-uplds/scripts/ssi_chk_audit_uplds.py",
+          "workbooks": [
+            "Audit_Process*.xlsx",
+            "Lowes_IME_CheckRemits*.xlsx"
+          ],
+          "sheets": [],
+          "sheet_rw": {},
+          "columns": [
+            "), bottom=Side(style=",
+            "), right=Side(style="
+          ],
+          "read_hints": [
+            "load_workbook"
+          ],
+          "write_hints": [
+            ".save(",
+            "wb.save",
+            "ws.append"
+          ],
+          "loc": 913
+        }
+      ],
+      "workbooks": [
+        "Audit_Process*.xlsx",
+        "Lowes_IME_CheckRemits*.xlsx"
+      ],
+      "sheets": [],
+      "columns": [
+        "), bottom=Side(style=",
+        "), right=Side(style="
+      ]
+    }
+  }
+}

@@ -1,0 +1,1081 @@
+{
+  "run_ts": "20260619T013240Z",
+  "model": "gemma4:26b-a4b-it-q4_K_M",
+  "dry_run": false,
+  "classes": {
+    "enrichment_sku": {
+      "class": "enrichment_sku",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.0,
+      "task_correct_ci_95": [
+        0.0,
+        0.1611
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 0.0,
+      "clean_ci_95": [
+        0.0,
+        0.1611
+      ],
+      "errors": 20,
+      "per_row": [
+        {
+          "id": "enr-001",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-002",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-003",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-004",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-005",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-006",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-007",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-008",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-009",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-010",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-011",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-012",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-013",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-014",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-015",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-016",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-017",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-018",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-019",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "enr-020",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        }
+      ]
+    },
+    "doc_extraction": {
+      "class": "doc_extraction",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.0,
+      "task_correct_ci_95": [
+        0.0,
+        0.1611
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 0.0,
+      "clean_ci_95": [
+        0.0,
+        0.1611
+      ],
+      "errors": 20,
+      "per_row": [
+        {
+          "id": "doc-001",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-002",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-003",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-004",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-005",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-006",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-007",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-008",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-009",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-010",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-011",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-012",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-013",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-014",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-015",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-016",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-017",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-018",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-019",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "doc-020",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        }
+      ]
+    },
+    "pricing": {
+      "class": "pricing",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.0,
+      "task_correct_ci_95": [
+        0.0,
+        0.1611
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 0.0,
+      "clean_ci_95": [
+        0.0,
+        0.1611
+      ],
+      "errors": 20,
+      "per_row": [
+        {
+          "id": "price-001",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-002",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-003",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-004",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-005",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-006",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-007",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-008",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-009",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-010",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-011",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-012",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-013",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-014",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-015",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-016",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-017",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-018",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-019",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "price-020",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        }
+      ]
+    },
+    "code_review": {
+      "class": "code_review",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.55,
+      "task_correct_ci_95": [
+        0.3421,
+        0.7418
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 0.6,
+      "clean_ci_95": [
+        0.3866,
+        0.7812
+      ],
+      "errors": 8,
+      "per_row": [
+        {
+          "id": "cr-001",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "cr-002",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "cr-003",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "cr-004",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "cr-005",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "cr-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 205.41,
+          "error": null
+        },
+        {
+          "id": "cr-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 142.14,
+          "error": null
+        },
+        {
+          "id": "cr-008",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "cr-009",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "cr-010",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 0.0,
+          "wall_s": 0.0,
+          "error": "timed out"
+        },
+        {
+          "id": "cr-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 100.49,
+          "error": null
+        },
+        {
+          "id": "cr-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 48.71,
+          "error": null
+        },
+        {
+          "id": "cr-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 113.21,
+          "error": null
+        },
+        {
+          "id": "cr-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 137.32,
+          "error": null
+        },
+        {
+          "id": "cr-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 71.2,
+          "error": null
+        },
+        {
+          "id": "cr-016",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.38,
+          "error": null
+        },
+        {
+          "id": "cr-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.36,
+          "error": null
+        },
+        {
+          "id": "cr-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 75.63,
+          "error": null
+        },
+        {
+          "id": "cr-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.84,
+          "error": null
+        },
+        {
+          "id": "cr-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.09,
+          "error": null
+        }
+      ]
+    },
+    "qa_unit_tests": {
+      "class": "qa_unit_tests",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 1.0,
+      "task_correct_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "qa-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 74.06,
+          "error": null
+        },
+        {
+          "id": "qa-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 79.33,
+          "error": null
+        },
+        {
+          "id": "qa-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 75.07,
+          "error": null
+        },
+        {
+          "id": "qa-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 75.96,
+          "error": null
+        },
+        {
+          "id": "qa-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 81.27,
+          "error": null
+        },
+        {
+          "id": "qa-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 78.3,
+          "error": null
+        },
+        {
+          "id": "qa-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 79.25,
+          "error": null
+        },
+        {
+          "id": "qa-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 83.2,
+          "error": null
+        },
+        {
+          "id": "qa-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 80.08,
+          "error": null
+        },
+        {
+          "id": "qa-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 84.02,
+          "error": null
+        },
+        {
+          "id": "qa-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 70.69,
+          "error": null
+        },
+        {
+          "id": "qa-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 74.41,
+          "error": null
+        },
+        {
+          "id": "qa-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 76.93,
+          "error": null
+        },
+        {
+          "id": "qa-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 8.06,
+          "error": null
+        },
+        {
+          "id": "qa-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 9.31,
+          "error": null
+        },
+        {
+          "id": "qa-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 7.54,
+          "error": null
+        },
+        {
+          "id": "qa-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 9.46,
+          "error": null
+        },
+        {
+          "id": "qa-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 10.42,
+          "error": null
+        },
+        {
+          "id": "qa-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 8.38,
+          "error": null
+        },
+        {
+          "id": "qa-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 7.85,
+          "error": null
+        }
+      ]
+    },
+    "paralegal": {
+      "class": "paralegal",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.65,
+      "task_correct_ci_95": [
+        0.4329,
+        0.8188
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "par-001",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.7,
+          "error": null
+        },
+        {
+          "id": "par-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.72,
+          "error": null
+        },
+        {
+          "id": "par-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.73,
+          "error": null
+        },
+        {
+          "id": "par-004",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.26,
+          "error": null
+        },
+        {
+          "id": "par-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.81,
+          "error": null
+        },
+        {
+          "id": "par-006",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.19,
+          "error": null
+        },
+        {
+          "id": "par-007",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.97,
+          "error": null
+        },
+        {
+          "id": "par-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.73,
+          "error": null
+        },
+        {
+          "id": "par-009",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.89,
+          "error": null
+        },
+        {
+          "id": "par-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.08,
+          "error": null
+        },
+        {
+          "id": "par-011",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.33,
+          "error": null
+        },
+        {
+          "id": "par-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.47,
+          "error": null
+        },
+        {
+          "id": "par-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.26,
+          "error": null
+        },
+        {
+          "id": "par-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.08,
+          "error": null
+        },
+        {
+          "id": "par-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.68,
+          "error": null
+        },
+        {
+          "id": "par-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.28,
+          "error": null
+        },
+        {
+          "id": "par-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.96,
+          "error": null
+        },
+        {
+          "id": "par-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.33,
+          "error": null
+        },
+        {
+          "id": "par-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.22,
+          "error": null
+        },
+        {
+          "id": "par-020",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.82,
+          "error": null
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1045 @@
+{
+  "workbook_to_skills": {
+    "Lowes_IME_CheckRemits*.xlsx": [
+      "11",
+      "12",
+      "22",
+      "4",
+      "6",
+      "9"
+    ],
+    "CFI_Vendor_Reference.xlsx": [
+      "12",
+      "15",
+      "21",
+      "4",
+      "6"
+    ],
+    "Settlement_Customer.xlsx": [
+      "12",
+      "21",
+      "6",
+      "7"
+    ],
+    "Lowes_IME_CheckRemits032326.xlsx": [
+      "16",
+      "7",
+      "8"
+    ],
+    "SSI_AUDIT_Master.xlsx": [
+      "16",
+      "21"
+    ],
+    ".staging.xlsx": [
+      "18"
+    ],
+    "SSI_ID_Mappings.xlsx": [
+      "2"
+    ],
+    "SSI_Lowes_Order_Details.xlsx": [
+      "2",
+      "4"
+    ],
+    "Retail_Orders*.xlsx": [
+      "2"
+    ],
+    "LowesIme_AR_AP_Active.xlsx": [
+      "20",
+      "21"
+    ],
+    "LowesIme_Audit_Reconciliation_MMDDYYYY.xlsx": [
+      "21"
+    ],
+    "Lowes_IME_CheckRemitsMMDDYY.xlsx": [
+      "21"
+    ],
+    "Lowes_IME_CheckRemits05042026.xlsx": [
+      "22"
+    ],
+    "Lowes_IME_CheckRemits050426.xlsx": [
+      "22"
+    ],
+    "MSI_Invoice_Master.xlsx": [
+      "27"
+    ],
+    "Freight_Type_Assignments.xlsx": [
+      "28",
+      "30"
+    ],
+    "*remittances*.csv": [
+      "3"
+    ],
+    "Sales_Tax_Reference.xlsx": [
+      "30"
+    ],
+    "MSI_Audit_HAUSPRO_04062026.xlsx": [
+      "30"
+    ],
+    "*.xlsx": [
+      "4",
+      "5"
+    ],
+    "Audit_Process*.xlsx": [
+      "9"
+    ]
+  },
+  "sheet_read_by_skills": {
+    "WorkOrder": [
+      "1-1",
+      "15",
+      "7"
+    ],
+    "_STATUS_": [
+      "11",
+      "12",
+      "17",
+      "18"
+    ],
+    "WARRANTY AUDIT": [
+      "11",
+      "12",
+      "15",
+      "18"
+    ],
+    "IME LOWESLINK": [
+      "11",
+      "15",
+      "17",
+      "18",
+      "20",
+      "26",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "SP PAYMENT FREEZE": [
+      "11",
+      "12",
+      "17"
+    ],
+    "CreditMemo": [
+      "11"
+    ],
+    "VendorCredit": [
+      "12"
+    ],
+    "Settlement": [
+      "12"
+    ],
+    "2LowesIme SSIAuditRelease": [
+      "15",
+      "8"
+    ],
+    "ServiceProvider AP Hold": [
+      "18"
+    ],
+    "CFIBills": [
+      "18"
+    ],
+    "REVIEW": [
+      "2"
+    ],
+    "Appeasements": [
+      "26"
+    ],
+    "PO Audit Master": [
+      "28",
+      "30"
+    ],
+    "DQ - SKU Cleanup": [
+      "30"
+    ],
+    "MSI-Data": [
+      "30"
+    ],
+    "MSI Audit vs Sage Reality": [
+      "30"
+    ],
+    "Executive Summary": [
+      "30"
+    ],
+    "Freight Groups": [
+      "30"
+    ],
+    "Tax by State": [
+      "30"
+    ],
+    "Freight Rate Gaps": [
+      "30"
+    ],
+    "SSI AUDIT": [
+      "4",
+      "6",
+      "7"
+    ],
+    "SSI RO DATA": [
+      "4"
+    ],
+    "SSI ANALYSIS": [
+      "6",
+      "8"
+    ],
+    "CLAUDE AUDIT": [
+      "8"
+    ]
+  },
+  "sheet_write_by_skills": {
+    "_STATUS_": [
+      "11",
+      "12",
+      "17"
+    ],
+    "RULE AUDIT": [
+      "15"
+    ],
+    "IME LOWESLINK": [
+      "17",
+      "20",
+      "5"
+    ],
+    "CFIBills": [
+      "18"
+    ],
+    "2. MONEY FLOW": [
+      "20"
+    ],
+    "8. SOURCE TRACEABILITY": [
+      "20"
+    ],
+    "4. DEDUCT-APP TRACE": [
+      "20"
+    ],
+    "7. VARIANCE DRILL-DOWN": [
+      "20"
+    ],
+    "5. APPEASEMENT TRACE": [
+      "20"
+    ],
+    "6. EXCLUSIONS WALK": [
+      "20"
+    ],
+    "3. TAB-BY-TAB TIES": [
+      "20"
+    ],
+    "FILE ROADMAP": [
+      "21"
+    ],
+    "Weekly Review Checklist": [
+      "21"
+    ],
+    "_INFO": [
+      "23"
+    ],
+    "Freight Groups": [
+      "28",
+      "30"
+    ],
+    "Freight Rate Gaps": [
+      "28",
+      "30"
+    ],
+    "SSI AUDIT": [
+      "3",
+      "4"
+    ],
+    "CLAUDE AUDIT": [
+      "3"
+    ],
+    "Claude Improve": [
+      "3"
+    ],
+    "DQ - SKU Cleanup": [
+      "30"
+    ],
+    "MSI-Data": [
+      "30"
+    ],
+    "MSI Audit vs Sage Reality": [
+      "30"
+    ],
+    "CheckNumAmt": [
+      "30"
+    ],
+    "Branch Audit Report": [
+      "30"
+    ],
+    "Tax by State": [
+      "30"
+    ],
+    "Unmatched POs": [
+      "30"
+    ],
+    "Executive Summary": [
+      "30"
+    ],
+    "Audit Health & Data Gaps": [
+      "30"
+    ],
+    "SSI ANALYSIS": [
+      "4"
+    ],
+    "Suffix Ledger": [
+      "6-5"
+    ],
+    "WARRANTY AUDIT": [
+      "6"
+    ],
+    "2LowesIme SSIAuditRelease": [
+      "8"
+    ]
+  },
+  "sheet_referenced_by_skills": {
+    "WorkOrder": [
+      "1-1",
+      "15",
+      "7"
+    ],
+    "CreditMemo": [
+      "11"
+    ],
+    "IME LOWESLINK": [
+      "11",
+      "15",
+      "17",
+      "18",
+      "20",
+      "26",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8"
+    ],
+    "SP PAYMENT FREEZE": [
+      "11",
+      "12",
+      "17"
+    ],
+    "WARRANTY AUDIT": [
+      "11",
+      "12",
+      "15",
+      "18",
+      "6"
+    ],
+    "_STATUS_": [
+      "11",
+      "12",
+      "17",
+      "18"
+    ],
+    "Settlement": [
+      "12"
+    ],
+    "VendorCredit": [
+      "12"
+    ],
+    "2LowesIme SSIAuditRelease": [
+      "15",
+      "8"
+    ],
+    "RULE AUDIT": [
+      "15"
+    ],
+    "SSI AUDIT Master": [
+      "16"
+    ],
+    "CFIBills": [
+      "18"
+    ],
+    "ServiceProvider AP Hold": [
+      "18"
+    ],
+    "REVIEW": [
+      "2"
+    ],
+    "SSI RO DATA": [
+      "2",
+      "4"
+    ],
+    "1. EXEC SUMMARY": [
+      "20"
+    ],
+    "2. MONEY FLOW": [
+      "20"
+    ],
+    "3. TAB-BY-TAB TIES": [
+      "20"
+    ],
+    "4. DEDUCT-APP TRACE": [
+      "20"
+    ],
+    "5. APPEASEMENT TRACE": [
+      "20"
+    ],
+    "6. EXCLUSIONS WALK": [
+      "20"
+    ],
+    "7. VARIANCE DRILL-DOWN": [
+      "20"
+    ],
+    "8. SOURCE TRACEABILITY": [
+      "20"
+    ],
+    "FILE ROADMAP": [
+      "21"
+    ],
+    "README": [
+      "21"
+    ],
+    "Weekly Review Checklist": [
+      "21"
+    ],
+    "_INFO": [
+      "23"
+    ],
+    "Appeasements": [
+      "26"
+    ],
+    "Vendor Reference": [
+      "26"
+    ],
+    "Freight Groups": [
+      "28",
+      "30"
+    ],
+    "Freight Rate Gaps": [
+      "28",
+      "30"
+    ],
+    "PO Audit Master": [
+      "28",
+      "30"
+    ],
+    "CLAUDE AUDIT": [
+      "3",
+      "8"
+    ],
+    "Claude Improve": [
+      "3"
+    ],
+    "SSI AUDIT": [
+      "3",
+      "4",
+      "6",
+      "7"
+    ],
+    "Audit Health & Data Gaps": [
+      "30"
+    ],
+    "Branch Audit Report": [
+      "30"
+    ],
+    "CheckNumAmt": [
+      "30"
+    ],
+    "DQ - SKU Cleanup": [
+      "30"
+    ],
+    "Executive Summary": [
+      "30"
+    ],
+    "MSI Audit vs Sage Reality": [
+      "30"
+    ],
+    "MSI-Data": [
+      "30"
+    ],
+    "Tax by State": [
+      "30"
+    ],
+    "Unmatched POs": [
+      "30"
+    ],
+    "SSI ANALYSIS": [
+      "4",
+      "6",
+      "8"
+    ],
+    "Suffix Ledger": [
+      "6-5"
+    ]
+  },
+  "column_to_skills": {
+    "37115047 APP": [
+      "11"
+    ],
+    "Check #": [
+      "11",
+      "12",
+      "23",
+      "3"
+    ],
+    "Check Date": [
+      "11",
+      "12",
+      "23"
+    ],
+    "Class": [
+      "11"
+    ],
+    "Credit Memo": [
+      "11"
+    ],
+    "Customer": [
+      "11",
+      "19",
+      "23",
+      "3"
+    ],
+    "Hold Reason": [
+      "11"
+    ],
+    "Investigation Category": [
+      "11",
+      "12",
+      "16",
+      "23"
+    ],
+    "Invoice #": [
+      "11",
+      "12",
+      "2",
+      "23"
+    ],
+    "Item": [
+      "11",
+      "19"
+    ],
+    "Lowes IME": [
+      "11"
+    ],
+    "Memo": [
+      "11",
+      "12",
+      "18",
+      "19"
+    ],
+    "Net Amount": [
+      "11",
+      "12"
+    ],
+    "Other": [
+      "11",
+      "12",
+      "19"
+    ],
+    "Other1": [
+      "11",
+      "19"
+    ],
+    "Other2": [
+      "11",
+      "19"
+    ],
+    "PO Number": [
+      "11"
+    ],
+    "Price": [
+      "11",
+      "19"
+    ],
+    "Project #": [
+      "11",
+      "12",
+      "2",
+      "23",
+      "4",
+      "6"
+    ],
+    "RefNumber": [
+      "11",
+      "12",
+      "18",
+      "19"
+    ],
+    "Returns Dealer": [
+      "11"
+    ],
+    "Suggested Invoice": [
+      "11",
+      "12"
+    ],
+    "Transaction Date": [
+      "11",
+      "12",
+      "18",
+      "19"
+    ],
+    "Type": [
+      "11",
+      "23"
+    ],
+    "-DBT": [
+      "12"
+    ],
+    "Item Class": [
+      "12"
+    ],
+    "Items Cost": [
+      "12",
+      "18"
+    ],
+    "Items Item": [
+      "12",
+      "18",
+      "23"
+    ],
+    "Memo 2": [
+      "12"
+    ],
+    "Pending Reason": [
+      "12"
+    ],
+    "Project Number": [
+      "12"
+    ],
+    "Return CFI Labor": [
+      "12"
+    ],
+    "Service Provider": [
+      "12",
+      "2",
+      "23",
+      "6"
+    ],
+    "Transaction Type": [
+      "12",
+      "18",
+      "19"
+    ],
+    "Vendor": [
+      "12",
+      "18"
+    ],
+    "Vendor Credit": [
+      "12"
+    ],
+    "Vendor Number": [
+      "12"
+    ],
+    "), bottom=Side(style=": [
+      "15",
+      "17",
+      "2",
+      "26",
+      "30",
+      "7",
+      "8",
+      "9"
+    ],
+    "), right=Side(style=": [
+      "15",
+      "16",
+      "17",
+      "2",
+      "26",
+      "30",
+      "7",
+      "8",
+      "9"
+    ],
+    ", color=": [
+      "15",
+      "20",
+      "21",
+      "30"
+    ],
+    "Dealer City": [
+      "15",
+      "2",
+      "23",
+      "4"
+    ],
+    "Dealer State": [
+      "15",
+      "2",
+      "23",
+      "4"
+    ],
+    "Product Line": [
+      "15",
+      "2",
+      "23",
+      "4"
+    ],
+    "Tie-Out Variance": [
+      "15"
+    ],
+    "currency": [
+      "15"
+    ],
+    "),  bottom=Side(style=": [
+      "16"
+    ],
+    "AR AP Code": [
+      "16"
+    ],
+    "Audit Flag": [
+      "16"
+    ],
+    "Recon Status": [
+      "16",
+      "23",
+      "6"
+    ],
+    "Rule(s) Applied": [
+      "16",
+      "4",
+      "6",
+      "6-5"
+    ],
+    "3Audit: Accounting": [
+      "18"
+    ],
+    "3Audit: Action Required": [
+      "18"
+    ],
+    "3Audit: Labor $": [
+      "18"
+    ],
+    "3Audit: Order Status": [
+      "18"
+    ],
+    "Accounting": [
+      "18",
+      "3",
+      "6"
+    ],
+    "Bill Due": [
+      "18",
+      "23"
+    ],
+    "Check Number": [
+      "18",
+      "19",
+      "2",
+      "3"
+    ],
+    "Invoice Number": [
+      "18",
+      "3",
+      "6"
+    ],
+    "Items Class": [
+      "18"
+    ],
+    "Net_Amount_Paid": [
+      "18",
+      "3",
+      "4"
+    ],
+    "Project_Number": [
+      "18",
+      "3",
+      "4"
+    ],
+    "Rule Tags": [
+      "18"
+    ],
+    "Svc Provider Fee/Deduction": [
+      "18"
+    ],
+    "_ad_adj": [
+      "18"
+    ],
+    "_cost": [
+      "18"
+    ],
+    "_flag": [
+      "18"
+    ],
+    "_status": [
+      "18"
+    ],
+    "validate": [
+      "18"
+    ],
+    "\u26a0  DO NOT UPLOAD \u2014 HOLD SECTION (audit-visible only) \u26a0": [
+      "18"
+    ],
+    "Item Line Class": [
+      "19"
+    ],
+    "Rep": [
+      "19"
+    ],
+    "Template Name": [
+      "19"
+    ],
+    "Action Required": [
+      "2",
+      "4"
+    ],
+    "Actual Delivery Date": [
+      "2"
+    ],
+    "Actual Install Date": [
+      "2"
+    ],
+    "Actual Measure Date": [
+      "2"
+    ],
+    "CFI Amount": [
+      "2"
+    ],
+    "CFI Date Paid": [
+      "2"
+    ],
+    "CFI Phone Number": [
+      "2"
+    ],
+    "Cabinets": [
+      "2"
+    ],
+    "Customer Contact Date": [
+      "2"
+    ],
+    "Customer Name": [
+      "2"
+    ],
+    "Date Paid": [
+      "2"
+    ],
+    "Dealer Name": [
+      "2"
+    ],
+    "Estimate Number": [
+      "2"
+    ],
+    "IME Status": [
+      "2",
+      "4"
+    ],
+    "IMS Status": [
+      "2"
+    ],
+    "Measure Date": [
+      "2"
+    ],
+    "Order Date": [
+      "2"
+    ],
+    "Order Type": [
+      "2"
+    ],
+    "Proxy Store #": [
+      "2"
+    ],
+    "RO Amount": [
+      "2"
+    ],
+    "RO Creation Date": [
+      "2"
+    ],
+    "RO Number": [
+      "2"
+    ],
+    "Ready to Measure/Template Date": [
+      "2"
+    ],
+    "Region": [
+      "2",
+      "4"
+    ],
+    "Release Invoice Date": [
+      "2"
+    ],
+    "Sage Sales Manager": [
+      "2"
+    ],
+    "Sage Territory Manager": [
+      "2"
+    ],
+    "Scheduled Delivery Date": [
+      "2"
+    ],
+    "Scheduled Install Date": [
+      "2"
+    ],
+    "Status": [
+      "2",
+      "4"
+    ],
+    "Sterling Store": [
+      "2"
+    ],
+    "Store #": [
+      "2"
+    ],
+    "Support Specialist": [
+      "2"
+    ],
+    "Template Date": [
+      "2"
+    ],
+    "_TOTAL": [
+      "20"
+    ],
+    "# Proj Pmts": [
+      "23"
+    ],
+    "Alpha Suffix": [
+      "23"
+    ],
+    "Appease: Lowes Retail": [
+      "23"
+    ],
+    "Appease: SP Fee": [
+      "23"
+    ],
+    "Appease: Sage Cost": [
+      "23"
+    ],
+    "CM Status": [
+      "23"
+    ],
+    "Chain Run Date": [
+      "23"
+    ],
+    "Escalation Owner": [
+      "23"
+    ],
+    "Follow-Up Date": [
+      "23"
+    ],
+    "Frankie Notes": [
+      "23"
+    ],
+    "Items Cost (Labor)": [
+      "23"
+    ],
+    "Last Refreshed": [
+      "23"
+    ],
+    "Net Amount Paid": [
+      "23"
+    ],
+    "Notes (source)": [
+      "23"
+    ],
+    "Prior Entries": [
+      "23"
+    ],
+    "Proj Net Total": [
+      "23"
+    ],
+    "Proj Variance": [
+      "23"
+    ],
+    "RO Status": [
+      "23"
+    ],
+    "Reference": [
+      "23",
+      "3"
+    ],
+    "Resolution Status": [
+      "23"
+    ],
+    "Rule Tags / _Surfaced Reason": [
+      "23"
+    ],
+    "SP Vendor Number": [
+      "23",
+      "4"
+    ],
+    "SSI Invoiced": [
+      "23"
+    ],
+    "Settlement: Customer Payout": [
+      "23"
+    ],
+    "Settlement: SP Deduction": [
+      "23"
+    ],
+    "Settlement: Sage Deduction": [
+      "23"
+    ],
+    "Source Tab": [
+      "23"
+    ],
+    "Store Number": [
+      "23",
+      "3"
+    ],
+    "Suggested Acctg Invoice": [
+      "23"
+    ],
+    "VC Status": [
+      "23"
+    ],
+    "Variance": [
+      "23"
+    ],
+    "Description": [
+      "27"
+    ],
+    "Freight": [
+      "27"
+    ],
+    "Line #": [
+      "27"
+    ],
+    "Line Count": [
+      "27"
+    ],
+    "SQFT": [
+      "27"
+    ],
+    "Source PDF": [
+      "27"
+    ],
+    "Total Weight Lbs": [
+      "27"
+    ],
+    "U/M": [
+      "27"
+    ],
+    "Check_Date": [
+      "3"
+    ],
+    "Inv_Date": [
+      "3"
+    ],
+    "Inv_Description": [
+      "3"
+    ],
+    "Name": [
+      "3"
+    ],
+    "Order_Number": [
+      "3"
+    ],
+    "Source_Tab": [
+      "3"
+    ],
+    "Vendor_No": [
+      "3"
+    ],
+    "Tax $": [
+      "30"
+    ],
+    "pricingType": [
+      "30"
+    ],
+    "total_$": [
+      "30"
+    ],
+    "\ud83c\udfaf DECISION VIEW \u2014 Sr Controller": [
+      "30"
+    ],
+    "\ud83c\udfaf MSI Audit v2.0 \u2014 Controller One-Pager": [
+      "30"
+    ],
+    "POSSIBLE APPEASEMENT MATCH \u2014 Overpaid rows w/ APPEASE record (Jen R29 \u2014 match only, decide handling later)": [
+      "6"
+    ],
+    "SSI Match Count": [
+      "6"
+    ]
+  }
+}

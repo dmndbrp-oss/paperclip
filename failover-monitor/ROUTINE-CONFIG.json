@@ -1,0 +1,65 @@
+{
+  "_meta": {
+    "schema": "failover-routine-config/v1",
+    "source_issue": "SAG-4613",
+    "design": "SAG-4590-failover-review-mechanism-design.md",
+    "board_approval": "d21e8b5e on SAG-4573 (Option A)",
+    "created_by": "Coder (Sonnet 4.6) — 3ab7fa06",
+    "updated": "2026-06-23 — status corrected to 'paused' (activation gated on canary pass + 2nd board go); api trigger added for manual test firing",
+    "auth_note": "Agents can only create routines assigned to themselves. The Monitor agent (4bd33af1) can create its own routine, but it has no scheduled heartbeat to do so. CTO (manager) or CEO/board-operator must create it. Coder (3ab7fa06) cannot create routines for other agents."
+  },
+  "routine_payload": {
+    "title": "Failover Monitor tick",
+    "description": "Wake the Failover Monitor every ~5 min to scan for cloud IC agents stalled on usage/session limits. Failover eligible issues to local understudies per PAIRING-MAP.json. Delivery-only: all decision logic lives in the Monitor agent per the INSTRUCTIONS.md algorithm (4 gates, FAILOVER-HANDOFF comment, reassign). See SAG-4590 design and SAG-4573 board approval d21e8b5e.",
+    "assigneeAgentId": "4bd33af1-1506-4fa0-882e-1200f97ead3a",
+    "projectId": "4dc8eabc-212d-4a46-a0eb-aa61b75e82d0",
+    "priority": "medium",
+    "status": "paused",
+    "concurrencyPolicy": "skip_if_active",
+    "catchUpPolicy": "skip_missed"
+  },
+  "triggers": [
+    {
+      "kind": "api",
+      "label": "manual-test-trigger",
+      "note": "Add FIRST. Lets CTO fire a test run manually: POST /api/routines/{routineId}/run {source: 'manual'}. Verify Monitor boots on Qwen3.6, scans issues, exits with a summary comment. No stalled issues expected on first run — a clean no-op exit is the correct success signal."
+    },
+    {
+      "kind": "schedule",
+      "cronExpression": "*/5 * * * *",
+      "timezone": "UTC",
+      "label": "5-min failover scan",
+      "note": "Add AFTER manual test passes. Still leave routine status=paused until 2nd board go."
+    }
+  ],
+  "creation_steps": [
+    "1. POST /api/companies/{companyId}/routines with routine_payload above (status=paused)",
+    "2. Capture routineId from response",
+    "3. POST /api/routines/{routineId}/triggers with triggers[0] (api trigger) — capture triggerId",
+    "4. POST /api/routines/{routineId}/triggers with triggers[1] (schedule trigger) — capture triggerId",
+    "5. Manual test: POST /api/routines/{routineId}/run {source: 'manual'} — Monitor wakes, scans, exits",
+    "6. Report routineId + triggerIds + run result back to SAG-4613 via comment",
+    "7. Leave status=paused until canary passes + 2nd board go"
+  ],
+  "activation_gate": {
+    "state": "paused_until_canary_and_board_go",
+    "canary_issue": "SAG-4613",
+    "requirement": "PATCH routine status='active' ONLY after: (1) manual test run clean, (2) SAG-4613 3-run canary passes, (3) CEO issues 2nd board go for fleet-wide rollout.",
+    "unblock_owner": "CEO (b0f67cc2-259e-477b-ac89-d0ff4e7c8e89)"
+  },
+  "canary_pairing": {
+    "cloud_agent": "Coder (Sonnet 4.6) — 3ab7fa06",
+    "understudy": "Coder (Qwen3.6) — 9a20c1b5",
+    "reason": "Board-recommended. Same-department SWE pair. Verifies full cycle: detect → tier-gate → FAILOVER-HANDOFF → understudy continuation → FAILOVER-RETURN → cloud review."
+  },
+  "no_failover_test": {
+    "description": "Negative test: confirm sensitivity gate (Gate C) blocks auto-failover on marked issues.",
+    "test_approach": "Create a test issue with 'NO-FAILOVER' in title or description, assign to a cloud IC agent in the pairing map, fire Monitor via api trigger. Verify Monitor posts FAILOVER-ESCALATION comment and does NOT reassign.",
+    "expected_sentinel": "FAILOVER-ESCALATION",
+    "expected_outcome": "Issue remains assigned to original cloud agent; no FAILOVER-HANDOFF posted."
+  },
+  "rollout_gate": {
+    "canary_only": true,
+    "fleet_wide_requirement": "2nd explicit board go per SAG-4613 HARD gate. Do not extend PAIRING-MAP or activate for non-canary pairings without CEO + board sign-off."
+  }
+}

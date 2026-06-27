@@ -1,0 +1,80 @@
+{
+  "model": "qwen3:30b-a3b",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get current weather for a location",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string"
+            },
+            "unit": {
+              "type": "string",
+              "enum": [
+                "celsius",
+                "fahrenheit"
+              ]
+            }
+          },
+          "required": [
+            "location"
+          ]
+        }
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t0",
+      "prompt": "What is the weather in Paris?"
+    },
+    {
+      "id": "t1",
+      "prompt": "Tell me the current weather in Tokyo."
+    },
+    {
+      "id": "t2",
+      "prompt": "Get weather for London, UK."
+    },
+    {
+      "id": "t3",
+      "prompt": "What is the temperature in New York right now?"
+    },
+    {
+      "id": "t4",
+      "prompt": "Check weather conditions in Berlin."
+    },
+    {
+      "id": "t5",
+      "prompt": "What is the weather in Sydney, Australia?"
+    },
+    {
+      "id": "t6",
+      "prompt": "Get current conditions for Chicago."
+    },
+    {
+      "id": "t7",
+      "prompt": "Weather in Los Angeles please."
+    },
+    {
+      "id": "t8",
+      "prompt": "What is it like outside in Toronto?"
+    },
+    {
+      "id": "t9",
+      "prompt": "Current weather in Singapore?"
+    },
+    {
+      "id": "t10",
+      "prompt": "Tell me the weather in Dubai."
+    },
+    {
+      "id": "t11",
+      "prompt": "What are conditions like in Mumbai today?"
+    }
+  ]
+}

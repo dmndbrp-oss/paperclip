@@ -1,0 +1,1081 @@
+{
+  "run_ts": "20260617T020030Z",
+  "model": "gemma4:26b-a4b-it-q4_K_M",
+  "dry_run": false,
+  "classes": {
+    "enrichment_sku": {
+      "class": "enrichment_sku",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.85,
+      "task_correct_ci_95": [
+        0.6396,
+        0.9476
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "enr-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 5.28,
+          "error": null
+        },
+        {
+          "id": "enr-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 53.38,
+          "error": null
+        },
+        {
+          "id": "enr-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.86,
+          "error": null
+        },
+        {
+          "id": "enr-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.83,
+          "error": null
+        },
+        {
+          "id": "enr-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.94,
+          "error": null
+        },
+        {
+          "id": "enr-006",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 44.16,
+          "error": null
+        },
+        {
+          "id": "enr-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.8,
+          "error": null
+        },
+        {
+          "id": "enr-008",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.94,
+          "error": null
+        },
+        {
+          "id": "enr-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.83,
+          "error": null
+        },
+        {
+          "id": "enr-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.85,
+          "error": null
+        },
+        {
+          "id": "enr-011",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.84,
+          "error": null
+        },
+        {
+          "id": "enr-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.9,
+          "error": null
+        },
+        {
+          "id": "enr-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.81,
+          "error": null
+        },
+        {
+          "id": "enr-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.83,
+          "error": null
+        },
+        {
+          "id": "enr-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.96,
+          "error": null
+        },
+        {
+          "id": "enr-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.14,
+          "error": null
+        },
+        {
+          "id": "enr-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.79,
+          "error": null
+        },
+        {
+          "id": "enr-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.84,
+          "error": null
+        },
+        {
+          "id": "enr-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.86,
+          "error": null
+        },
+        {
+          "id": "enr-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.83,
+          "error": null
+        }
+      ]
+    },
+    "doc_extraction": {
+      "class": "doc_extraction",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.75,
+      "task_correct_ci_95": [
+        0.5313,
+        0.8881
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "doc-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.16,
+          "error": null
+        },
+        {
+          "id": "doc-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.1,
+          "error": null
+        },
+        {
+          "id": "doc-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.85,
+          "error": null
+        },
+        {
+          "id": "doc-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.98,
+          "error": null
+        },
+        {
+          "id": "doc-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.05,
+          "error": null
+        },
+        {
+          "id": "doc-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.12,
+          "error": null
+        },
+        {
+          "id": "doc-007",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.68,
+          "error": null
+        },
+        {
+          "id": "doc-008",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.26,
+          "error": null
+        },
+        {
+          "id": "doc-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.75,
+          "error": null
+        },
+        {
+          "id": "doc-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.74,
+          "error": null
+        },
+        {
+          "id": "doc-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.45,
+          "error": null
+        },
+        {
+          "id": "doc-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.84,
+          "error": null
+        },
+        {
+          "id": "doc-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.75,
+          "error": null
+        },
+        {
+          "id": "doc-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.36,
+          "error": null
+        },
+        {
+          "id": "doc-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.9,
+          "error": null
+        },
+        {
+          "id": "doc-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.51,
+          "error": null
+        },
+        {
+          "id": "doc-017",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.85,
+          "error": null
+        },
+        {
+          "id": "doc-018",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.15,
+          "error": null
+        },
+        {
+          "id": "doc-019",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.31,
+          "error": null
+        },
+        {
+          "id": "doc-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.44,
+          "error": null
+        }
+      ]
+    },
+    "pricing": {
+      "class": "pricing",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 1.0,
+      "task_correct_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "price-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.77,
+          "error": null
+        },
+        {
+          "id": "price-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.48,
+          "error": null
+        },
+        {
+          "id": "price-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.58,
+          "error": null
+        },
+        {
+          "id": "price-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.43,
+          "error": null
+        },
+        {
+          "id": "price-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.61,
+          "error": null
+        },
+        {
+          "id": "price-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.36,
+          "error": null
+        },
+        {
+          "id": "price-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.29,
+          "error": null
+        },
+        {
+          "id": "price-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.44,
+          "error": null
+        },
+        {
+          "id": "price-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.78,
+          "error": null
+        },
+        {
+          "id": "price-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.32,
+          "error": null
+        },
+        {
+          "id": "price-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.54,
+          "error": null
+        },
+        {
+          "id": "price-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.41,
+          "error": null
+        },
+        {
+          "id": "price-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.61,
+          "error": null
+        },
+        {
+          "id": "price-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.55,
+          "error": null
+        },
+        {
+          "id": "price-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.0,
+          "error": null
+        },
+        {
+          "id": "price-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.5,
+          "error": null
+        },
+        {
+          "id": "price-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.51,
+          "error": null
+        },
+        {
+          "id": "price-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.69,
+          "error": null
+        },
+        {
+          "id": "price-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.8,
+          "error": null
+        },
+        {
+          "id": "price-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.69,
+          "error": null
+        }
+      ]
+    },
+    "code_review": {
+      "class": "code_review",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.9,
+      "task_correct_ci_95": [
+        0.699,
+        0.9721
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "cr-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.85,
+          "error": null
+        },
+        {
+          "id": "cr-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.83,
+          "error": null
+        },
+        {
+          "id": "cr-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.15,
+          "error": null
+        },
+        {
+          "id": "cr-004",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.3,
+          "error": null
+        },
+        {
+          "id": "cr-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.25,
+          "error": null
+        },
+        {
+          "id": "cr-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.86,
+          "error": null
+        },
+        {
+          "id": "cr-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 4.01,
+          "error": null
+        },
+        {
+          "id": "cr-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.28,
+          "error": null
+        },
+        {
+          "id": "cr-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.9,
+          "error": null
+        },
+        {
+          "id": "cr-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.59,
+          "error": null
+        },
+        {
+          "id": "cr-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.29,
+          "error": null
+        },
+        {
+          "id": "cr-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 4.31,
+          "error": null
+        },
+        {
+          "id": "cr-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.86,
+          "error": null
+        },
+        {
+          "id": "cr-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.93,
+          "error": null
+        },
+        {
+          "id": "cr-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.88,
+          "error": null
+        },
+        {
+          "id": "cr-016",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.39,
+          "error": null
+        },
+        {
+          "id": "cr-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.37,
+          "error": null
+        },
+        {
+          "id": "cr-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.43,
+          "error": null
+        },
+        {
+          "id": "cr-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.85,
+          "error": null
+        },
+        {
+          "id": "cr-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.03,
+          "error": null
+        }
+      ]
+    },
+    "qa_unit_tests": {
+      "class": "qa_unit_tests",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 1.0,
+      "task_correct_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "qa-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 8.39,
+          "error": null
+        },
+        {
+          "id": "qa-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 8.19,
+          "error": null
+        },
+        {
+          "id": "qa-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 7.35,
+          "error": null
+        },
+        {
+          "id": "qa-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 7.58,
+          "error": null
+        },
+        {
+          "id": "qa-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 10.0,
+          "error": null
+        },
+        {
+          "id": "qa-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 10.72,
+          "error": null
+        },
+        {
+          "id": "qa-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 7.33,
+          "error": null
+        },
+        {
+          "id": "qa-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 11.12,
+          "error": null
+        },
+        {
+          "id": "qa-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 11.13,
+          "error": null
+        },
+        {
+          "id": "qa-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 8.51,
+          "error": null
+        },
+        {
+          "id": "qa-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 9.06,
+          "error": null
+        },
+        {
+          "id": "qa-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 12.09,
+          "error": null
+        },
+        {
+          "id": "qa-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 9.4,
+          "error": null
+        },
+        {
+          "id": "qa-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 8.28,
+          "error": null
+        },
+        {
+          "id": "qa-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 9.68,
+          "error": null
+        },
+        {
+          "id": "qa-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 8.09,
+          "error": null
+        },
+        {
+          "id": "qa-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 9.46,
+          "error": null
+        },
+        {
+          "id": "qa-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 10.69,
+          "error": null
+        },
+        {
+          "id": "qa-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 8.44,
+          "error": null
+        },
+        {
+          "id": "qa-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 7.92,
+          "error": null
+        }
+      ]
+    },
+    "paralegal": {
+      "class": "paralegal",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.65,
+      "task_correct_ci_95": [
+        0.4329,
+        0.8188
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "par-001",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.62,
+          "error": null
+        },
+        {
+          "id": "par-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.92,
+          "error": null
+        },
+        {
+          "id": "par-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.79,
+          "error": null
+        },
+        {
+          "id": "par-004",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.28,
+          "error": null
+        },
+        {
+          "id": "par-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.23,
+          "error": null
+        },
+        {
+          "id": "par-006",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.24,
+          "error": null
+        },
+        {
+          "id": "par-007",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.01,
+          "error": null
+        },
+        {
+          "id": "par-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.59,
+          "error": null
+        },
+        {
+          "id": "par-009",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.49,
+          "error": null
+        },
+        {
+          "id": "par-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.11,
+          "error": null
+        },
+        {
+          "id": "par-011",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.34,
+          "error": null
+        },
+        {
+          "id": "par-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.45,
+          "error": null
+        },
+        {
+          "id": "par-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.66,
+          "error": null
+        },
+        {
+          "id": "par-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.36,
+          "error": null
+        },
+        {
+          "id": "par-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.55,
+          "error": null
+        },
+        {
+          "id": "par-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.32,
+          "error": null
+        },
+        {
+          "id": "par-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.97,
+          "error": null
+        },
+        {
+          "id": "par-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.29,
+          "error": null
+        },
+        {
+          "id": "par-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.38,
+          "error": null
+        },
+        {
+          "id": "par-020",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.89,
+          "error": null
+        }
+      ]
+    }
+  }
+}

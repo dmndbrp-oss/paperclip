@@ -1,0 +1,120 @@
+# Failover Monitor — Pairing Map
+
+This file is loaded by the Failover Monitor agent (Step 0 of its algorithm).
+It maps cloud agents (limit-prone) → local understudies.
+
+**Source:** SAG-4573 CEO-authored departmental coverage audit.
+**Policy:** Only IC-tier work is auto-failover eligible. C-suite/Director decisions wait for cloud agent reset.
+
+## Configuration
+
+```yaml
+# Pairing map: cloud_agent_id -> { name, understudy_agent_ids (in priority order) }
+#
+# understudy_agent_ids is a list so the monitor can try fallback understudies
+# if the first is unavailable (future extension; current implementation picks first).
+
+failover_pairings:
+  - cloud_agent:
+      name: "Senior Software Engineer"
+      agent_id: "PLACEHOLDER-senior-swe"
+      adapter_type: "claude_local"
+    understudies:
+      - name: "Senior Software Engineer (Local)"
+        agent_id: "PLACEHOLDER-senior-swe-local"
+      - name: "Junior Software Engineer"
+        agent_id: "PLACEHOLDER-junior-swe"
+
+  - cloud_agent:
+      name: "Knowledge Digester"
+      agent_id: "PLACEHOLDER-knowledge-digester"
+      adapter_type: "claude_local"
+    understudies:
+      - name: "Local-AI Catalog Enricher"
+        agent_id: "PLACEHOLDER-catalog-enricher"
+      - name: "Research Assistant"
+        agent_id: "PLACEHOLDER-research-assistant"
+
+  - cloud_agent:
+      name: "Data Analyst"
+      agent_id: "PLACEHOLDER-data-analyst"
+      adapter_type: "claude_local"
+    understudies:
+      - name: "Reports & Audits Manager"
+        agent_id: "PLACEHOLDER-reports-audits"
+      - name: "Bookkeeper"
+        agent_id: "PLACEHOLDER-bookkeeper"
+
+  - cloud_agent:
+      name: "QA Unit Tests"
+      agent_id: "PLACEHOLDER-qa-unit"
+      adapter_type: "claude_local"
+    understudies:
+      - name: "Code Reviewer Lite"
+        agent_id: "PLACEHOLDER-code-reviewer-lite"
+
+  - cloud_agent:
+      name: "QA Regression Testing"
+      agent_id: "PLACEHOLDER-qa-regression"
+      adapter_type: "claude_local"
+    understudies:
+      - name: "Code Reviewer Lite"
+        agent_id: "PLACEHOLDER-code-reviewer-lite"
+
+  - cloud_agent:
+      name: "QA Integration"
+      agent_id: "PLACEHOLDER-qa-integration"
+      adapter_type: "claude_local"
+    understudies:
+      - name: "SKU QA Auditor"
+        agent_id: "PLACEHOLDER-sku-qa"
+
+  - cloud_agent:
+      name: "Research Agent"
+      agent_id: "PLACEHOLDER-research-agent"
+      adapter_type: "claude_local"
+    understudies:
+      - name: "Research Assistant"
+        agent_id: "PLACEHOLDER-research-assistant"
+
+# Reverse mappings (understudy -> original cloud agent) for review-on-recovery
+# These are auto-derived from the pairings above but listed explicitly for clarity.
+
+reverse_pairings:
+  - UNDERSTUDY -> SOURCE:
+      "Senior Software Engineer (Local)" -> "Senior Software Engineer"
+      "Junior Software Engineer" -> "Senior Software Engineer"
+      "Local-AI Catalog Enricher" -> "Knowledge Digester"
+      "Research Assistant" -> "Research Agent"
+      "Reports & Audits Manager" -> "Data Analyst"
+      "Bookkeeper" -> "Data Analyst"
+      "Code Reviewer Lite" -> "QA Unit Tests" (for QA-Regression)
+      "SKU QA Auditor" -> "QA Integration"
+
+# Tier gate: agents whose issues are NEVER auto-failover'd (C-suite/Director)
+tier_gate_exception:
+  - "CEO"
+  - "CTO"
+  - "CFO"
+  - "Pricing Director"
+  - "SSI Director"
+  - "Chief Legal Officer"
+  - "Marketing Director"
+  - "Operations Director"
+  - "Land Stewardship Director"
+  - "Business Development Director"
+
+# Sensitivity flags (set NO-FAILOVER on issues with these tags)
+# Handled by the monitor checking issue thread markers, not by this config.
+# Default: deny failover on ANY issue flagged with NO-FAILOVER marker.
+```
+
+## Notes
+
+1. **Agent IDs are placeholders** — they must be filled with actual Paperclip agent IDs from the company roster after hiring the monitor agent. The CEO map in SAG-4573 defines the pairings; this file encodes them for the monitor.
+
+2. **Understudy priority order matters** — the monitor tries understudies in list order. The first available/unavailable-understudy check is a future extension; current implementation picks index 0.
+
+3. **QA note from SAG-4573:** The QA sub-team is all-cloud. The pairing above routes QA work to Code Reviewer Lite (for Unit/Regression) and SKU QA Auditor (for Integration). This is acceptable per the CEO audit: "local QA-capable agents exist elsewhere."
+
+4. **Research Agent (IC tasks only):** The Research Agent's director-level work is excluded from auto-failover by the tier gate. Only IC research tasks are pairable.

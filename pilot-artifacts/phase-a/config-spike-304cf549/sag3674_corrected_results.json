@@ -1,0 +1,761 @@
+{
+  "meta": {
+    "issue": "SAG-3674",
+    "parent": "SAG-3671",
+    "N": 20,
+    "model": "gemma4-26b-a4b-it-q4_K_M",
+    "ollama_model": "gemma4:26b-a4b-it-q4_K_M",
+    "faff99c_applied": true,
+    "think_suppression_confirmed": true
+  },
+  "probe": {
+    "control": {
+      "done_reason": "",
+      "thinking_len": 6482,
+      "compl_tokens": null,
+      "content_len": 259,
+      "valid": false,
+      "mode": "truncated"
+    },
+    "think_false": {
+      "done_reason": "stop",
+      "thinking_len": 0,
+      "compl_tokens": 296,
+      "content_len": 853,
+      "valid": true,
+      "mode": "valid"
+    },
+    "suppression_confirmed": true
+  },
+  "A_baseline": {
+    "valid": 2,
+    "n": 20,
+    "pct": 10.0,
+    "modes": {
+      "valid": 2,
+      "truncated": 2,
+      "missing_fields": 0,
+      "other_invalid": 0,
+      "empty": 16,
+      "http_err": 0
+    },
+    "rows": [
+      {
+        "row": "SSI-PRC-0102",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 91.37,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-MBL-0113",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 111.63,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-GRN-0115",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 96.2,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QTZ-0100",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 44.8,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-GRN-0107",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 45.09,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QZT-0100",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 45.89,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QTZ-0200",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 756,
+        "latency_s": 38.83,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 1785
+      },
+      {
+        "row": "SSI-LMS-0102",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 44.59,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QTZ-0203",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 857,
+        "latency_s": 41.67,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 1913
+      },
+      {
+        "row": "SSI-MOS-0100",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 44.65,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-PRC-0105",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 44.55,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-MBL-0100",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 44.52,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-GRN-0100",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 44.52,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QTZ-0111",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 44.7,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QTZ-0112",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 44.85,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QTZ-0113",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 667,
+        "latency_s": 44.53,
+        "errors": [
+          "json_parse_error: Expecting value: line 28 column 18 (char 659)"
+        ],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QTZ-0101",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 45.12,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QTZ-0102",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 44.74,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-MBL-0110",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 47.29,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 2048
+      },
+      {
+        "row": "SSI-QTZ-0304",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 13,
+        "latency_s": 45.07,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 2 column 3 (char 4)"
+        ],
+        "finish": "stop",
+        "compl_tokens": 2048
+      }
+    ]
+  },
+  "B_full_combo": {
+    "valid": 16,
+    "n": 20,
+    "pct": 80.0,
+    "modes": {
+      "valid": 16,
+      "truncated": 0,
+      "missing_fields": 0,
+      "other_invalid": 4,
+      "empty": 0,
+      "http_err": 0
+    },
+    "rows": [
+      {
+        "row": "SSI-PRC-0102",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 882,
+        "latency_s": 7.27,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 305,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-MBL-0113",
+        "valid": false,
+        "mode": "other_invalid",
+        "content_len": 986,
+        "latency_s": 7.25,
+        "errors": [
+          "enum:applications contains invalid value 'wall_clashing'"
+        ],
+        "finish": "stop",
+        "compl_tokens": 326,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-GRN-0115",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 837,
+        "latency_s": 6.32,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 282,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QTZ-0100",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 823,
+        "latency_s": 6.56,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 292,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-GRN-0107",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 840,
+        "latency_s": 6.37,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 284,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QZT-0100",
+        "valid": false,
+        "mode": "other_invalid",
+        "content_len": 912,
+        "latency_s": 7.04,
+        "errors": [
+          "enum:applications contains invalid value 'wall_clashing'"
+        ],
+        "finish": "stop",
+        "compl_tokens": 306,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QTZ-0200",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 886,
+        "latency_s": 6.8,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 304,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-LMS-0102",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 817,
+        "latency_s": 6.19,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 276,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QTZ-0203",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 898,
+        "latency_s": 6.89,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 308,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-MOS-0100",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 884,
+        "latency_s": 6.62,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 295,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-PRC-0105",
+        "valid": false,
+        "mode": "other_invalid",
+        "content_len": 874,
+        "latency_s": 6.77,
+        "errors": [
+          "enum:applications contains invalid value 'patio'"
+        ],
+        "finish": "stop",
+        "compl_tokens": 301,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-MBL-0100",
+        "valid": false,
+        "mode": "other_invalid",
+        "content_len": 961,
+        "latency_s": 7.24,
+        "errors": [
+          "enum:applications contains invalid value 'wall_clashing'"
+        ],
+        "finish": "stop",
+        "compl_tokens": 324,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-GRN-0100",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 814,
+        "latency_s": 6.27,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 278,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QTZ-0111",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 820,
+        "latency_s": 6.43,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 287,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QTZ-0112",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 914,
+        "latency_s": 6.9,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 309,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QTZ-0113",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 899,
+        "latency_s": 6.86,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 304,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QTZ-0101",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 901,
+        "latency_s": 6.98,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 313,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QTZ-0102",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 883,
+        "latency_s": 6.97,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 311,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-MBL-0110",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 853,
+        "latency_s": 6.59,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 293,
+        "thinking_len": 0
+      },
+      {
+        "row": "SSI-QTZ-0304",
+        "valid": true,
+        "mode": "valid",
+        "content_len": 974,
+        "latency_s": 7.48,
+        "errors": [],
+        "finish": "stop",
+        "compl_tokens": 331,
+        "thinking_len": 0
+      }
+    ]
+  },
+  "C_ablation": {
+    "valid": 0,
+    "n": 20,
+    "pct": 0.0,
+    "modes": {
+      "valid": 0,
+      "truncated": 15,
+      "missing_fields": 0,
+      "other_invalid": 2,
+      "empty": 2,
+      "http_err": 1
+    },
+    "rows": [
+      {
+        "row": "SSI-PRC-0102",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 273,
+        "latency_s": 58.68,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 2 column 10 (char 234)"
+        ],
+        "finish": "",
+        "compl_tokens": null,
+        "thinking_len": 8067
+      },
+      {
+        "row": "SSI-MBL-0113",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 12282,
+        "latency_s": 148.83,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 1 column 190 (char 189)"
+        ],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 8551
+      },
+      {
+        "row": "SSI-GRN-0115",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 10354,
+        "latency_s": 147.17,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 7 column 84 (char 488)"
+        ],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 8487
+      },
+      {
+        "row": "SSI-QTZ-0100",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 18107,
+        "latency_s": 149.25,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 1 column 893 (char 892)"
+        ],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 8519
+      },
+      {
+        "row": "SSI-GRN-0107",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 10274,
+        "latency_s": 153.31,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 1 column 199 (char 198)"
+        ],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 9422
+      },
+      {
+        "row": "SSI-QZT-0100",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 2027,
+        "latency_s": 101.81,
+        "errors": [
+          "json_parse_error: Expecting ',' delimiter: line 1 column 1982 (char 1981)"
+        ],
+        "finish": "",
+        "compl_tokens": null,
+        "thinking_len": 12711
+      },
+      {
+        "row": "SSI-QTZ-0200",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 1728,
+        "latency_s": 79.52,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 1 column 1685 (char 1684)"
+        ],
+        "finish": "",
+        "compl_tokens": null,
+        "thinking_len": 9955
+      },
+      {
+        "row": "SSI-LMS-0102",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 14330,
+        "latency_s": 138.34,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 8 column 21 (char 2552)"
+        ],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 6719
+      },
+      {
+        "row": "SSI-QTZ-0203",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 202,
+        "latency_s": 62.1,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 1 column 164 (char 163)"
+        ],
+        "finish": "",
+        "compl_tokens": null,
+        "thinking_len": 9257
+      },
+      {
+        "row": "SSI-MOS-0100",
+        "valid": false,
+        "mode": "other_invalid",
+        "content_len": 594,
+        "latency_s": 77.11,
+        "errors": [
+          "pattern:sku 'SSI-MOS-im0100' does not match ^[A-Z0-9\\-]{3,30}$"
+        ],
+        "finish": "stop",
+        "compl_tokens": 183,
+        "thinking_len": 11192
+      },
+      {
+        "row": "SSI-PRC-0105",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 23320,
+        "latency_s": 170.9,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 1 column 171 (char 170)"
+        ],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 11790
+      },
+      {
+        "row": "SSI-MBL-0100",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 204,
+        "latency_s": 42.99,
+        "errors": [
+          "json_parse_error: Expecting ',' delimiter: line 1 column 157 (char 156)"
+        ],
+        "finish": "",
+        "compl_tokens": null,
+        "thinking_len": 5825
+      },
+      {
+        "row": "SSI-GRN-0100",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 14303,
+        "latency_s": 129.46,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 1 column 192 (char 191)"
+        ],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 5516
+      },
+      {
+        "row": "SSI-QTZ-0111",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 499,
+        "latency_s": 57.44,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 3 column 1 (char 460)"
+        ],
+        "finish": "",
+        "compl_tokens": null,
+        "thinking_len": 7910
+      },
+      {
+        "row": "SSI-QTZ-0112",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 6382,
+        "latency_s": 127.32,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 4 column 51 (char 380)"
+        ],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 5357
+      },
+      {
+        "row": "SSI-QTZ-0113",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 99.42,
+        "errors": [],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 14360
+      },
+      {
+        "row": "SSI-QTZ-0101",
+        "valid": false,
+        "mode": "other_invalid",
+        "content_len": 1210,
+        "latency_s": 176.14,
+        "errors": [
+          "type:enrichment_confidence must be number"
+        ],
+        "finish": "stop",
+        "compl_tokens": 318,
+        "thinking_len": 6579
+      },
+      {
+        "row": "SSI-QTZ-0102",
+        "valid": false,
+        "mode": "truncated",
+        "content_len": 439,
+        "latency_s": 161.38,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 2 column 43 (char 400)"
+        ],
+        "finish": "",
+        "compl_tokens": null,
+        "thinking_len": 6900
+      },
+      {
+        "row": "SSI-MBL-0110",
+        "valid": null,
+        "mode": "empty",
+        "content_len": 0,
+        "latency_s": 146.56,
+        "errors": [],
+        "finish": "length",
+        "compl_tokens": 4096,
+        "thinking_len": 13454
+      },
+      {
+        "row": "SSI-QTZ-0304",
+        "valid": null,
+        "mode": "http_err",
+        "http_status": 0,
+        "latency_s": 300.1,
+        "errors": [
+          "HTTP 0"
+        ],
+        "error": "timed out"
+      }
+    ]
+  }
+}

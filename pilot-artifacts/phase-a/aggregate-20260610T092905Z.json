@@ -1,0 +1,33 @@
+{
+  "run_ts": "20260610T092905Z",
+  "jsonl_files": [
+    "run-metrics-27a8ec2b-9cf4-4159-99a8-a37d724e4649.jsonl",
+    "run-metrics-33695f8a-8c65-4d8e-b43b-a7e471cfe386.jsonl",
+    "run-metrics-3b492ca9-04b4-40d2-9edb-75a409bf06fb.jsonl",
+    "run-metrics-44bb91a0-1141-473a-a51c-25d3f34ce2ee.jsonl",
+    "run-metrics-48097f1e-15ab-4398-a990-b10d34905c59.jsonl",
+    "run-metrics-73f02e29-8d47-4467-9924-cb3730571541.jsonl",
+    "run-metrics-759cc2f6-932b-4bea-8992-b7c15e755b55.jsonl",
+    "run-metrics-823b4e7e-2d1e-44bf-b9f1-3537631b7aba.jsonl",
+    "run-metrics-8fb28ab7-794c-4981-96b3-a7330d03b106.jsonl",
+    "run-metrics-9b2e22ec-17f0-4170-affe-17f4db6a88fb.jsonl",
+    "run-metrics-c0ff1b13-4a89-4cf1-b057-5dc355d796aa.jsonl",
+    "run-metrics-d9e60ecb-7739-4292-b60f-88afdf271e89.jsonl"
+  ],
+  "rows_processed": 100,
+  "tier_distribution": {
+    "primary": 1,
+    "fallback": 85,
+    "failed": 14
+  },
+  "schema_valid_rate_primary": 0.01,
+  "reviewer_flagged_rate": 0.0,
+  "latency_primary_p50_s": 41.34,
+  "latency_primary_p95_s": 50.385,
+  "latency_fallback_p50_s": 12.173,
+  "latency_fallback_p95_s": 44.123,
+  "latency_reviewer_p50_s": 0.004,
+  "latency_reviewer_p95_s": 0.03,
+  "wall_time_s": 5963.4,
+  "total_cost_usd": 0.0
+}

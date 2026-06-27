@@ -1,0 +1,29 @@
+# SAG-4804 Status
+## State: COMPLETE (canary done, pending director approval)
+
+## Summary
+- Canary target: `workflow-find-verify-synthesize/SKILL.md`
+- 3-run canary completed: Run 1 (+14), Run 2 (+14 confirmed), Run 3 (+5)
+- Total delta: +19/100 (score 66→85)
+- No regressions in any dimension across all 3 runs
+- SKILL.md edits applied live to `~/.claude/skills/workflow-find-verify-synthesize/SKILL.md`
+  - Added "When NOT to use" section (aligns with improve-loop and self-evolve patterns)
+  - Moved "Reporting rule" into Synthesize phase (removes bury-in-last-section)
+  - Added inline cross-references (template workflow, verification-before-completion)
+  - Added "Mixed results" section (prevents silent dismissal of rejected findings)
+- Canary docs: `skills-src/self-evolve/canary/SAG-4804-canary-run1.md`, `skills-src/self-evolve/canary/SAG-4804-run1.md`
+
+## Delta details
+| Run | Clarity | Safety | Traceability | Completeness | Total delta |
+|-----|---------|--------|----------|--------------|-------|
+| 1   | +3      | +3     | +5       | +3           | +14       |
+| 2   | +3      | +3     | +5       | +3           | +14       |
+| 3   | +2      | +1     | +1       | +1           | +5        |
+
+## Guardrails honored
+- Only SKILL.md edits — no template changes or behavioral contract changes
+- No auto-merge — changes in live doc only; PR creation blocked on director approval
+- Director approval NOT received — fleet rollout NOT AUTHORIZED
+
+## Remaining
+- PR creation / fleet rollout pending Director approval (canary succeeded; no auto-merge applied)

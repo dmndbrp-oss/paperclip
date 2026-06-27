@@ -1,0 +1,31 @@
+{
+  "bench": "SAG-3075 local dynamic-workflow demo on SAG-3086",
+  "mode": "single-tool",
+  "concurrency": 4,
+  "rows": [
+    {
+      "model": "qwen3:30b-a3b",
+      "concurrency": 4,
+      "N": 12,
+      "passed": "12/12",
+      "pass_pct": 100,
+      "errors": 0,
+      "wall_parallel_s": 384.5,
+      "serial_equiv_s": 1222.4,
+      "speedup_x": 3.18,
+      "tok_per_sec": 57.0
+    },
+    {
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "concurrency": 4,
+      "N": 12,
+      "passed": "12/12",
+      "pass_pct": 100,
+      "errors": 0,
+      "wall_parallel_s": 4.7,
+      "serial_equiv_s": 16.5,
+      "speedup_x": 3.52,
+      "tok_per_sec": 53.1
+    }
+  ]
+}

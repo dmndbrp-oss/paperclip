@@ -1,0 +1,141 @@
+2026-06-16 08:21:19,481 INFO [enrichment_sku] 20 rows, model=gemma4:26b-a4b-it-q4_K_M
+2026-06-16 08:21:19,481 INFO [enrichment_sku] row 1/20 id=enr-001
+2026-06-16 08:21:36,437 INFO [enrichment_sku] row 2/20 id=enr-002
+2026-06-16 08:21:58,016 INFO [enrichment_sku] row 3/20 id=enr-003
+2026-06-16 08:22:16,851 INFO [enrichment_sku] row 4/20 id=enr-004
+2026-06-16 08:22:34,856 INFO [enrichment_sku] row 5/20 id=enr-005
+2026-06-16 08:22:54,122 INFO [enrichment_sku] row 6/20 id=enr-006
+2026-06-16 08:23:14,788 INFO [enrichment_sku] row 7/20 id=enr-007
+2026-06-16 08:23:38,405 INFO [enrichment_sku] row 8/20 id=enr-008
+2026-06-16 08:24:01,301 INFO [enrichment_sku] row 9/20 id=enr-009
+2026-06-16 08:24:21,006 INFO [enrichment_sku] row 10/20 id=enr-010
+2026-06-16 08:24:41,256 INFO [enrichment_sku] row 11/20 id=enr-011
+2026-06-16 08:25:03,898 INFO [enrichment_sku] row 12/20 id=enr-012
+2026-06-16 08:25:24,372 INFO [enrichment_sku] row 13/20 id=enr-013
+2026-06-16 08:25:46,268 INFO [enrichment_sku] row 14/20 id=enr-014
+2026-06-16 08:26:06,983 INFO [enrichment_sku] row 15/20 id=enr-015
+2026-06-16 08:26:28,259 INFO [enrichment_sku] row 16/20 id=enr-016
+2026-06-16 08:26:49,282 INFO [enrichment_sku] row 17/20 id=enr-017
+2026-06-16 08:27:11,915 INFO [enrichment_sku] row 18/20 id=enr-018
+2026-06-16 08:27:31,695 INFO [enrichment_sku] row 19/20 id=enr-019
+2026-06-16 08:27:53,677 INFO [enrichment_sku] row 20/20 id=enr-020
+2026-06-16 08:28:13,459 INFO [enrichment_sku] done: task_correct=85.0% clean=100.0% errors=0
+2026-06-16 08:28:13,460 INFO [doc_extraction] 20 rows, model=gemma4:26b-a4b-it-q4_K_M
+2026-06-16 08:28:13,460 INFO [doc_extraction] row 1/20 id=doc-001
+2026-06-16 08:28:34,367 INFO [doc_extraction] row 2/20 id=doc-002
+2026-06-16 08:29:00,529 INFO [doc_extraction] row 3/20 id=doc-003
+2026-06-16 08:29:24,100 INFO [doc_extraction] row 4/20 id=doc-004
+2026-06-16 08:29:50,020 INFO [doc_extraction] row 5/20 id=doc-005
+2026-06-16 08:30:16,473 INFO [doc_extraction] row 6/20 id=doc-006
+2026-06-16 08:30:40,183 INFO [doc_extraction] row 7/20 id=doc-007
+2026-06-16 08:31:07,835 INFO [doc_extraction] row 8/20 id=doc-008
+2026-06-16 08:31:36,916 INFO [doc_extraction] row 9/20 id=doc-009
+2026-06-16 08:31:59,929 INFO [doc_extraction] row 10/20 id=doc-010
+2026-06-16 08:32:20,255 INFO [doc_extraction] row 11/20 id=doc-011
+2026-06-16 08:32:45,528 INFO [doc_extraction] row 12/20 id=doc-012
+2026-06-16 08:33:10,531 INFO [doc_extraction] row 13/20 id=doc-013
+2026-06-16 08:33:34,471 INFO [doc_extraction] row 14/20 id=doc-014
+2026-06-16 08:33:54,367 INFO [doc_extraction] row 15/20 id=doc-015
+2026-06-16 08:34:17,836 INFO [doc_extraction] row 16/20 id=doc-016
+2026-06-16 08:34:41,101 INFO [doc_extraction] row 17/20 id=doc-017
+2026-06-16 08:35:04,660 INFO [doc_extraction] row 18/20 id=doc-018
+2026-06-16 08:35:26,175 INFO [doc_extraction] row 19/20 id=doc-019
+2026-06-16 08:35:51,258 INFO [doc_extraction] row 20/20 id=doc-020
+2026-06-16 08:36:17,753 INFO [doc_extraction] done: task_correct=10.0% clean=100.0% errors=0
+2026-06-16 08:36:17,754 INFO [pricing] 20 rows, model=gemma4:26b-a4b-it-q4_K_M
+2026-06-16 08:36:17,755 INFO [pricing] row 1/20 id=price-001
+2026-06-16 08:36:44,791 INFO [pricing] row 2/20 id=price-002
+2026-06-16 08:37:08,603 INFO [pricing] row 3/20 id=price-003
+2026-06-16 08:37:36,087 INFO [pricing] row 4/20 id=price-004
+2026-06-16 08:38:00,656 INFO [pricing] row 5/20 id=price-005
+2026-06-16 08:38:29,742 INFO [pricing] row 6/20 id=price-006
+2026-06-16 08:38:54,838 INFO [pricing] row 7/20 id=price-007
+2026-06-16 08:39:23,382 INFO [pricing] row 8/20 id=price-008
+2026-06-16 08:39:47,689 INFO [pricing] row 9/20 id=price-009
+2026-06-16 08:40:12,623 INFO [pricing] row 10/20 id=price-010
+2026-06-16 08:40:39,124 INFO [pricing] row 11/20 id=price-011
+2026-06-16 08:41:06,035 INFO [pricing] row 12/20 id=price-012
+2026-06-16 08:41:29,990 INFO [pricing] row 13/20 id=price-013
+2026-06-16 08:41:54,232 INFO [pricing] row 14/20 id=price-014
+2026-06-16 08:42:22,958 INFO [pricing] row 15/20 id=price-015
+2026-06-16 08:42:51,300 INFO [pricing] row 16/20 id=price-016
+2026-06-16 08:43:16,518 INFO [pricing] row 17/20 id=price-017
+2026-06-16 08:43:45,128 INFO [pricing] row 18/20 id=price-018
+2026-06-16 08:44:13,382 INFO [pricing] row 19/20 id=price-019
+2026-06-16 08:44:41,916 INFO [pricing] row 20/20 id=price-020
+2026-06-16 08:45:08,466 INFO [pricing] done: task_correct=100.0% clean=100.0% errors=0
+2026-06-16 08:45:08,467 INFO [code_review] 20 rows, model=gemma4:26b-a4b-it-q4_K_M
+2026-06-16 08:45:08,467 INFO [code_review] row 1/20 id=cr-001
+2026-06-16 08:45:33,206 INFO [code_review] row 2/20 id=cr-002
+2026-06-16 08:45:54,473 INFO [code_review] row 3/20 id=cr-003
+2026-06-16 08:46:19,581 INFO [code_review] row 4/20 id=cr-004
+2026-06-16 08:46:46,842 INFO [code_review] row 5/20 id=cr-005
+2026-06-16 08:47:09,138 INFO [code_review] row 6/20 id=cr-006
+2026-06-16 08:47:34,267 INFO [code_review] row 7/20 id=cr-007
+2026-06-16 08:47:59,706 INFO [code_review] row 8/20 id=cr-008
+2026-06-16 08:48:28,377 INFO [code_review] row 9/20 id=cr-009
+2026-06-16 08:48:50,694 INFO [code_review] row 10/20 id=cr-010
+2026-06-16 08:49:16,525 INFO [code_review] row 11/20 id=cr-011
+2026-06-16 08:49:40,913 INFO [code_review] row 12/20 id=cr-012
+2026-06-16 08:50:07,546 INFO [code_review] row 13/20 id=cr-013
+2026-06-16 08:50:30,832 INFO [code_review] row 14/20 id=cr-014
+2026-06-16 08:50:57,616 INFO [code_review] row 15/20 id=cr-015
+2026-06-16 08:51:20,534 INFO [code_review] row 16/20 id=cr-016
+2026-06-16 08:51:45,133 INFO [code_review] row 17/20 id=cr-017
+2026-06-16 08:52:07,267 INFO [code_review] row 18/20 id=cr-018
+2026-06-16 08:52:31,322 INFO [code_review] row 19/20 id=cr-019
+2026-06-16 08:52:51,209 INFO [code_review] row 20/20 id=cr-020
+2026-06-16 08:53:13,026 INFO [code_review] done: task_correct=90.0% clean=100.0% errors=0
+2026-06-16 08:53:13,027 INFO [qa_unit_tests] 20 rows, model=gemma4:26b-a4b-it-q4_K_M
+2026-06-16 08:53:13,027 INFO [qa_unit_tests] row 1/20 id=qa-001
+2026-06-16 08:53:38,848 INFO [qa_unit_tests] row 2/20 id=qa-002
+2026-06-16 08:54:04,815 INFO [qa_unit_tests] row 3/20 id=qa-003
+2026-06-16 08:54:29,137 INFO [qa_unit_tests] row 4/20 id=qa-004
+2026-06-16 08:54:55,991 INFO [qa_unit_tests] row 5/20 id=qa-005
+2026-06-16 08:55:25,661 INFO [qa_unit_tests] row 6/20 id=qa-006
+2026-06-16 08:55:53,960 INFO [qa_unit_tests] row 7/20 id=qa-007
+2026-06-16 08:56:19,967 INFO [qa_unit_tests] row 8/20 id=qa-008
+2026-06-16 08:56:48,794 INFO [qa_unit_tests] row 9/20 id=qa-009
+2026-06-16 08:57:16,912 INFO [qa_unit_tests] row 10/20 id=qa-010
+2026-06-16 08:57:45,659 INFO [qa_unit_tests] row 11/20 id=qa-011
+2026-06-16 08:58:10,345 INFO [qa_unit_tests] row 12/20 id=qa-012
+2026-06-16 08:58:42,478 INFO [qa_unit_tests] row 13/20 id=qa-013
+2026-06-16 08:59:08,393 INFO [qa_unit_tests] row 14/20 id=qa-014
+2026-06-16 08:59:33,080 INFO [qa_unit_tests] row 15/20 id=qa-015
+2026-06-16 09:00:00,264 INFO [qa_unit_tests] row 16/20 id=qa-016
+2026-06-16 09:00:25,493 INFO [qa_unit_tests] row 17/20 id=qa-017
+2026-06-16 09:00:54,203 INFO [qa_unit_tests] row 18/20 id=qa-018
+2026-06-16 09:02:13,622 INFO [qa_unit_tests] row 19/20 id=qa-019
+2026-06-16 09:02:47,480 INFO [qa_unit_tests] row 20/20 id=qa-020
+2026-06-16 09:03:29,548 INFO [qa_unit_tests] done: task_correct=100.0% clean=100.0% errors=0
+2026-06-16 09:03:29,549 INFO [paralegal] 20 rows, model=gemma4:26b-a4b-it-q4_K_M
+2026-06-16 09:03:29,549 INFO [paralegal] row 1/20 id=par-001
+2026-06-16 09:03:58,458 INFO [paralegal] row 2/20 id=par-002
+2026-06-16 09:04:27,579 INFO [paralegal] row 3/20 id=par-003
+2026-06-16 09:05:02,086 INFO [paralegal] row 4/20 id=par-004
+2026-06-16 09:05:37,591 INFO [paralegal] row 5/20 id=par-005
+2026-06-16 09:05:40,484 INFO [paralegal] row 6/20 id=par-006
+2026-06-16 09:05:43,580 INFO [paralegal] row 7/20 id=par-007
+2026-06-16 09:05:46,578 INFO [paralegal] row 8/20 id=par-008
+2026-06-16 09:05:49,203 INFO [paralegal] row 9/20 id=par-009
+2026-06-16 09:05:52,113 INFO [paralegal] row 10/20 id=par-010
+2026-06-16 09:05:55,145 INFO [paralegal] row 11/20 id=par-011
+2026-06-16 09:06:42,964 INFO [paralegal] row 12/20 id=par-012
+2026-06-16 09:07:40,657 INFO [paralegal] row 13/20 id=par-013
+2026-06-16 09:08:31,501 INFO [paralegal] row 14/20 id=par-014
+2026-06-16 09:09:22,409 INFO [paralegal] row 15/20 id=par-015
+2026-06-16 09:10:13,198 INFO [paralegal] row 16/20 id=par-016
+2026-06-16 09:10:16,553 INFO [paralegal] row 17/20 id=par-017
+2026-06-16 09:10:19,509 INFO [paralegal] row 18/20 id=par-018
+2026-06-16 09:10:22,481 INFO [paralegal] row 19/20 id=par-019
+2026-06-16 09:10:26,196 INFO [paralegal] row 20/20 id=par-020
+2026-06-16 09:10:29,075 INFO [paralegal] done: task_correct=70.0% clean=100.0% errors=0
+2026-06-16 09:10:29,076 INFO Results written to /home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/infra/runtime-eval/results/20260616T132119Z.json
+
+=== EVAL SUMMARY ===
+  enrichment_sku: task_correct=85.0% CI95[0.64,0.95]  clean=100.0%  errors=0/20
+  doc_extraction: task_correct=10.0% CI95[0.03,0.30]  clean=100.0%  errors=0/20
+  pricing: task_correct=100.0% CI95[0.84,1.00]  clean=100.0%  errors=0/20
+  code_review: task_correct=90.0% CI95[0.70,0.97]  clean=100.0%  errors=0/20
+  qa_unit_tests: task_correct=100.0% CI95[0.84,1.00]  clean=100.0%  errors=0/20
+  paralegal: task_correct=70.0% CI95[0.48,0.85]  clean=100.0%  errors=0/20

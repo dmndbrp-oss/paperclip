@@ -1,0 +1,258 @@
+{
+  "L0_baseline": {
+    "config_delta": {
+      "max_tokens": 2048
+    },
+    "n": 3,
+    "valid": 0,
+    "schema_valid_pct": 0.0,
+    "rows": [
+      {
+        "row": "SSI-LMS-0110",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 1749,
+        "content_len": 845,
+        "errors": [
+          "null_required_field:availability"
+        ],
+        "latency_s": 48.95
+      },
+      {
+        "row": "SSI-TRV-0115",
+        "valid": null,
+        "finish_reason": "stop",
+        "completion_tokens": 2048,
+        "content_len": 0,
+        "errors": "emp",
+        "latency_s": 137.14
+      },
+      {
+        "row": "SSI-LMS-0109",
+        "valid": null,
+        "finish_reason": "stop",
+        "completion_tokens": 2048,
+        "content_len": 0,
+        "errors": "emp",
+        "latency_s": 44.55
+      }
+    ]
+  },
+  "L1_json_object": {
+    "config_delta": {
+      "max_tokens": 2048,
+      "response_format": {
+        "type": "json_object"
+      }
+    },
+    "n": 3,
+    "valid": 0,
+    "schema_valid_pct": 0.0,
+    "rows": [
+      {
+        "row": "SSI-LMS-0110",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 0,
+        "content_len": 558,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 1 column 520 (char 519)"
+        ],
+        "latency_s": 4.95
+      },
+      {
+        "row": "SSI-TRV-0115",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 89,
+        "content_len": 264,
+        "errors": [
+          "missing_required_field:price_tier",
+          "missing_required_field:is_outdoor",
+          "missing_required_field:enrichment_confidence"
+        ],
+        "latency_s": 2.4
+      },
+      {
+        "row": "SSI-LMS-0109",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 2048,
+        "content_len": 10822,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 2 column 83 (char 444)"
+        ],
+        "latency_s": 47.4
+      }
+    ]
+  },
+  "L2_4k_tokens": {
+    "config_delta": {
+      "max_tokens": 4096
+    },
+    "n": 3,
+    "valid": 0,
+    "schema_valid_pct": 0.0,
+    "rows": [
+      {
+        "row": "SSI-LMS-0110",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 2885,
+        "content_len": 805,
+        "errors": [
+          "json_parse_error: Expecting value: line 1 column 1 (char 0)"
+        ],
+        "latency_s": 64.65
+      },
+      {
+        "row": "SSI-TRV-0115",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 2550,
+        "content_len": 812,
+        "errors": [
+          "null_required_field:availability"
+        ],
+        "latency_s": 56.98
+      },
+      {
+        "row": "SSI-LMS-0109",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 2001,
+        "content_len": 709,
+        "errors": [
+          "json_parse_error: Expecting value: line 1 column 1 (char 0)"
+        ],
+        "latency_s": 43.43
+      }
+    ]
+  },
+  "L3_temp0": {
+    "config_delta": {
+      "max_tokens": 2048,
+      "temperature": 0
+    },
+    "n": 3,
+    "valid": 0,
+    "schema_valid_pct": 0.0,
+    "rows": [
+      {
+        "row": "SSI-LMS-0110",
+        "valid": null,
+        "finish_reason": "stop",
+        "completion_tokens": 2048,
+        "content_len": 0,
+        "errors": "emp",
+        "latency_s": 46.2
+      },
+      {
+        "row": "SSI-TRV-0115",
+        "valid": null,
+        "finish_reason": "stop",
+        "completion_tokens": 2048,
+        "content_len": 0,
+        "errors": "emp",
+        "latency_s": 45.29
+      },
+      {
+        "row": "SSI-LMS-0109",
+        "valid": null,
+        "finish_reason": "stop",
+        "completion_tokens": 2048,
+        "content_len": 0,
+        "errors": "emp",
+        "latency_s": 97.93
+      }
+    ]
+  },
+  "L4_think_false": {
+    "config_delta": {
+      "max_tokens": 2048
+    },
+    "n": 3,
+    "valid": 0,
+    "schema_valid_pct": 0.0,
+    "rows": [
+      {
+        "row": "SSI-LMS-0110",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 1945,
+        "content_len": 832,
+        "errors": [
+          "json_parse_error: Expecting value: line 1 column 1 (char 0)"
+        ],
+        "latency_s": 42.26
+      },
+      {
+        "row": "SSI-TRV-0115",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 1988,
+        "content_len": 538,
+        "errors": [
+          "json_parse_error: Expecting value: line 1 column 1 (char 0)"
+        ],
+        "latency_s": 43.24
+      },
+      {
+        "row": "SSI-LMS-0109",
+        "valid": null,
+        "finish_reason": "stop",
+        "completion_tokens": 2048,
+        "content_len": 0,
+        "errors": "emp",
+        "latency_s": 44.83
+      }
+    ]
+  },
+  "L_combo_1234": {
+    "config_delta": {
+      "max_tokens": 4096,
+      "response_format": {
+        "type": "json_object"
+      },
+      "temperature": 0
+    },
+    "n": 3,
+    "valid": 1,
+    "schema_valid_pct": 33.3,
+    "rows": [
+      {
+        "row": "SSI-LMS-0110",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 4096,
+        "content_len": 10300,
+        "errors": [
+          "json_parse_error: Unterminated string starting at: line 1 column 365 (char 364)"
+        ],
+        "latency_s": 95.34
+      },
+      {
+        "row": "SSI-TRV-0115",
+        "valid": false,
+        "finish_reason": "stop",
+        "completion_tokens": 526,
+        "content_len": 1497,
+        "errors": [
+          "missing_required_field:price_tier",
+          "missing_required_field:is_outdoor",
+          "missing_required_field:enrichment_confidence"
+        ],
+        "latency_s": 12.74
+      },
+      {
+        "row": "SSI-LMS-0109",
+        "valid": true,
+        "finish_reason": "stop",
+        "completion_tokens": 215,
+        "content_len": 660,
+        "errors": [],
+        "latency_s": 6.9
+      }
+    ]
+  }
+}

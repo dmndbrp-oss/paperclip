@@ -1,0 +1,22 @@
+{
+  "model": "qwen3:30b-a3b",
+  "system": "You are a concise technical summarizer. Answer the prompt in 2-4 sentences. No preamble. No markdown headers. Output plain prose only.",
+  "tasks": [
+    {
+      "id": "objective",
+      "prompt": "Summarize the objective of this Paperclip ticket in 2-3 sentences:\n\nTitle: SAG-3075 Dynamic Agent Workflows\n\nDescription: Anthropic just released 'Dynamic Workflows'. Look at the picture attached to show an illustration of how it works vs standard agentic tasks. Do a deep dive and understand how Dynamic Workflows work. Are Dynamic Workflows something that we could utilize with a bunch of local agents? This is a brainstorming session to learn. Don't start implementing until I sign off."
+    },
+    {
+      "id": "findings",
+      "prompt": "Summarize the key research findings from this investigation in 3-4 sentences:\n\nFindings: (1) Anthropic's Dynamic Workflows = a deterministic orchestrator fans out parallel tasks to subagents; our existing Workflow tool IS this for cloud. (2) Local equivalent = parallel HTTP calls to Ollama (run_dynamic.py), 0 cloud tokens used. (3) Measured ceiling: same-model fan-out runs at full speed up to 4-wide on an idle Strix Halo box (single iGPU batches requests). (4) DIFFERENT models do NOT co-reside — OLLAMA_MAX_LOADED_MODELS=1 means the service swaps and queues them, causing throughput to collapse. (5) Demo on SAG-3086: 3.3x speedup measured; wall time 385s serial vs 5s parallel pure CONTENTION under shared load. (6) Key conceptual insight: Agent Teams = DECIDE, Dynamic Workflows = EXECUTE-at-scale."
+    },
+    {
+      "id": "decision",
+      "prompt": "Summarize the board decision and outcome for this ticket in 2-3 sentences:\n\nOutcome: The board chose LEARN-ONLY (file and stop, no pilot or build). Verdict was CLOUD-yes (already in use via Workflow tool) and LOCAL-ok-with-ceiling (parallel Ollama HTTP works but tops out at 4-wide same-model). The local-dynamic-workflow skill was built and attached (scripts: room_check.py + fanout.py). Child SAG-3113 was completed. SAG-3075 was marked DONE 2026-06-06."
+    },
+    {
+      "id": "local_usage",
+      "prompt": "Explain in 2-3 sentences how a team would use the local dynamic workflow in practice, based on these notes:\n\nUsage: Run room_check.py to get recommended concurrency (1-4 workers based on free memory, load-per-core, and what is loaded in Ollama). Run fanout.py with a tasks.json specifying prompts and model. Fan out ONE model at a time — different models cause Ollama to swap, thrashing throughput. Use setsid-detach for long runs so they survive session recycling."
+    }
+  ]
+}

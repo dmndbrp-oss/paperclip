@@ -1,0 +1,72 @@
+{
+  "_meta": {
+    "purpose": "Ready-to-hire agent config for the Failover Monitor (SAG-4610). Board/CEO uses this to fire the hire request. Do NOT create the agent until a 2nd board go is issued (canary-first gate). See SAG-4610 issue thread for approval status.",
+    "hire_endpoint": "POST /api/companies/{companyId}/agents",
+    "instructions_path": "failover-monitor/INSTRUCTIONS.md (committed to project repo)",
+    "pairing_map_path": "failover-monitor/PAIRING-MAP.json",
+    "routine_config": "failover-monitor/ROUTINE-CONFIG.json (to be created in downstream issue)"
+  },
+  "hire_payload": {
+    "name": "Failover Monitor (Qwen3.6)",
+    "role": "engineer",
+    "title": "Failover Monitor",
+    "icon": "activity",
+    "reportsTo": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+    "adapterType": "opencode_local",
+    "adapterConfig": {
+      "model": "ollama/qwen3.6:latest",
+      "command": "/home/gus-pinsoneault/.opencode/bin/opencode",
+      "timeoutSec": 86400,
+      "dangerouslySkipPermissions": true,
+      "paperclipSkillSync": {
+        "desiredSkills": [
+          "paperclipai/paperclip/paperclip",
+          "paperclipai/paperclip/para-memory-files"
+        ]
+      }
+    },
+    "instructionsBundle": {
+      "entryFile": "AGENTS.md",
+      "files_note": "Populate AGENTS.md from failover-monitor/INSTRUCTIONS.md (identity header + algorithm + 4 gates + HANDOFF/RETURN templates + standard execution contract). Do NOT rely on the top-level 'instructions' string below — managed-bundle adapters read instructionsBundle.files['AGENTS.md'], not 'instructions'."
+    },
+    "runtimeConfig": {
+      "heartbeat": { "enabled": false, "wakeOnDemand": true, "maxConcurrentRuns": 1 }
+    },
+    "budgetMonthlyCents": 0,
+    "capabilities": "Lightweight infrastructure agent that polls for cloud IC agents stalled on session/usage limits and hands their work to on-box local understudies per the approved pairing map (failover-monitor/PAIRING-MAP.json). Applies four gates: tier (allowlist-only), idempotency (no re-failover), sensitivity (default-deny on NO-FAILOVER/credentials/PII markers), and understudy availability. Posts structured FAILOVER-HANDOFF comments and reassigns assigneeAgentId. Does no domain work itself — API calls only. Woken by cron routine every ~5 min (skip_if_active).",
+    "instructions": "See failover-monitor/INSTRUCTIONS.md in the project repo. The instructions file contains the full decision-logic algorithm, the four gates, the FAILOVER-HANDOFF comment template, and standing instructions for understudies and cloud agents."
+  },
+  "adapter_notes": {
+    "adapterType": "opencode_local",
+    "why": "True on-box local — Ollama/Qwen3.6, no cloud session cap, always available when cloud agents are limit-stalled. This is exactly the scenario the Monitor must operate in.",
+    "model": "ollama/qwen3.6:latest (set EXPLICITLY in adapterConfig.model)",
+    "adapterConfig_empty_is_correct": false,
+    "CORRECTION_2026-06-23": "PRIOR ASSUMPTION WAS WRONG. Empty adapterConfig does NOT default to qwen3.6 on this server — it defaults to cloud 'openai/gpt-5.2-codex', which breaks a $0-budget local agent. The live hire (4bd33af1) was created from the empty-config package and came up on the cloud model with generic boilerplate instructions. CTO corrected the live agent via PATCH /api/agents/{id} (model+command+skills+dangerouslySkipPermissions+instructionsBundle+wakeOnDemand) and fixed this package so any future re-hire is correct. Reference agents 9a20c1b5 and 1bb6be46 set model='ollama/qwen3.6:latest' EXPLICITLY — they are not empty-config.",
+    "reference_agents": [
+      "9a20c1b5-a039-4c18-8962-2825e3f28538 (Coder Qwen3.6) — adapterConfig.model='ollama/qwen3.6:latest', command set, dangerouslySkipPermissions:true",
+      "1bb6be46-f589-45f5-9969-0c20e23cebfc (Research Assistant Qwen3.6) — adapterConfig.model='ollama/qwen3.6:latest', command set, dangerouslySkipPermissions:true"
+    ]
+  },
+  "routine_stub": {
+    "note": "Routine creation is a downstream issue (separate board go). Stub here for reference.",
+    "trigger_type": "schedule",
+    "cron": "*/5 * * * *",
+    "concurrencyPolicy": "skip_if_active",
+    "catchUpPolicy": "skip",
+    "title": "Failover Monitor tick",
+    "description": "Wake the Failover Monitor to scan for cloud agents stalled on usage/session limits and failover eligible IC issues to local understudies per PAIRING-MAP.json."
+  },
+  "canary_plan": {
+    "note": "Per SAG-4610 gates: canary-first, single proven pairing, 2nd board go before fleet-wide rollout.",
+    "recommended_canary_pairing": {
+      "cloud": "Coder (Sonnet 4.6) — 3ab7fa06",
+      "local": "Coder (Qwen3.6) — 9a20c1b5",
+      "reason": "Same-department SWE pair, well-understood work types, Coder (Qwen3.6) is proven-capable and actively used. Easy to verify handoff quality."
+    },
+    "rollout_phases": [
+      "Phase 1 (canary): Enable for Coder pair only. Verify one real failover end-to-end (trigger, HANDOFF comment, understudy execution, RETURN comment, cloud review).",
+      "Phase 2 (2nd board go): Extend to all 8 pairings in PAIRING-MAP.json if canary passes.",
+      "Out of scope for SAG-4610: routine creation, live hire, fleet rollout — these are downstream issues."
+    ]
+  }
+}

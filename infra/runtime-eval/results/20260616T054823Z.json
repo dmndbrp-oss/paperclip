@@ -1,0 +1,1081 @@
+{
+  "run_ts": "20260616T054823Z",
+  "model": "gemma4:26b-a4b-it-q4_K_M",
+  "dry_run": true,
+  "classes": {
+    "enrichment_sku": {
+      "class": "enrichment_sku",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 1.0,
+      "task_correct_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "enr-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "enr-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        }
+      ]
+    },
+    "doc_extraction": {
+      "class": "doc_extraction",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 1.0,
+      "task_correct_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "doc-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "doc-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        }
+      ]
+    },
+    "pricing": {
+      "class": "pricing",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 1.0,
+      "task_correct_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "price-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "price-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        }
+      ]
+    },
+    "code_review": {
+      "class": "code_review",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 1.0,
+      "task_correct_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "cr-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "cr-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        }
+      ]
+    },
+    "qa_unit_tests": {
+      "class": "qa_unit_tests",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 1.0,
+      "task_correct_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "qa-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "qa-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        }
+      ]
+    },
+    "paralegal": {
+      "class": "paralegal",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 1.0,
+      "task_correct_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "par-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-003",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-007",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-008",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-017",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-018",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-019",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        },
+        {
+          "id": "par-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 0.0,
+          "error": null
+        }
+      ]
+    }
+  }
+}

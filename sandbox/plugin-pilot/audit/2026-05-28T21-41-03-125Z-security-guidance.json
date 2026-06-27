@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0",
+  "timestamp": "2026-05-28T21:41:03.125995+00:00",
+  "plugin_slug": "security-guidance",
+  "marketplace": "anthropics/claude-plugins-official",
+  "manifest": {
+    "name": "security-guidance",
+    "version": "2.0.0",
+    "description": "Security review for Claude-generated code. Pattern-based warnings on edits, LLM-powered diff review on Stop, and an agentic commit reviewer that catches injection, XSS, SSRF, hardcoded secrets, and 25+ other vulnerability classes.",
+    "author": {
+      "name": "David Dworken",
+      "email": "dworken@anthropic.com"
+    },
+    "homepage": "https://github.com/anthropics/claude-plugins-official/tree/main/plugins/security-guidance"
+  },
+  "files_written": [
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/README.md",
+      "sha256": "8e9f9ed1f43a2b877de1040a0a5181a80deed95417a919eee55efc58bd5f48eb",
+      "size_bytes": 7219
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "size_bytes": 11358
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/session_state.py",
+      "sha256": "f74455e57109595eb6fc267babd8f1dd26172014561ec919bdfd38e7ad096380",
+      "size_bytes": 5849
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/extensibility.py",
+      "sha256": "49dec35c1768d35ef13f7733dc3612c6591cbcedfb3d4bb1849679989e2e2435",
+      "size_bytes": 12240
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/_base.py",
+      "sha256": "46b037d6d36405472c3193fb9e643719e413c0d9259d92c263cdbccafa23f2fd",
+      "size_bytes": 6832
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/hooks.json",
+      "sha256": "37181aea2a1ccd4efa88c427d4cd194fac48ab1ca67779c14edf8de375809181",
+      "size_bytes": 2783
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/patterns.py",
+      "sha256": "7870f5cac17034e9bfff829a2bba283bbcb47b416c915d8c8a1ab7ec02c5b4aa",
+      "size_bytes": 17541
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/diffstate.py",
+      "sha256": "2acce7933c82301c3cf72b41a09f81790138546a5b53b949a25b4545127d779e",
+      "size_bytes": 18669
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/ensure_agent_sdk.py",
+      "sha256": "ea4a3831a2c6a1c1d1519918719a76c57c036a36af414ae4428e04ecb26cadda",
+      "size_bytes": 10531
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/llm.py",
+      "sha256": "57762fd517b067d7367dbc45f72484ecef3b372809fd387ec011574ab94097e0",
+      "size_bytes": 114299
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/security_reminder_hook.py",
+      "sha256": "e9921af9fa85fa1cfd9b8db9589d1f767c365374619c647c7369e7b84cae8411",
+      "size_bytes": 103394
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/sg-python.sh",
+      "sha256": "55fb51d77d640daaa47c0aeee511228ec9215da3120462e51171e822d2f1a83e",
+      "size_bytes": 2879
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/gitutil.py",
+      "sha256": "8a3fc8add69ec3ebbff51c82d73e16a60f322ef6ed95c88f9371b65b06d410c4",
+      "size_bytes": 30039
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/hooks/review_api.py",
+      "sha256": "b5e5ee59787e174998adb70a53e0b06252449c6e96f2d52e735f8ad5cbe4e319",
+      "size_bytes": 24763
+    },
+    {
+      "path": "/home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance/.claude-plugin/plugin.json",
+      "sha256": "4dcab503cb30ae6e2b90e0c062df93583339ef4e1e5ee712d104c8fa446ef0b5",
+      "size_bytes": 499
+    }
+  ],
+  "network_egress": [],
+  "denylist_precheck": {
+    "result": "clean",
+    "hits": [],
+    "framework_ref": "SAG-683 §1 + §1.5",
+    "checked_identifiers": [
+      "anthropics/security-guidance",
+      "david dworken",
+      "dworken@anthropic.com"
+    ]
+  },
+  "post_install_check": {
+    "ok": true,
+    "notes": "Found 15 file(s) under /home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/sandbox/plugin-pilot/workspace/.claude/plugins/security-guidance"
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "_meta": {
+    "schema": "failover-pairing-map/v1",
+    "source": "SAG-4573-local-ai-failover-coverage.md (CEO-authored org map)",
+    "design": "SAG-4590-failover-review-mechanism-design.md (CTO)",
+    "approved_by": "board confirmation d21e8b5e on SAG-4573",
+    "tier_rule": "IC/production tasks only. C-suite & Director agents are NEVER in this map and NEVER fail over automatically.",
+    "last_updated": "2026-06-22"
+  },
+  "pairings": [
+    {
+      "cloud_agent_id": "3ab7fa06-f831-4631-922a-2fe824005788",
+      "cloud_agent_name": "Coder (Sonnet 4.6)",
+      "cloud_adapter": "claude_local",
+      "department": "Engineering",
+      "tier": "IC",
+      "understudy_agent_id": "9a20c1b5-a039-4c18-8962-2825e3f28538",
+      "understudy_agent_name": "Coder (Qwen3.6)",
+      "understudy_adapter": "opencode_local",
+      "notes": "Same-department SWE pairing. Understudy continues bounded IC sub-work (no architectural decisions)."
+    },
+    {
+      "cloud_agent_id": "11d0b5de-44a9-4f05-b130-846804e29955",
+      "cloud_agent_name": "Knowledge Digester (Sonnet 4.6)",
+      "cloud_adapter": "claude_local",
+      "department": "Engineering / Knowledge",
+      "tier": "IC",
+      "understudy_agent_id": "927d3e75-a0b3-40dd-8dcd-c1046ac36558",
+      "understudy_agent_name": "Local-AI Catalog Enricher (Qwen3.6)",
+      "understudy_adapter": "opencode_local",
+      "notes": "Primary understudy. Research Assistant (1bb6be46) is secondary fallback if Enricher is also stalled."
+    },
+    {
+      "cloud_agent_id": "fc67241d-a816-4517-8ac7-6b464c5257e3",
+      "cloud_agent_name": "Data Analyst (Sonnet 4.6)",
+      "cloud_adapter": "claude_local",
+      "department": "Finance",
+      "tier": "IC",
+      "understudy_agent_id": "dd1f4e1f-7d5e-4040-8e95-755ed3b24eaf",
+      "understudy_agent_name": "Reports & Audits Manager (Qwen3.6)",
+      "understudy_adapter": "opencode_local",
+      "notes": "Data/analytics work. Bookkeeper (4d86bdce) is secondary fallback for financial record tasks."
+    },
+    {
+      "cloud_agent_id": "de2ae83f-f910-4558-a762-8eea9bf37179",
+      "cloud_agent_name": "QA Unit Tests (Sonnet 4.6)",
+      "cloud_adapter": "claude_local",
+      "department": "Engineering / QA",
+      "tier": "IC",
+      "understudy_agent_id": "0acb5c9f-ef99-43d7-8ed2-d001b66baf66",
+      "understudy_agent_name": "Code-Reviewer (Qwen3.6)",
+      "understudy_adapter": "opencode_local",
+      "notes": "Unit-test triage/execution tasks only. Does not write or merge production code."
+    },
+    {
+      "cloud_agent_id": "dd89bb82-e7b3-4813-9ca8-34a6dbf9a5ad",
+      "cloud_agent_name": "QA Regression (Haiku 4.5)",
+      "cloud_adapter": "claude_local",
+      "department": "Engineering / QA",
+      "tier": "IC",
+      "understudy_agent_id": "0acb5c9f-ef99-43d7-8ed2-d001b66baf66",
+      "understudy_agent_name": "Code-Reviewer (Qwen3.6)",
+      "understudy_adapter": "opencode_local",
+      "notes": "Regression-run triage. Code-Reviewer can flag failures but must not merge fixes autonomously."
+    },
+    {
+      "cloud_agent_id": "5745f315-3903-4594-a7ee-64115dae5543",
+      "cloud_agent_name": "QA Integration 1 (Sonnet 4.6)",
+      "cloud_adapter": "claude_local",
+      "department": "Engineering / QA",
+      "tier": "IC",
+      "understudy_agent_id": "a93362ad-c930-46f9-b969-588c35359c55",
+      "understudy_agent_name": "QA SSI Auditor (Qwen3.6)",
+      "understudy_adapter": "opencode_local",
+      "notes": "Integration-test triage. Mark blocked if fix requires director-level architectural call."
+    },
+    {
+      "cloud_agent_id": "1e0167fe-1f74-43ea-ad89-36fa724ab80a",
+      "cloud_agent_name": "Researcher (Sonnet 4.6)",
+      "cloud_adapter": "claude_local",
+      "department": "Research",
+      "tier": "IC",
+      "understudy_agent_id": "1bb6be46-f589-45f5-9969-0c20e23cebfc",
+      "understudy_agent_name": "Research Assistant (Qwen3.6)",
+      "understudy_adapter": "opencode_local",
+      "notes": "Research/digest IC tasks only. Strategy or board-facing research reports wait for cloud recovery."
+    },
+    {
+      "cloud_agent_id": "d1b7fc0d-81c7-4595-83ef-e81911cc0f97",
+      "cloud_agent_name": "Pricing QA Auditor (Haiku 4.5)",
+      "cloud_adapter": "claude_local",
+      "department": "Pricing",
+      "tier": "IC",
+      "understudy_agent_id": "fafc8d36-b053-4854-9f5b-ee788944a339",
+      "understudy_agent_name": "Pricing Manager (Qwen3.6)",
+      "understudy_adapter": "opencode_local",
+      "notes": "Pricing QA spot-checks only. Pricing decisions require Director (c5494d47) review — never auto-execute."
+    }
+  ],
+  "never_failover": [
+    {
+      "agent_id": "b0f67cc2-259e-477b-ac89-d0ff4e7c8e89",
+      "name": "CEO (Opus 4.8)",
+      "reason": "C-suite — decision work waits for recovery"
+    },
+    {
+      "agent_id": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+      "name": "CTO (Opus 4.8)",
+      "reason": "C-suite — decision work waits for recovery"
+    },
+    {
+      "agent_id": "16373fdb-4cc1-4ab3-a4f3-4f75e928dd55",
+      "name": "CFO (Opus 4.8)",
+      "reason": "C-suite — decision work waits for recovery"
+    },
+    {
+      "agent_id": "65337351-8065-434b-a6f1-ac1f5992da1c",
+      "name": "CLO (Opus 4.8)",
+      "reason": "C-suite — decision work waits for recovery"
+    },
+    {
+      "agent_id": "b214c191-e56f-4d62-80ef-1c12af0788f6",
+      "name": "Director of Engineering (Sonnet 4.6)",
+      "reason": "Director — decision work waits for recovery"
+    },
+    {
+      "agent_id": "c5494d47-274a-487b-a28d-538eaccfe51b",
+      "name": "Director of Pricing (Opus 4.8)",
+      "reason": "Director — decision work waits for recovery"
+    },
+    {
+      "agent_id": "7cc4dafd-b41f-469c-b8ea-7b4110a11fe8",
+      "name": "Director of SSI (Sonnet 4.6)",
+      "reason": "Director — decision work waits for recovery"
+    },
+    {
+      "agent_id": "ca2d28e4-aae9-47a1-9354-51ae67fe270d",
+      "name": "Director of Marketing (Sonnet 4.6)",
+      "reason": "Director — decision work waits for recovery"
+    },
+    {
+      "agent_id": "24fb84ba-c40c-49aa-8f21-60c1c22c460a",
+      "name": "Director of Operations (Sonnet 4.6)",
+      "reason": "Director — decision work waits for recovery"
+    },
+    {
+      "agent_id": "90b0b0e1-3a4d-4e85-b2d2-166b32687ccc",
+      "name": "Director of Land Steward (Sonnet 4.6)",
+      "reason": "Director — decision work waits for recovery"
+    },
+    {
+      "agent_id": "07702760-098d-429d-906d-d4b736175c54",
+      "name": "Director of Business Development (Sonnet 4.6)",
+      "reason": "Director — decision work waits for recovery"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+[drain start 2026-06-08T03:20:45Z] queue={'in_flight': 4, 'done': 8, 'pending': 116}
+2026-06-07 22:20:45,445 WARNING dispatcher headroom-compress unavailable — token compression disabled (install: pip install 'headroom-ai>=0.23.0' with Python 3.12/3.13)
+2026-06-07 22:20:45,454 INFO dispatcher Batch 46bb490d-eaba-41db-a3d4-f8f23f1dab29: 116 rows, concurrency=2
+2026-06-07 22:23:14,397 INFO httpx HTTP Request: POST http://localhost:4000/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 22:23:14,398 WARNING dispatcher Primary returned no content for SSI-MBL-0106 (model=qwen3-30b-moe)
+2026-06-07 22:23:50,120 INFO httpx HTTP Request: POST http://localhost:4000/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 22:23:50,121 WARNING dispatcher Primary returned no content for SSI-MBL-0107 (model=qwen3-30b-moe)
+2026-06-07 22:24:15,372 INFO httpx HTTP Request: POST http://localhost:4000/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 22:24:15,726 INFO httpx HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 401 Unauthorized"
+2026-06-07 22:24:15,727 WARNING dispatcher Anthropic reviewer failed: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011Cbq5SF2wC17hoMXUVE9aV'}
+2026-06-07 22:24:15,731 INFO dispatcher Row SSI-MBL-0106: tier=fallback queue_status=done
+2026-06-07 22:24:24,598 INFO httpx HTTP Request: POST http://localhost:4000/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 22:24:24,719 INFO httpx HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 401 Unauthorized"
+2026-06-07 22:24:24,720 WARNING dispatcher Anthropic reviewer failed: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011Cbq5SuViuvSpkVyPxsSNZ'}
+2026-06-07 22:24:24,722 INFO dispatcher Row SSI-MBL-0107: tier=fallback queue_status=done
+2026-06-07 22:25:05,942 INFO httpx HTTP Request: POST http://localhost:4000/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 22:25:05,943 WARNING dispatcher Primary returned no content for SSI-MBL-0108 (model=qwen3-30b-moe)
+2026-06-07 22:25:42,888 INFO httpx HTTP Request: POST http://localhost:4000/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 22:25:42,888 WARNING dispatcher Primary returned no content for SSI-MBL-0109 (model=qwen3-30b-moe)
+Terminated                 python3 -m enrichment.batch_runner
+[drain end 2026-06-08T03:27:13Z] queue={'in_flight': 6, 'done': 10, 'pending': 112}

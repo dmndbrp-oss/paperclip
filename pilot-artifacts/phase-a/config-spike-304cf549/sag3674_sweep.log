@@ -1,0 +1,152 @@
+[2026-06-10T17:08:32Z] SAG-3674 corrected sweep START
+SAG-3674 corrected sweep | faff99c applied | N=20 (all statuses) | model=gemma4-26b-a4b-it-q4_K_M
+Parse path: <think>-strip + _repair_cross_fields + validate()
+OLLAMA_BASE=http://localhost:11434
+
+======================================================================
+PROBE — verify top-level think:false suppresses thinking (row=SSI-PRC-0102)
+======================================================================
+[control — no think param] HTTP 200 186.6s
+  done_reason='' compl_tokens=None
+  thinking_len=6482 (>0 = thinking active)
+  content_len=259
+  valid=False mode=truncated errors=['json_parse_error: Unterminated string starting at: line 10 column 62 (char 227)']
+
+[think:false at top level] HTTP 200 54.6s
+  done_reason='stop' (should be 'stop')
+  compl_tokens=296
+  thinking_len=0 (should be ~0)
+  content_len=853
+  valid=True mode=valid errors=[]
+
+PROBE RESULT: think:false suppression CONFIRMED
+
+======================================================================
+CONFIG A — Baseline (LiteLLM, max_tokens=2048) | N=20
+======================================================================
+  SSI-PRC-0102: EMPTY 91.4s compl=2048
+  SSI-MBL-0113: EMPTY 111.6s compl=2048
+  SSI-GRN-0115: EMPTY 96.2s compl=2048
+  SSI-QTZ-0100: EMPTY 44.8s compl=2048
+  SSI-GRN-0107: EMPTY 45.1s compl=2048
+  SSI-QZT-0100: EMPTY 45.9s compl=2048
+  SSI-QTZ-0200: VALID 38.8s compl=1785
+  SSI-LMS-0102: EMPTY 44.6s compl=2048
+  SSI-QTZ-0203: VALID 41.7s compl=1913
+  SSI-MOS-0100: EMPTY 44.6s compl=2048
+  SSI-PRC-0105: EMPTY 44.5s compl=2048
+  SSI-MBL-0100: EMPTY 44.5s compl=2048
+  SSI-GRN-0100: EMPTY 44.5s compl=2048
+  SSI-QTZ-0111: EMPTY 44.7s compl=2048
+  SSI-QTZ-0112: EMPTY 44.9s compl=2048
+  SSI-QTZ-0113: TRUNCATED 44.5s compl=2048
+  SSI-QTZ-0101: EMPTY 45.1s compl=2048
+  SSI-QTZ-0102: EMPTY 44.7s compl=2048
+  SSI-MBL-0110: EMPTY 47.3s compl=2048
+  SSI-QTZ-0304: TRUNCATED 45.1s compl=2048
+  >> A baseline: 2/20 = 10% schema-valid | modes={'valid': 2, 'truncated': 2, 'empty': 16}
+
+======================================================================
+CONFIG B — json_object + max_tokens=4096 + temp=0 + think:false (top-level) | N=20
+======================================================================
+  SSI-PRC-0102: VALID 7.3s compl=305
+  SSI-MBL-0113: OTHER_INVALID 7.3s compl=326
+  SSI-GRN-0115: VALID 6.3s compl=282
+  SSI-QTZ-0100: VALID 6.6s compl=292
+  SSI-GRN-0107: VALID 6.4s compl=284
+  SSI-QZT-0100: OTHER_INVALID 7.0s compl=306
+  SSI-QTZ-0200: VALID 6.8s compl=304
+  SSI-LMS-0102: VALID 6.2s compl=276
+  SSI-QTZ-0203: VALID 6.9s compl=308
+  SSI-MOS-0100: VALID 6.6s compl=295
+  SSI-PRC-0105: OTHER_INVALID 6.8s compl=301
+  SSI-MBL-0100: OTHER_INVALID 7.2s compl=324
+  SSI-GRN-0100: VALID 6.3s compl=278
+  SSI-QTZ-0111: VALID 6.4s compl=287
+  SSI-QTZ-0112: VALID 6.9s compl=309
+  SSI-QTZ-0113: VALID 6.9s compl=304
+  SSI-QTZ-0101: VALID 7.0s compl=313
+  SSI-QTZ-0102: VALID 7.0s compl=311
+  SSI-MBL-0110: VALID 6.6s compl=293
+  SSI-QTZ-0304: VALID 7.5s compl=331
+  >> B full combo: 16/20 = 80% schema-valid | modes={'valid': 16, 'other_invalid': 4}
+
+======================================================================
+CONFIG C — Ablation: json_object + max_tokens=4096 + temp=0 (no think:false) | N=20
+======================================================================
+  SSI-PRC-0102: TRUNCATED 58.7s thinking=8067 compl=None
+  SSI-MBL-0113: TRUNCATED 148.8s thinking=8551 compl=4096
+  SSI-GRN-0115: TRUNCATED 147.2s thinking=8487 compl=4096
+  SSI-QTZ-0100: TRUNCATED 149.3s thinking=8519 compl=4096
+  SSI-GRN-0107: TRUNCATED 153.3s thinking=9422 compl=4096
+  SSI-QZT-0100: TRUNCATED 101.8s thinking=12711 compl=None
+  SSI-QTZ-0200: TRUNCATED 79.5s thinking=9955 compl=None
+  SSI-LMS-0102: TRUNCATED 138.3s thinking=6719 compl=4096
+  SSI-QTZ-0203: TRUNCATED 62.1s thinking=9257 compl=None
+  SSI-MOS-0100: OTHER_INVALID 77.1s thinking=11192 compl=183
+  SSI-PRC-0105: TRUNCATED 170.9s thinking=11790 compl=4096
+  SSI-MBL-0100: TRUNCATED 43.0s thinking=5825 compl=None
+  SSI-GRN-0100: TRUNCATED 129.5s thinking=5516 compl=4096
+  SSI-QTZ-0111: TRUNCATED 57.4s thinking=7910 compl=None
+  SSI-QTZ-0112: TRUNCATED 127.3s thinking=5357 compl=4096
+  SSI-QTZ-0113: EMPTY 99.4s thinking=14360 compl=4096
+  SSI-QTZ-0101: OTHER_INVALID 176.1s thinking=6579 compl=318
+  SSI-QTZ-0102: TRUNCATED 161.4s thinking=6900 compl=None
+  SSI-MBL-0110: EMPTY 146.6s thinking=13454 compl=4096
+  SSI-QTZ-0304: HTTP_ERR 0 300.1s
+  >> C ablation: 0/20 = 0% schema-valid | modes={'truncated': 15, 'other_invalid': 2, 'empty': 2, 'http_err': 1}
+
+======================================================================
+SUMMARY TABLE
+======================================================================
+Config     Description                                                N   Valid%
+--------------------------------------------------------------------------------
+A          Baseline (LiteLLM, max_tokens=2048)                       20      10%
+B          json_object+4096+temp=0+think:false@top-level (Ollama direct)   20      80%
+C          json_object+4096+temp=0, no think:false (ablation)        20       0%
+
+think:false suppression: CONFIRMED
+faff99c (availability null repair): APPLIED (cherry-picked)
+
+Does config B move primary materially toward >=85%? NO (80%)
+
+Baseline (A): 10%  |  Full combo (B): 80%  |  Ablation (C): 0%
+Artifact written to /home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/pilot-artifacts/phase-a/config-spike-304cf549/sag3674_corrected_results.json
+[2026-06-10T18:14:31Z] sweep exit=0
+## SAG-3674 — corrected sweep results
+
+### Probe — think:false suppression at top level
+- control (no think param): done_reason=''  thinking_len=6482  compl_tokens=None
+- think:false (top-level): done_reason='stop'  thinking_len=0  compl_tokens=296
+- Suppression: **CONFIRMED**
+
+### Per-config results at N=20
+
+| Config | Description | N | Primary schema-valid % |
+|--------|-------------|---|------------------------|
+| A | Baseline (LiteLLM, max_tokens=2048) | 20 | **10%** |
+| B | json_object + max_tokens=4096 + temp=0 + think:false (top-level) | 20 | **80%** |
+| C | Ablation: same as B, no think:false | 20 | **0%** |
+
+### Failure modes
+- A: valid=2 truncated=2 empty=16
+- B: valid=16 other_invalid=4
+- C: truncated=15 other_invalid=2 empty=2 http_err=1
+
+### faff99c delta
+- Applied: availability→in_stock null repair active in parse path
+- Without repair (L2 SAG-3673 baseline): ~0% (null availability → invalid)
+- With repair (Config A): 10% (residual failures are other issues)
+
+### Verdict
+Does config B move primary materially toward ≥85%? **NO (80%)**
+
+### Raw artifacts
+- Artifact: `pilot-artifacts/phase-a/config-spike-304cf549/sag3674_corrected_results.json`
+- Log: `pilot-artifacts/phase-a/config-spike-304cf549/sag3674_sweep.log`
+- N=20, model=gemma4-26b-a4b-it-q4_K_M, ollama_model=gemma4:26b-a4b-it-q4_K_M
+
+[@CTO](agent://f3c48afc-c339-4e43-b47b-a42a0891229d) — results ready for your GO/NO-GO #3 synthesis on [SAG-3671](/SAG/issues/SAG-3671).
+[2026-06-10T18:14:32Z] Paperclip comment HTTP 201
+[2026-06-10T18:14:32Z] Issue status updated to in_review
+[2026-06-10T18:14:32Z] Issue status updated to in_review

@@ -1,0 +1,114 @@
+{
+  "started": "2026-06-21T02:07:01-0500",
+  "usable_tps_threshold": 15.0,
+  "num_predict": 400,
+  "num_ctx": 32768,
+  "budget_gb": 110,
+  "a_qwen36_solo": {
+    "idx": 0,
+    "eval_count": 400,
+    "eval_duration_s": 9.35,
+    "decode_tps": 42.8,
+    "wall_s": 14.8
+  },
+  "b_qwen30_arch": {
+    "architecture": "qwen3moe",
+    "parameters": "30.5B",
+    "context_length": "262144",
+    "raw": "  Model\n    architecture        qwen3moe    \n    parameters          30.5B       \n    context length      262144      \n    embedding length    2048        \n    quantization        Q4_K_M      \n\n  Capabilities\n    completion    \n    tools         \n    thinking      \n\n  Parameters\n    top_k             20                \n    top_p             0.95              \n    repeat_penalty    1                 \n    stop              \"<|im_start|>\"    \n    stop              \"<|im_end|>\"      \n    temperature       0.6               \n\n  License\n    Apache License               \n    Version 2.0, January 2004    \n    ...                          \n\n"
+  },
+  "c_qwen30_solo": {
+    "idx": 0,
+    "eval_count": 400,
+    "eval_duration_s": 6.54,
+    "decode_tps": 61.1,
+    "wall_s": 14.55
+  },
+  "c_qwen30_resident_gb": 32.8,
+  "c_qwen30_loaded_ctx": -1,
+  "d_sweep": [
+    {
+      "n": 1,
+      "wall_s": 164.1,
+      "per_req_tps": [
+        61.1
+      ],
+      "min_tps": 61.1,
+      "avg_tps": 61.1,
+      "aggregate_tps": 2.4,
+      "peak_ram_gb": 32.8,
+      "errors": [],
+      "usable": true
+    },
+    {
+      "n": 2,
+      "wall_s": 12.0,
+      "per_req_tps": [
+        37.9,
+        38.3
+      ],
+      "min_tps": 37.9,
+      "avg_tps": 38.1,
+      "aggregate_tps": 66.6,
+      "peak_ram_gb": 32.8,
+      "errors": [],
+      "usable": true
+    },
+    {
+      "n": 3,
+      "wall_s": 14.0,
+      "per_req_tps": [
+        31.8,
+        31.9,
+        32.1
+      ],
+      "min_tps": 31.8,
+      "avg_tps": 31.9,
+      "aggregate_tps": 85.7,
+      "peak_ram_gb": 32.8,
+      "errors": [],
+      "usable": true
+    },
+    {
+      "n": 4,
+      "wall_s": 16.0,
+      "per_req_tps": [
+        28.4,
+        28.3,
+        28.4,
+        28.4
+      ],
+      "min_tps": 28.3,
+      "avg_tps": 28.4,
+      "aggregate_tps": 100.0,
+      "peak_ram_gb": 32.8,
+      "errors": [],
+      "usable": true
+    },
+    {
+      "n": 5,
+      "wall_s": 18.0,
+      "per_req_tps": [
+        25.2,
+        25.2,
+        25.1,
+        25.1,
+        25.0
+      ],
+      "min_tps": 25.0,
+      "avg_tps": 25.1,
+      "aggregate_tps": 111.1,
+      "peak_ram_gb": 32.8,
+      "errors": [],
+      "usable": true
+    }
+  ],
+  "max_usable_n": 5,
+  "summary": {
+    "extrapolation_note": "insufficient RAM samples to extrapolate",
+    "memory_bound_max_slots": -1,
+    "throughput_usable_max_slots": 5,
+    "per_slot_tps_at_usable": 25.1,
+    "one_liner": "You can run 5 concurrent qwen3:30b-a3b loop workers at ~25.1 tok/s each at 32k ctx."
+  }
+}

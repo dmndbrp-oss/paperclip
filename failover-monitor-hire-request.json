@@ -1,0 +1,64 @@
+# Agent Hire: Failover Monitor
+
+**Source Issue:** SAG-4809 (parent: SAG-4613, grandparent: SAG-4573)
+**Design Reference:** SAG-4590 (Mechanism Design Option A)
+**Hired by:** CTO (Opus 4.8)
+**Date:** 2026-06-23
+**Instruction source:** Generic fallback (baseline-role-guide.md) — no existing template matches this narrow operational role
+
+---
+
+## Hire Configuration
+
+```json
+{
+  "name": "Failover Monitor",
+  "role": "failover-monitor",
+  "title": "Failover Monitor",
+  "icon": "eye",
+  "reportsTo": "f3c48afc-c339-4e43-b47b-a42a0891229d",
+  "capabilities": "Scans for cloud-limit-stalled issues and auto-fails work over to local understudies based on the CEO-authored pairing map, then routes back to the cloud agent for review-on-recovery.",
+  "desiredSkills": [],
+  "adapterType": "opencode_local",
+  "adapterConfig": {
+    "cwd": "/home/gus-pinsoneault/paperclip",
+    "model": "qwen3.6"
+  },
+  "instructionsBundle": {
+    "files": {
+      "AGENTS.md": "{{AGENT_INSTRUCTIONS}}",
+      "failover-pairing-map.yaml": "{{PAIRING_MAP}}"
+    }
+  },
+  "runtimeConfig": {
+    "heartbeat": {
+      "enabled": true,
+      "intervalSec": 300
+    }
+  },
+  "sourceIssueId": "1b828d9a-3a6c-4602-b7e7-f1c2b8b4e984"
+}
+```
+
+## Adapter & Model Rationale
+
+- **opencode_local** adapter: The monitor makes only API calls + rule evaluation (no heavy reasoning). A local Qwen3.6 model is free (no cloud cap), always available, and fast enough for a monitoring task.
+- **Model:** qwen3.6 — the same model currently running the Failover Monitor agent (agent 4bd33af1). It can execute the monitoring algorithm (see AGENTS.md) and make API calls.
+- **Timer heartbeat enabled** (300s = 5 min): The monitor's charter is scheduled recurring work — scanning for stalled issues every 5 minutes. Justified per the cron routine spec in SAG-4590 §2.1.
+
+## Safety & Permissions Justification
+
+| Capability | Justification |
+|---|---|
+| PATCH `assigneeAgentId` on issues | Required: the monitor reassigns stalled issues to local understudies (SAG-4590 §2.2 step 4). Only within company scope. |
+| POST comments on issues it monitors | Required: posts structured handoff/return markers (SAG-4590 §2.2 step 5). |
+| READ issues and runs within company | Required: to scan for `claude_transient_upstream` errors. Read-only scope. |
+| NO browser/network access needed | Monitor makes only Paperclip API calls; no external reach. |
+| NO filesystem write needed beyond workspace | Agent operates in its workspace for artifact persistence. |
+
+## Governance
+
+- **New standing capability** → board approval required per AGENT_OPERATIONS_GUIDE §1.
+- **Not a core code change** → uses existing primitives (sweep agent, issue assignment, run failure state).
+- **Reversible**: delete the agent + routine → behavior reverts to native same-agent retry.
+- **Governance gate enforced in-agent**: tier gate (§1), idempotency gate (§2.4), sensitivity gate (§2.4) prevent unauthorized failover.

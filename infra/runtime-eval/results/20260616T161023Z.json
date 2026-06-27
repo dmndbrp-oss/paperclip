@@ -1,0 +1,186 @@
+{
+  "run_ts": "20260616T161023Z",
+  "model": "gemma4:26b-a4b-it-q4_K_M",
+  "dry_run": false,
+  "classes": {
+    "doc_extraction": {
+      "class": "doc_extraction",
+      "model": "gemma4:26b-a4b-it-q4_K_M",
+      "n": 20,
+      "task_correct_rate": 0.7,
+      "task_correct_ci_95": [
+        0.481,
+        0.8545
+      ],
+      "tool_call_correct_rate": null,
+      "clean_rate": 1.0,
+      "clean_ci_95": [
+        0.8389,
+        1.0
+      ],
+      "errors": 0,
+      "per_row": [
+        {
+          "id": "doc-001",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.43,
+          "error": null
+        },
+        {
+          "id": "doc-002",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 4.36,
+          "error": null
+        },
+        {
+          "id": "doc-003",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 3.62,
+          "error": null
+        },
+        {
+          "id": "doc-004",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 4.52,
+          "error": null
+        },
+        {
+          "id": "doc-005",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 4.82,
+          "error": null
+        },
+        {
+          "id": "doc-006",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 4.13,
+          "error": null
+        },
+        {
+          "id": "doc-007",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 4.88,
+          "error": null
+        },
+        {
+          "id": "doc-008",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 5.63,
+          "error": null
+        },
+        {
+          "id": "doc-009",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.83,
+          "error": null
+        },
+        {
+          "id": "doc-010",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.78,
+          "error": null
+        },
+        {
+          "id": "doc-011",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.51,
+          "error": null
+        },
+        {
+          "id": "doc-012",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.21,
+          "error": null
+        },
+        {
+          "id": "doc-013",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.83,
+          "error": null
+        },
+        {
+          "id": "doc-014",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.48,
+          "error": null
+        },
+        {
+          "id": "doc-015",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 1.98,
+          "error": null
+        },
+        {
+          "id": "doc-016",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.57,
+          "error": null
+        },
+        {
+          "id": "doc-017",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.89,
+          "error": null
+        },
+        {
+          "id": "doc-018",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.22,
+          "error": null
+        },
+        {
+          "id": "doc-019",
+          "task_correct": 0.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.39,
+          "error": null
+        },
+        {
+          "id": "doc-020",
+          "task_correct": 1.0,
+          "tool_call_correct": null,
+          "clean": 1.0,
+          "wall_s": 2.83,
+          "error": null
+        }
+      ]
+    }
+  }
+}

@@ -192,6 +192,10 @@ while (iter < MAX_ITER && dryStreak < DRY_STREAK_STOP) {
     `1. Only SKILL.md edits for "${TARGET_SKILL}" (or canary "${CANARY_TARGET}")\n` +
     `2. Never modify governance/security/identity files\n` +
     `3. Never change the skill's behavior\n\n` +
+    `CRITICAL CONSTRAINT: Do NOT rewrite or replace the existing skill source. ` +
+    `You MUST preserve all existing content verbatim and ONLY ADD new sections or clarifications. ` +
+    `Output the complete skill text = original + your additions. No deletions allowed.\n` +
+    `If you cannot identify an additive improvement, set applied:false.\n\n` +
     `Current source:\n---\n${skillSource.substring(0, 10000)}\n---\n` +
     `Return ONLY valid JSON matching PROPOSE_SCHEMA. Do NOT write text outside the JSON block.`
 

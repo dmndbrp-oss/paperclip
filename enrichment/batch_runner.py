@@ -104,6 +104,9 @@ logger = logging.getLogger(__name__)
 # On Linux, flock() is process-scoped and auto-released on crash/exit.
 _LOCK_PATH: pathlib.Path = pathlib.Path(tempfile.gettempdir()) / "enrichment_batch_runner.lock"
 
+# SAG-5224: loud-fail escalation target — CTO must triage auth/all-failed batches.
+_CTO_AGENT_ID = "f3c48afc-c339-4e43-b47b-a42a0891229d"
+
 
 # ---------------------------------------------------------------------------
 # ALE §1 part 4 — explicit terminal states
@@ -311,6 +314,29 @@ def _build_comment(summary: dict, started_at: datetime, finished_at: datetime) -
     return "\n".join(lines)
 
 
+def _build_blocked_comment(
+    summary: dict,
+    started_at: datetime,
+    finished_at: datetime,
+    error_class: str | None,
+) -> str:
+    base = _build_comment(summary, started_at, finished_at)
+    ts_val = summary.get("terminal_state", "unknown")
+    ec = error_class or "none"
+    if error_class == "auth":
+        unblock = (
+            "operator/@local-board must provision `LITELLM_API_KEY` "
+            "(local LiteLLM gateway key) in `enrichment/.env`"
+        )
+    else:
+        unblock = f"CTO triage dispatcher `{ec}` failure"
+    header = (
+        f"Loud-fail: terminal_state={ts_val} error_class={ec}\n\n"
+        f"Unblock: {unblock}\n\n"
+    )
+    return _sanitize_message(header + base)
+
+
 async def _post_comment(
     api_url: str,
     api_key: str,
@@ -365,6 +391,38 @@ async def _mark_issue_done(
             return True
         except Exception as exc:
             logger.warning("Failed to mark issue done: %s", exc)
+            return False
+
+
+async def _mark_issue_blocked(
+    api_url: str,
+    api_key: str,
+    run_id: str,
+    issue_id: str,
+    comment: str,
+    assignee_id: str,
+) -> bool:
+    """
+    Mark the execution issue blocked and reassign to assignee_id (SAG-5224).
+    Returns True on success, False on failure.
+    """
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "X-Paperclip-Run-Id": run_id,
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            r = await client.patch(
+                f"{api_url}/api/issues/{issue_id}",
+                headers=headers,
+                json={"status": "blocked", "assigneeAgentId": assignee_id, "comment": comment},
+            )
+            r.raise_for_status()
+            logger.info("Issue %s blocked and reassigned to %s", issue_id, assignee_id)
+            return True
+        except Exception as exc:
+            logger.warning("Failed to mark issue blocked: %s", exc)
             return False
 
 
@@ -502,14 +560,22 @@ async def _run_batch() -> "tuple[int, dict]":
     if sandbox_pool:
         sandbox_pool.teardown()
 
-    # --- Post closing summary + mark issue done ---
+    # --- Post closing summary + mark issue done or blocked (SAG-5224) ---
     comment_posted = False
     if api_url and api_key and task_id:
         comment = _build_comment(summary, started_at, finished_at)
-        close_comment = f"Dispatcher failed\n\n{comment}" if exit_code != 0 else comment
-        comment_posted = bool(
-            await _mark_issue_done(api_url, api_key, run_id, task_id, close_comment)
-        )
+        loud_fail = (exit_code != 0) or (ts == TerminalState.ALL_FAILED)
+        if loud_fail:
+            blocked_comment = _build_blocked_comment(summary, started_at, finished_at, error_class)
+            comment_posted = bool(
+                await _mark_issue_blocked(
+                    api_url, api_key, run_id, task_id, blocked_comment, _CTO_AGENT_ID
+                )
+            )
+        else:
+            comment_posted = bool(
+                await _mark_issue_done(api_url, api_key, run_id, task_id, comment)
+            )
     else:
         logger.warning("PAPERCLIP_API_URL/API_KEY/TASK_ID not set — skipping issue update")
 

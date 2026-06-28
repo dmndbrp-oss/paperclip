@@ -127,6 +127,7 @@ class TestRunFunction(unittest.IsolatedAsyncioTestCase):
         with patch.dict(os.environ, self._env(), clear=False), \
              patch("batch_runner.EnrichmentDispatcher") as MockDisp, \
              patch("batch_runner._mark_issue_done", new=AsyncMock(return_value=True)), \
+             patch("batch_runner._mark_issue_blocked", new=AsyncMock(return_value=True)), \
              patch("batch_runner._emit_terminal_record"):
             instance = MockDisp.return_value
             instance.run_batch = AsyncMock(side_effect=RuntimeError("db gone"))
@@ -300,6 +301,7 @@ class TestTerminalStates(unittest.IsolatedAsyncioTestCase):
         with patch.dict(os.environ, self._env(), clear=False), \
              patch("batch_runner.EnrichmentDispatcher") as MockDisp, \
              patch("batch_runner._mark_issue_done", new=AsyncMock(return_value=True)), \
+             patch("batch_runner._mark_issue_blocked", new=AsyncMock(return_value=True)), \
              patch("batch_runner._emit_terminal_record", side_effect=captured.append):
             instance = MockDisp.return_value
             if exc is not None:
@@ -477,6 +479,7 @@ class TestErrorClassInRecord(unittest.IsolatedAsyncioTestCase):
         with patch.dict(os.environ, self._env(), clear=False), \
              patch("batch_runner.EnrichmentDispatcher") as MockDisp, \
              patch("batch_runner._mark_issue_done", new=AsyncMock(return_value=False)), \
+             patch("batch_runner._mark_issue_blocked", new=AsyncMock(return_value=False)), \
              patch("batch_runner._emit_terminal_record", side_effect=captured.append):
             MockDisp.return_value.run_batch = AsyncMock(side_effect=exc)
             await run()
@@ -590,6 +593,7 @@ class TestSecretNotInTerminalRecord(unittest.IsolatedAsyncioTestCase):
         with patch.dict(os.environ, env, clear=False), \
              patch("batch_runner.EnrichmentDispatcher") as MockDisp, \
              patch("batch_runner._mark_issue_done", new=AsyncMock(return_value=False)), \
+             patch("batch_runner._mark_issue_blocked", new=AsyncMock(return_value=False)), \
              patch("batch_runner._emit_terminal_record", side_effect=captured.append):
             MockDisp.return_value.run_batch = AsyncMock(
                 side_effect=RuntimeError(
@@ -647,6 +651,165 @@ class TestLoadDotenv(unittest.TestCase):
             os.environ.pop("DATABASE_URL", None)
             _load_dotenv("/nonexistent/__does_not_exist__.env")  # must not raise
             self.assertNotIn("DATABASE_URL", os.environ)
+
+
+# ---------------------------------------------------------------------------
+# SAG-5224 — loud-fail guardrail: auth-failed/ALL_FAILED must block→CTO, never done
+# ---------------------------------------------------------------------------
+
+class TestLoudFailGuardrail(unittest.IsolatedAsyncioTestCase):
+    """DISPATCHER_ERROR and ALL_FAILED runs must call _mark_issue_blocked→CTO, never _mark_issue_done."""
+
+    CTO_AGENT_ID = "f3c48afc-c339-4e43-b47b-a42a0891229d"
+
+    def setUp(self):
+        self._lock_path = pathlib.Path(tempfile.mkdtemp()) / "test_batch_runner.lock"
+        self._lock_patch = patch.object(batch_runner, "_LOCK_PATH", self._lock_path)
+        self._lock_patch.start()
+        self.addCleanup(self._lock_patch.stop)
+
+    def _env(self, **overrides) -> dict:
+        base = {
+            "DATABASE_URL": "postgresql://test/test",
+            "PAPERCLIP_API_URL": "http://localhost:3100",
+            "PAPERCLIP_API_KEY": "fake-key",
+            "PAPERCLIP_RUN_ID": "run-xyz",
+            "PAPERCLIP_TASK_ID": "issue-abc",
+        }
+        base.update(overrides)
+        return base
+
+    async def _run_with_exc(self, exc: Exception) -> "tuple[list, list]":
+        blocked_calls: list[dict] = []
+        done_calls: list = []
+
+        async def mock_blocked(api_url, api_key, run_id, issue_id, comment, assignee_id):
+            blocked_calls.append({"issue_id": issue_id, "assignee_id": assignee_id, "comment": comment})
+            return True
+
+        async def mock_done(*args, **kwargs):
+            done_calls.append(args)
+            return True
+
+        with patch.dict(os.environ, self._env(), clear=False), \
+             patch("batch_runner.EnrichmentDispatcher") as MockDisp, \
+             patch("batch_runner._mark_issue_blocked", new=mock_blocked), \
+             patch("batch_runner._mark_issue_done", new=mock_done), \
+             patch("batch_runner._emit_terminal_record"):
+            MockDisp.return_value.run_batch = AsyncMock(side_effect=exc)
+            await run()
+        return blocked_calls, done_calls
+
+    async def _run_with_summary(self, summary: dict) -> "tuple[list[dict], list]":
+        blocked_calls: list[dict] = []
+        done_calls: list = []
+
+        async def mock_blocked(api_url, api_key, run_id, issue_id, comment, assignee_id):
+            blocked_calls.append({"issue_id": issue_id, "assignee_id": assignee_id, "comment": comment})
+            return True
+
+        async def mock_done(*args, **kwargs):
+            done_calls.append(args)
+            return True
+
+        with patch.dict(os.environ, self._env(), clear=False), \
+             patch("batch_runner.EnrichmentDispatcher") as MockDisp, \
+             patch("batch_runner._mark_issue_blocked", new=mock_blocked), \
+             patch("batch_runner._mark_issue_done", new=mock_done), \
+             patch("batch_runner._emit_terminal_record"):
+            MockDisp.return_value.run_batch = AsyncMock(return_value=summary)
+            await run()
+        return blocked_calls, done_calls
+
+    async def test_dispatcher_error_auth_http401_blocks_not_done(self):
+        import httpx
+        response = MagicMock()
+        response.status_code = 401
+        exc = httpx.HTTPStatusError("Unauthorized", request=MagicMock(), response=response)
+        blocked, done = await self._run_with_exc(exc)
+        self.assertEqual(len(blocked), 1, "_mark_issue_blocked must be called once")
+        self.assertEqual(len(done), 0, "_mark_issue_done must NOT be called")
+        self.assertEqual(blocked[0]["issue_id"], "issue-abc")
+        self.assertEqual(blocked[0]["assignee_id"], self.CTO_AGENT_ID)
+        self.assertIn("LITELLM_API_KEY", blocked[0]["comment"])
+
+    async def test_dispatcher_error_auth_keyword_mentions_local_board(self):
+        exc = RuntimeError("unauthorized request failed")
+        blocked, done = await self._run_with_exc(exc)
+        self.assertEqual(len(blocked), 1)
+        self.assertEqual(len(done), 0)
+        self.assertIn("LITELLM_API_KEY", blocked[0]["comment"])
+        self.assertIn("local-board", blocked[0]["comment"])
+
+    async def test_dispatcher_error_non_auth_blocks_to_cto(self):
+        exc = RuntimeError("database connection failed")
+        blocked, done = await self._run_with_exc(exc)
+        self.assertEqual(len(blocked), 1)
+        self.assertEqual(len(done), 0)
+        self.assertEqual(blocked[0]["assignee_id"], self.CTO_AGENT_ID)
+
+    async def test_dispatcher_error_comment_names_terminal_state_and_error_class(self):
+        import httpx
+        response = MagicMock()
+        response.status_code = 401
+        exc = httpx.HTTPStatusError("Unauthorized", request=MagicMock(), response=response)
+        blocked, _ = await self._run_with_exc(exc)
+        self.assertEqual(len(blocked), 1)
+        comment = blocked[0]["comment"]
+        self.assertIn("DISPATCHER_ERROR", comment)
+        self.assertIn("auth", comment)
+
+    async def test_all_failed_blocks_to_cto_never_done(self):
+        blocked, done = await self._run_with_summary(
+            {"total": 5, "done": 0, "failed": 5, "cap_paused": False}
+        )
+        self.assertEqual(len(blocked), 1, "ALL_FAILED must call _mark_issue_blocked")
+        self.assertEqual(len(done), 0, "_mark_issue_done must NOT be called for ALL_FAILED")
+        self.assertEqual(blocked[0]["assignee_id"], self.CTO_AGENT_ID)
+
+    async def test_all_enriched_calls_done_not_blocked(self):
+        blocked, done = await self._run_with_summary(
+            {"total": 5, "done": 5, "failed": 0, "cap_paused": False}
+        )
+        self.assertEqual(len(blocked), 0, "ALL_ENRICHED must NOT call _mark_issue_blocked")
+        self.assertEqual(len(done), 1, "ALL_ENRICHED must call _mark_issue_done")
+
+    async def test_empty_queue_calls_done_not_blocked(self):
+        blocked, done = await self._run_with_summary(
+            {"total": 0, "done": 0, "failed": 0, "cap_paused": False}
+        )
+        self.assertEqual(len(blocked), 0, "EMPTY_QUEUE must NOT call _mark_issue_blocked")
+        self.assertEqual(len(done), 1)
+
+    async def test_partial_calls_done_not_blocked(self):
+        blocked, done = await self._run_with_summary(
+            {"total": 5, "done": 3, "failed": 2, "cap_paused": False}
+        )
+        self.assertEqual(len(blocked), 0, "PARTIAL must NOT call _mark_issue_blocked")
+        self.assertEqual(len(done), 1)
+
+    async def test_secret_not_in_blocked_comment(self):
+        api_key_val = "sk-super-secret-litellm-54321"
+        env = self._env()
+        env["LITELLM_API_KEY"] = api_key_val
+        blocked_calls: list[dict] = []
+
+        async def mock_blocked(api_url, api_key, run_id, issue_id, comment, assignee_id):
+            blocked_calls.append({"comment": comment})
+            return True
+
+        with patch.dict(os.environ, env, clear=False), \
+             patch("batch_runner.EnrichmentDispatcher") as MockDisp, \
+             patch("batch_runner._mark_issue_blocked", new=mock_blocked), \
+             patch("batch_runner._mark_issue_done", new=AsyncMock(return_value=True)), \
+             patch("batch_runner._emit_terminal_record"):
+            MockDisp.return_value.run_batch = AsyncMock(
+                side_effect=RuntimeError(f"401 Unauthorized key={api_key_val}")
+            )
+            await run()
+
+        self.assertEqual(len(blocked_calls), 1)
+        self.assertNotIn(api_key_val, blocked_calls[0]["comment"])
 
 
 if __name__ == "__main__":

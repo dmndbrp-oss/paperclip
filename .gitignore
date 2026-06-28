@@ -2,3 +2,17 @@ __pycache__/
 *.pyc
 node_modules/
 dist/
+
+# Agent working-directory noise (SAG-5142: prevent fe3e259-style omnibus sweeps)
+*.db
+/enrichment/*.db
+/SAG-*-status.txt
+/*-bg-state.json
+/payload.json
+infra/runtime-eval/results/
+infra/bench/**/*.log
+pilot-artifacts/phase-a/
+failover-monitor/tick*-findings.md
+failover-monitor/tick*-protocol.md
+failover-monitor/run*-*.md
+failover-monitor/heartbeat-ledger.jsonl

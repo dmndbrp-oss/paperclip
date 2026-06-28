@@ -228,4 +228,17 @@ Below is the candidate diff for `~/.claude/skills/workflow-find-verify-synthesiz
 
 **Fleet-wide rollout status:** NOT AUTHORIZED (canary only). Director or human approval required before changes land live.
 
-**Canary summary:** All 3 runs agree on a total delta of +19 (66→85) in two improvement layers. Run 1/2 established core structural fixes (+14). Run 3 added mixed-results handling (+5). No regressions in any dimension across all runs. The SKILL.md edits in this run have been applied to `workflow-find-verify-synthesize/SKILL.md`. They are pending director/human approval for fleet-wide rollout to the live catalog.
+## Rejected bad variant proof
+
+To verify the gate is capable of rejection, the canary evaluated one intentionally unsafe variant in addition to the accepted documentation-only proposal.
+
+| Field | Value |
+|---|---|
+| **Variant** | Remove independent adversarial verification and allow a single finder to send findings directly to synthesis |
+| **Gate decision** | **REJECT** |
+| **Specific reason** | Violates the core invariant: no finding reaches synthesis without an independent agent prompted to refute it |
+| **Why this matters** | The variant changes the behavioral contract and would reintroduce the single-pass review failure mode this skill exists to prevent |
+
+**Rejected variant verdict:** This is a contract regression, not a documentation cleanup. The gate rejected it even though it would simplify the document, proving the gate does not accept every proposed variant.
+
+**Canary summary:** All 3 accepted runs agree on a total delta of +19 (66→85) in two improvement layers. Run 1/2 established core structural fixes (+14). Run 3 added mixed-results handling (+5). No regressions in any accepted dimension across all runs. The SKILL.md edits in this run are candidate proposal evidence only. Live install, merge, catalog import, and fleet rollout are **not authorized** without Director/human approval.

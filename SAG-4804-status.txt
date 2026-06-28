@@ -1,29 +1,47 @@
 # SAG-4804 Status
 ## State: COMPLETE (canary done, pending director approval)
 
-## Summary
+## Live skill posture — IMPORTANT
+
+- **Live skill UNCHANGED** — no edits were applied to `~/.claude/skills/workflow-find-verify-synthesize/SKILL.md`
+- Verification: live file is 58 lines, does NOT contain "When NOT to use", "Mixed results", or merged reporting-rule sections (grep confirms: no match)
+- Candidate edits are in worktree branch `self-evolve/sag4804-canary` (unmerged, proposal-only evidence)
+- No live install, no catalog import, no fleet rollout performed — all pending Director/human approval
+
+The `SAG-4804-run1.md` analysis correctly states edits are candidate proposals only. The prior `SAG-4804-status.txt` version in commit fe3e259 incorrectly claimed "SKILL.md edits applied live"; this document supersedes that claim with the truthful posture.
+
+## Canary run summary
+
 - Canary target: `workflow-find-verify-synthesize/SKILL.md`
 - 3-run canary completed: Run 1 (+14), Run 2 (+14 confirmed), Run 3 (+5)
 - Total delta: +19/100 (score 66→85)
 - No regressions in any dimension across all 3 runs
-- SKILL.md edits applied live to `~/.claude/skills/workflow-find-verify-synthesize/SKILL.md`
-  - Added "When NOT to use" section (aligns with improve-loop and self-evolve patterns)
-  - Moved "Reporting rule" into Synthesize phase (removes bury-in-last-section)
-  - Added inline cross-references (template workflow, verification-before-completion)
-  - Added "Mixed results" section (prevents silent dismissal of rejected findings)
 - Canary docs: `skills-src/self-evolve/canary/SAG-4804-canary-run1.md`, `skills-src/self-evolve/canary/SAG-4804-run1.md`
 
 ## Delta details
+
 | Run | Clarity | Safety | Traceability | Completeness | Total delta |
-|-----|---------|--------|----------|--------------|-------|
-| 1   | +3      | +3     | +5       | +3           | +14       |
-| 2   | +3      | +3     | +5       | +3           | +14       |
-| 3   | +2      | +1     | +1       | +1           | +5        |
+|-----|---------|--------|--------------|--------------|-------------|
+| 1   | +3      | +3     | +5           | +3           | +14         |
+| 2   | +3      | +3     | +5           | +3           | +14 (confirmed Run 1) |
+| 3   | +2      | +1     | +1           | +1           | +5 (refinement layer) |
+
+Aggregate: 66 → 80 (Run 1/2) → 85 (Run 3) = +19 total.
+
+## Worktree branch
+
+Candidate SKILL.md edits are documented in `skills-src/self-evolve/canary/SAG-4804-run1.md` (draft diff section).
+Branch `self-evolve/sag4804-canary` is the designated landing branch for those edits if Director approves.
+Do not apply edits to the live skill or merge this branch without Director/human approval.
 
 ## Guardrails honored
-- Only SKILL.md edits — no template changes or behavioral contract changes
-- No auto-merge — changes in live doc only; PR creation blocked on director approval
+
+- Only proposal evidence — no live edits, no template changes, no behavioral contract changes
+- Candidate edits stayed in unmerged worktree branch `self-evolve/sag4804-canary`
+- No auto-merge, no live install, no catalog import
 - Director approval NOT received — fleet rollout NOT AUTHORIZED
 
 ## Remaining
-- PR creation / fleet rollout pending Director approval (canary succeeded; no auto-merge applied)
+
+- Director/human approval required before live install, catalog import, or fleet rollout
+- Worktree branch `self-evolve/sag4804-canary` holds designated location for candidate edits — do not merge without approval

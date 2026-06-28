@@ -455,7 +455,13 @@ describeEmbeddedPostgres("heartbeat plugin environments", () => {
       .filter(([, method]) => method === "environmentAcquireLease");
 
     expect(acquireCalls).toHaveLength(2);
-    expect(acquireCalls[0]?.[2]).toMatchObject({
+    // Both runs execute concurrently so acquire-call ordering is non-deterministic;
+    // locate each call by agentId instead of relying on array position.
+    const sharedAcquirePayload = acquireCalls
+      .find(([,, p]) => (p as Record<string, unknown>).agentId === agentAId)?.[2] as Record<string, unknown> | undefined;
+    const overrideAcquirePayload = acquireCalls
+      .find(([,, p]) => (p as Record<string, unknown>).agentId === agentBId)?.[2] as Record<string, unknown> | undefined;
+    expect(sharedAcquirePayload).toMatchObject({
       companyId: companyAId,
       environmentId: sharedEnvironmentId,
       config: { template: "shared" },
@@ -463,7 +469,7 @@ describeEmbeddedPostgres("heartbeat plugin environments", () => {
       runId: sharedRun!.id,
       adapterType: "codex_local",
     });
-    expect(acquireCalls[1]?.[2]).toMatchObject({
+    expect(overrideAcquirePayload).toMatchObject({
       companyId: companyBId,
       environmentId: overrideEnvironmentId,
       config: { template: "override" },

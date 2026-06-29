@@ -400,8 +400,10 @@ def run(
     }
 
     if demo_alert:
-        # --demo-alert: inject a synthetic regression, create a ticket, then immediately cancel it
-        # to verify end-to-end API connectivity without leaving noise in the issue tracker.
+        # --demo-alert forces no-post to prevent synthetic alerts from polluting live issues.
+        if not no_post:
+            log.info("--demo-alert: implying --no-post (demo must not write to live issues)")
+            no_post = True
         if not classify["regressions"]:
             log.info("--demo-alert: injecting synthetic regression for demonstration")
             classify["regressions"] = [{
@@ -435,15 +437,6 @@ def run(
             alert_issue = create_issue(alert_title, alert_desc)
             alert_issue_identifier = alert_issue.get("identifier")
             log.info("Regression alert issue created: %s", alert_issue_identifier)
-            if demo_alert:
-                _api("PATCH", f"/api/issues/{alert_issue['id']}", {
-                    "status": "cancelled",
-                    "comment": "Auto-cancelled: demo-alert connectivity test (safe to ignore)",
-                })
-                log.info(
-                    "--demo-alert: issue %s immediately cancelled (connectivity test PASSED)",
-                    alert_issue_identifier,
-                )
         except Exception as exc:
             log.error("Failed to create alert issue: %s", exc)
 

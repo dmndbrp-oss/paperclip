@@ -539,29 +539,22 @@ class TestApiDnsDefault:
 
 
 # ---------------------------------------------------------------------------
-# demo-alert: create+cancel (SAG-5104 Defect 2 DoD)
+# demo-alert: forces no-post (SAG-5103)
 # ---------------------------------------------------------------------------
 
 class TestDemoAlert:
-    def test_demo_alert_does_not_force_no_post(self, tmp_path, monkeypatch):
-        """--demo-alert must NOT imply --no-post; it should attempt real API calls."""
+    def test_demo_alert_forces_no_post(self, tmp_path, monkeypatch):
+        """--demo-alert must imply --no-post; synthetic alerts must not pollute live issues."""
         import digest_and_alert as da_mod
 
         api_calls = []
 
         def fake_api(method, path, body=None):
             api_calls.append((method, path, body))
-            if path.endswith("/comments"):
-                return {"id": "comment-001"}
-            if "/issues" in path and method == "POST":
-                return {"id": "uuid-demo-alert", "identifier": "SAG-TEST-999"}
-            if "/issues/" in path and method == "PATCH":
-                return {}
             return {}
 
         monkeypatch.setattr(da_mod, "_api", fake_api)
 
-        # Write a minimal results file
         run_data = {
             "run_ts": "20260627T000000Z",
             "model": "qwen3.6:latest",
@@ -579,11 +572,7 @@ class TestDemoAlert:
 
         da_mod.run(results_dir=tmp_path, demo_alert=True, no_post=False)
 
-        # Must have attempted to create an issue (not skipped due to no_post)
-        issue_create_calls = [(m, p) for m, p, _ in api_calls if "companies" in p and m == "POST"]
-        assert len(issue_create_calls) >= 1, "demo-alert must attempt issue creation"
-
-        # Must have immediately cancelled the demo issue
-        cancel_calls = [(m, p, b) for m, p, b in api_calls if "/issues/uuid-demo-alert" in p and m == "PATCH"]
-        assert len(cancel_calls) >= 1, "demo-alert must cancel the created issue"
-        assert cancel_calls[0][2].get("status") == "cancelled"
+        # no_post was forced so _api must never be called (no live issue or comment writes)
+        assert api_calls == [], (
+            f"--demo-alert must not write to live issues; got API calls: {api_calls}"
+        )

@@ -52,6 +52,7 @@ DEFAULT_MODEL = os.environ.get("EVAL_MODEL", "qwen3.6:latest")
 EVAL_TIMEOUT = float(os.environ.get("EVAL_TIMEOUT_S", "300"))
 
 INVALID_ERROR_THRESHOLD = 0.50   # classes with ≥ 50% errors are marked invalid/skipped
+HIGH_TIMEOUT_RATE = 0.30         # timeout rate ≥ 30% triggers run-health alert
 RETRY_COUNT = 2                  # per-call retries on transient URLError
 RETRY_DELAY_S = 10               # seconds between retries
 
@@ -69,6 +70,17 @@ ALL_CLASSES = [
 JSON_CHECK_TYPES = {"json_values", "json_values_normalized", "json_list_min"}
 
 log = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Utility helpers
+# ---------------------------------------------------------------------------
+
+def _is_timeout_exception(exc: Exception) -> bool:
+    """Return True if *exc* looks like a server-side timeout (HTTP 504, etc.)."""
+    if isinstance(exc, urllib.error.HTTPError) and exc.code == 504:
+        return True
+    return False
 
 
 # ---------------------------------------------------------------------------

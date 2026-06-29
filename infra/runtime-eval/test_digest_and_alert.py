@@ -1,6 +1,7 @@
 """Tests for digest_and_alert.py — SAG-4193 / SAG-5103."""
 import json
 import sys
+import urllib.error
 from pathlib import Path
 
 import pytest
@@ -366,6 +367,28 @@ class TestFormatDigest:
         assert "pricing" in out
         assert "CTO" not in out
 
+    def test_all_invalid_run_is_not_reported_as_no_regressions_detected(self):
+        classify = {
+            "regressions": [],
+            "floor_breaches": [],
+            "invalid_classes": [
+                {"class": "pricing", "reason": "error rate 20/20 (100%) ≥ 50% threshold"},
+                {"class": "code_review", "reason": "error rate 20/20 (100%) ≥ 50% threshold"},
+            ],
+        }
+        cur = _make_result("T2", classes={
+            "pricing": _cls(n=20, errors=20),
+            "code_review": _cls(n=20, errors=20),
+        })
+        pri = _make_result("T1", classes={
+            "pricing": _cls(),
+            "code_review": _cls(),
+        })
+        out = format_digest(cur, pri, classify)
+        assert "EVAL OUTAGE" in out
+        assert "No regressions detected" not in out
+        assert "CTO" not in out
+
     def test_alert_issue_id_referenced_in_regression(self):
         classify = {
             "regressions": [{"class": "x", "metric": "task_correct_rate",
@@ -536,6 +559,105 @@ class TestApiDnsDefault:
         assert captured.get("url", "").startswith("http://127.0.0.1:3100"), (
             f"Expected 127.0.0.1:3100 base, got: {captured.get('url')}"
         )
+
+
+# ---------------------------------------------------------------------------
+# test_all_invalid_does_not_trigger_regression_or_floor
+# ---------------------------------------------------------------------------
+
+class TestAllInvalidDoesNotTriggerRegressionOrFloor:
+    def test_all_invalid_emits_only_invalid_with_outage_message(self):
+        # All classes 100% errors → invalid_classes populated, empty regressions/floor
+        classify = {
+            "regressions": [],
+            "floor_breaches": [],
+            "invalid_classes": [
+                {"class": "pricing", "reason": "error rate 20/20 (100%) ≥ 50% threshold"},
+                {"class": "code_review", "reason": "error rate 18/20 (90%) ≥ 50% threshold"},
+                {"class": "qa_unit_tests", "reason": "error rate 20/20 (100%) ≥ 50% threshold"},
+            ],
+        }
+        cur = _make_result("T2", classes={
+            "pricing": _cls(n=20, errors=20),
+            "code_review": _cls(n=20, errors=18),
+            "qa_unit_tests": _cls(n=20, errors=20),
+        })
+        pri = _make_result("T1", classes={
+            "pricing": _cls(),
+            "code_review": _cls(),
+            "qa_unit_tests": _cls(),
+        })
+        out = format_digest(cur, pri, classify)
+        assert "EVAL OUTAGE" in out
+        assert "No regressions detected" not in out
+        assert "CTO" not in out
+
+    def test_partial_invalid_still_shows_regressions_when_present(self):
+        # Not all classes invalid; regression present → should show regression, not outage
+        classify = {
+            "regressions": [{"class": "pricing", "metric": "task_correct_rate",
+                             "cur": 0.5, "prev": 1.0, "drop": 0.5}],
+            "floor_breaches": [],
+            "invalid_classes": [
+                {"class": "code_review", "reason": "error rate 20/20 (100%) ≥ 50% threshold"},
+            ],
+        }
+        cur = _make_result("T2", classes={
+            "pricing": _cls(task_correct=0.5),
+            "code_review": _cls(n=20, errors=20),
+        })
+        pri = _make_result("T1", classes={
+            "pricing": _cls(task_correct=1.0),
+            "code_review": _cls(),
+        })
+        out = format_digest(cur, pri, classify)
+        assert "REGRESSIONS DETECTED" in out
+        assert "EVAL OUTAGE" not in out
+
+
+# ---------------------------------------------------------------------------
+# _is_timeout_exception (run_eval.py)
+# ---------------------------------------------------------------------------
+
+class TestIsTimeoutException:
+    def test_http_504_is_timeout(self):
+        from run_eval import _is_timeout_exception
+        exc = urllib.error.HTTPError("http://x", 504, "Gateway Timeout", {}, None)
+        assert _is_timeout_exception(exc) is True
+
+    def test_http_500_is_not_timeout(self):
+        from run_eval import _is_timeout_exception
+        exc = urllib.error.HTTPError("http://x", 500, "Server Error", {}, None)
+        assert _is_timeout_exception(exc) is False
+
+    def test_urllib_error_is_not_timeout(self):
+        from run_eval import _is_timeout_exception
+        exc = urllib.error.URLError("connection refused")
+        assert _is_timeout_exception(exc) is False
+
+    def test_regular_exception_is_not_timeout(self):
+        from run_eval import _is_timeout_exception
+        assert _is_timeout_exception(RuntimeError("boom")) is False
+
+    def test_http_502_is_not_timeout(self):
+        from run_eval import _is_timeout_exception
+        exc = urllib.error.HTTPError("http://x", 502, "Bad Gateway", {}, None)
+        assert _is_timeout_exception(exc) is False
+
+    def test_http_503_is_not_timeout(self):
+        from run_eval import _is_timeout_exception
+        exc = urllib.error.HTTPError("http://x", 503, "Service Unavailable", {}, None)
+        assert _is_timeout_exception(exc) is False
+
+
+# ---------------------------------------------------------------------------
+# HIGH_TIMEOUT_RATE constant (SAG-5280)
+# ---------------------------------------------------------------------------
+
+class TestHighTimeoutRate:
+    def test_constant_exists_and_is_0_30(self):
+        from run_eval import HIGH_TIMEOUT_RATE
+        assert HIGH_TIMEOUT_RATE == 0.30
 
 
 # ---------------------------------------------------------------------------

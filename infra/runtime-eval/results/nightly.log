@@ -1492,3 +1492,503 @@ Prior: `20260622T020044Z` (gemma4:26b-a4b-it-q4_K_M) | ⚠️ Model changed → 
 2026-06-23T13:00:59Z [nightly_eval] Digest/alert step failed (see log). Eval results are still in /home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/infra/runtime-eval/results.
 {"error":"Unauthorized"}2026-06-23T13:00:59Z [nightly_eval] Done.
 2026-06-23T13:00:59Z [nightly_eval] Lock released.
+2026-06-28T02:00:26Z [nightly_eval] Starting — PID 722751
+2026-06-28T02:00:26Z [nightly_eval] Lock acquired.
+2026-06-28T02:00:26Z [nightly_eval] Running run_eval.py ...
+2026-06-27 21:00:27,039 INFO [enrichment_sku] 20 rows, model=qwen3.6:latest
+2026-06-27 21:00:27,039 INFO [enrichment_sku] row 1/20 id=enr-001
+2026-06-27 21:05:27,139 WARNING [enrichment_sku] row enr-001 error: timed out
+2026-06-27 21:05:27,140 INFO [enrichment_sku] row 2/20 id=enr-002
+2026-06-27 21:10:27,148 WARNING [enrichment_sku] row enr-002 error: timed out
+2026-06-27 21:10:27,148 INFO [enrichment_sku] row 3/20 id=enr-003
+2026-06-27 21:13:01,834 INFO [enrichment_sku] row 4/20 id=enr-004
+2026-06-27 21:18:01,936 WARNING [enrichment_sku] row enr-004 error: timed out
+2026-06-27 21:18:01,936 INFO [enrichment_sku] row 5/20 id=enr-005
+2026-06-27 21:22:37,196 INFO [enrichment_sku] row 6/20 id=enr-006
+2026-06-27 21:27:37,296 WARNING [enrichment_sku] row enr-006 error: timed out
+2026-06-27 21:27:37,297 INFO [enrichment_sku] row 7/20 id=enr-007
+2026-06-27 21:32:37,398 WARNING [enrichment_sku] row enr-007 error: timed out
+2026-06-27 21:32:37,398 INFO [enrichment_sku] row 8/20 id=enr-008
+2026-06-27 21:37:37,479 WARNING [enrichment_sku] row enr-008 error: timed out
+2026-06-27 21:37:37,479 INFO [enrichment_sku] row 9/20 id=enr-009
+2026-06-27 21:42:37,563 WARNING [enrichment_sku] row enr-009 error: timed out
+2026-06-27 21:42:37,564 INFO [enrichment_sku] row 10/20 id=enr-010
+2026-06-27 21:47:37,663 WARNING [enrichment_sku] row enr-010 error: timed out
+2026-06-27 21:47:37,664 INFO [enrichment_sku] row 11/20 id=enr-011
+2026-06-27 21:52:02,236 INFO [enrichment_sku] row 12/20 id=enr-012
+2026-06-27 21:57:02,239 WARNING [enrichment_sku] row enr-012 error: timed out
+2026-06-27 21:57:02,239 INFO [enrichment_sku] row 13/20 id=enr-013
+2026-06-27 22:02:02,333 WARNING [enrichment_sku] row enr-013 error: timed out
+2026-06-27 22:02:02,334 INFO [enrichment_sku] row 14/20 id=enr-014
+2026-06-27 22:07:02,435 WARNING [enrichment_sku] row enr-014 error: timed out
+2026-06-27 22:07:02,435 INFO [enrichment_sku] row 15/20 id=enr-015
+2026-06-27 22:12:02,536 WARNING [enrichment_sku] row enr-015 error: timed out
+2026-06-27 22:12:02,537 INFO [enrichment_sku] row 16/20 id=enr-016
+2026-06-27 22:16:44,819 INFO [enrichment_sku] row 17/20 id=enr-017
+2026-06-27 22:21:44,882 WARNING [enrichment_sku] row enr-017 error: timed out
+2026-06-27 22:21:44,882 INFO [enrichment_sku] row 18/20 id=enr-018
+2026-06-27 22:26:44,983 WARNING [enrichment_sku] row enr-018 error: timed out
+2026-06-27 22:26:44,984 INFO [enrichment_sku] row 19/20 id=enr-019
+2026-06-27 22:31:45,085 WARNING [enrichment_sku] row enr-019 error: timed out
+2026-06-27 22:31:45,085 INFO [enrichment_sku] row 20/20 id=enr-020
+2026-06-27 22:36:45,178 WARNING [enrichment_sku] row enr-020 error: timed out
+2026-06-27 22:36:45,179 INFO [enrichment_sku] done: task_correct=15.0% clean=20.0% errors=16
+2026-06-27 22:36:45,179 INFO [doc_extraction] 20 rows, model=qwen3.6:latest
+2026-06-27 22:36:45,179 INFO [doc_extraction] row 1/20 id=doc-001
+2026-06-27 22:41:45,280 WARNING [doc_extraction] row doc-001 error: timed out
+2026-06-27 22:41:45,281 INFO [doc_extraction] row 2/20 id=doc-002
+2026-06-27 22:46:28,790 INFO [doc_extraction] row 3/20 id=doc-003
+2026-06-27 22:51:28,891 WARNING [doc_extraction] row doc-003 error: timed out
+2026-06-27 22:51:28,891 INFO [doc_extraction] row 4/20 id=doc-004
+2026-06-27 22:55:39,947 INFO [doc_extraction] row 5/20 id=doc-005
+2026-06-27 22:59:45,108 INFO [doc_extraction] row 6/20 id=doc-006
+2026-06-27 23:03:26,594 INFO [doc_extraction] row 7/20 id=doc-007
+2026-06-27 23:08:01,958 INFO [doc_extraction] row 8/20 id=doc-008
+2026-06-27 23:13:02,026 WARNING [doc_extraction] row doc-008 error: timed out
+2026-06-27 23:13:02,026 INFO [doc_extraction] row 9/20 id=doc-009
+2026-06-27 23:17:55,976 INFO [doc_extraction] row 10/20 id=doc-010
+2026-06-27 23:20:52,329 INFO [doc_extraction] row 11/20 id=doc-011
+2026-06-27 23:25:17,996 INFO [doc_extraction] row 12/20 id=doc-012
+2026-06-27 23:30:18,092 WARNING [doc_extraction] row doc-012 error: timed out
+2026-06-27 23:30:18,092 INFO [doc_extraction] row 13/20 id=doc-013
+2026-06-27 23:35:18,150 WARNING [doc_extraction] row doc-013 error: timed out
+2026-06-27 23:35:18,151 INFO [doc_extraction] row 14/20 id=doc-014
+2026-06-27 23:39:53,926 INFO [doc_extraction] row 15/20 id=doc-015
+2026-06-27 23:44:54,027 WARNING [doc_extraction] row doc-015 error: timed out
+2026-06-27 23:44:54,027 INFO [doc_extraction] row 16/20 id=doc-016
+2026-06-27 23:49:54,128 WARNING [doc_extraction] row doc-016 error: timed out
+2026-06-27 23:49:54,128 INFO [doc_extraction] row 17/20 id=doc-017
+2026-06-27 23:54:22,878 INFO [doc_extraction] row 18/20 id=doc-018
+2026-06-27 23:59:22,977 WARNING [doc_extraction] row doc-018 error: timed out
+2026-06-27 23:59:22,978 INFO [doc_extraction] row 19/20 id=doc-019
+2026-06-28 00:02:03,532 INFO [doc_extraction] row 20/20 id=doc-020
+2026-06-28 00:07:03,632 WARNING [doc_extraction] row doc-020 error: timed out
+2026-06-28 00:07:03,633 INFO [doc_extraction] done: task_correct=15.0% clean=55.0% errors=9
+2026-06-28 00:07:03,633 INFO [pricing] 20 rows, model=qwen3.6:latest
+2026-06-28 00:07:03,634 INFO [pricing] row 1/20 id=price-001
+2026-06-28 00:09:45,023 INFO [pricing] row 2/20 id=price-002
+2026-06-28 00:13:27,268 INFO [pricing] row 3/20 id=price-003
+2026-06-28 00:16:47,545 INFO [pricing] row 4/20 id=price-004
+2026-06-28 00:19:07,565 INFO [pricing] row 5/20 id=price-005
+2026-06-28 00:20:28,679 INFO [pricing] row 6/20 id=price-006
+2026-06-28 00:25:28,748 WARNING [pricing] row price-006 error: timed out
+2026-06-28 00:25:28,749 INFO [pricing] row 7/20 id=price-007
+2026-06-28 00:30:28,787 WARNING [pricing] row price-007 error: timed out
+2026-06-28 00:30:28,787 INFO [pricing] row 8/20 id=price-008
+2026-06-28 00:34:40,897 INFO [pricing] row 9/20 id=price-009
+2026-06-28 00:35:34,754 INFO [pricing] row 10/20 id=price-010
+2026-06-28 00:39:20,278 INFO [pricing] row 11/20 id=price-011
+2026-06-28 00:43:26,981 INFO [pricing] row 12/20 id=price-012
+2026-06-28 00:48:27,082 WARNING [pricing] row price-012 error: timed out
+2026-06-28 00:48:27,082 INFO [pricing] row 13/20 id=price-013
+2026-06-28 00:50:35,859 INFO [pricing] row 14/20 id=price-014
+2026-06-28 00:55:35,904 WARNING [pricing] row price-014 error: timed out
+2026-06-28 00:55:35,904 INFO [pricing] row 15/20 id=price-015
+2026-06-28 01:00:02,233 INFO [pricing] row 16/20 id=price-016
+2026-06-28 01:01:42,618 INFO [pricing] row 17/20 id=price-017
+2026-06-28 01:05:52,780 INFO [pricing] row 18/20 id=price-018
+2026-06-28 01:10:37,710 INFO [pricing] row 19/20 id=price-019
+2026-06-28 01:14:45,196 INFO [pricing] row 20/20 id=price-020
+2026-06-28 01:19:45,297 WARNING [pricing] row price-020 error: timed out
+2026-06-28 01:19:45,297 INFO [pricing] done: task_correct=75.0% clean=75.0% errors=5
+2026-06-28 01:19:45,298 INFO [code_review] 20 rows, model=qwen3.6:latest
+2026-06-28 01:19:45,298 INFO [code_review] row 1/20 id=cr-001
+2026-06-28 01:24:06,529 INFO [code_review] row 2/20 id=cr-002
+2026-06-28 01:27:47,309 INFO [code_review] row 3/20 id=cr-003
+2026-06-28 01:30:01,177 INFO [code_review] row 4/20 id=cr-004
+2026-06-28 01:34:22,118 INFO [code_review] row 5/20 id=cr-005
+2026-06-28 01:39:01,438 INFO [code_review] row 6/20 id=cr-006
+2026-06-28 01:44:01,448 WARNING [code_review] row cr-006 error: timed out
+2026-06-28 01:44:01,448 INFO [code_review] row 7/20 id=cr-007
+2026-06-28 01:46:59,387 INFO [code_review] row 8/20 id=cr-008
+2026-06-28 01:51:59,488 WARNING [code_review] row cr-008 error: timed out
+2026-06-28 01:51:59,488 INFO [code_review] row 9/20 id=cr-009
+2026-06-28 01:55:04,787 INFO [code_review] row 10/20 id=cr-010
+2026-06-28 02:00:04,888 WARNING [code_review] row cr-010 error: timed out
+2026-06-28 02:00:04,888 INFO [code_review] row 11/20 id=cr-011
+2026-06-28 02:05:04,989 WARNING [code_review] row cr-011 error: timed out
+2026-06-28 02:05:04,989 INFO [code_review] row 12/20 id=cr-012
+2026-06-28 02:09:09,486 INFO [code_review] row 13/20 id=cr-013
+2026-06-28 02:14:09,587 WARNING [code_review] row cr-013 error: timed out
+2026-06-28 02:14:09,587 INFO [code_review] row 14/20 id=cr-014
+2026-06-28 02:15:44,945 INFO [code_review] row 15/20 id=cr-015
+2026-06-28 02:20:45,047 WARNING [code_review] row cr-015 error: timed out
+2026-06-28 02:20:45,047 INFO [code_review] row 16/20 id=cr-016
+2026-06-28 02:25:45,148 WARNING [code_review] row cr-016 error: timed out
+2026-06-28 02:25:45,148 INFO [code_review] row 17/20 id=cr-017
+2026-06-28 02:29:04,560 INFO [code_review] row 18/20 id=cr-018
+2026-06-28 02:34:04,661 WARNING [code_review] row cr-018 error: timed out
+2026-06-28 02:34:04,662 INFO [code_review] row 19/20 id=cr-019
+2026-06-28 02:37:04,569 INFO [code_review] row 20/20 id=cr-020
+2026-06-28 02:42:04,670 WARNING [code_review] row cr-020 error: timed out
+2026-06-28 02:42:04,670 INFO [code_review] done: task_correct=50.0% clean=55.0% errors=9
+2026-06-28 02:42:04,671 INFO [qa_unit_tests] 20 rows, model=qwen3.6:latest
+2026-06-28 02:42:04,671 INFO [qa_unit_tests] row 1/20 id=qa-001
+2026-06-28 02:45:48,907 INFO [qa_unit_tests] row 2/20 id=qa-002
+2026-06-28 02:50:27,317 INFO [qa_unit_tests] row 3/20 id=qa-003
+2026-06-28 02:55:20,287 INFO [qa_unit_tests] row 4/20 id=qa-004
+2026-06-28 02:57:11,950 INFO [qa_unit_tests] row 5/20 id=qa-005
+2026-06-28 03:01:12,446 INFO [qa_unit_tests] row 6/20 id=qa-006
+2026-06-28 03:03:05,409 INFO [qa_unit_tests] row 7/20 id=qa-007
+2026-06-28 03:08:05,510 WARNING [qa_unit_tests] row qa-007 error: timed out
+2026-06-28 03:08:05,510 INFO [qa_unit_tests] row 8/20 id=qa-008
+2026-06-28 03:09:27,167 INFO [qa_unit_tests] row 9/20 id=qa-009
+2026-06-28 03:14:27,218 WARNING [qa_unit_tests] row qa-009 error: timed out
+2026-06-28 03:14:27,218 INFO [qa_unit_tests] row 10/20 id=qa-010
+2026-06-28 03:18:27,382 INFO [qa_unit_tests] row 11/20 id=qa-011
+2026-06-28 03:21:19,284 INFO [qa_unit_tests] row 12/20 id=qa-012
+2026-06-28 03:26:19,385 WARNING [qa_unit_tests] row qa-012 error: timed out
+2026-06-28 03:26:19,385 INFO [qa_unit_tests] row 13/20 id=qa-013
+2026-06-28 03:28:33,480 INFO [qa_unit_tests] row 14/20 id=qa-014
+2026-06-28 03:33:33,534 WARNING [qa_unit_tests] row qa-014 error: timed out
+2026-06-28 03:33:33,535 INFO [qa_unit_tests] row 15/20 id=qa-015
+2026-06-28 03:35:21,952 INFO [qa_unit_tests] row 16/20 id=qa-016
+2026-06-28 03:40:22,045 WARNING [qa_unit_tests] row qa-016 error: timed out
+2026-06-28 03:40:22,046 INFO [qa_unit_tests] row 17/20 id=qa-017
+2026-06-28 03:41:52,359 INFO [qa_unit_tests] row 18/20 id=qa-018
+2026-06-28 03:43:10,474 INFO [qa_unit_tests] row 19/20 id=qa-019
+2026-06-28 03:47:57,047 INFO [qa_unit_tests] row 20/20 id=qa-020
+2026-06-28 03:50:46,893 INFO [qa_unit_tests] done: task_correct=10.0% clean=75.0% errors=5
+2026-06-28 03:50:46,894 INFO [paralegal] 20 rows, model=qwen3.6:latest
+2026-06-28 03:50:46,894 INFO [paralegal] row 1/20 id=par-001
+2026-06-28 03:55:46,956 WARNING [paralegal] row par-001 error: timed out
+2026-06-28 03:55:46,956 INFO [paralegal] row 2/20 id=par-002
+2026-06-28 03:58:13,451 INFO [paralegal] row 3/20 id=par-003
+2026-06-28 04:03:13,554 WARNING [paralegal] row par-003 error: timed out
+2026-06-28 04:03:13,554 INFO [paralegal] row 4/20 id=par-004
+2026-06-28 04:05:35,520 INFO [paralegal] row 5/20 id=par-005
+2026-06-28 04:08:22,152 INFO [paralegal] row 6/20 id=par-006
+2026-06-28 04:12:31,552 INFO [paralegal] row 7/20 id=par-007
+2026-06-28 04:15:17,420 INFO [paralegal] row 8/20 id=par-008
+2026-06-28 04:19:19,042 INFO [paralegal] row 9/20 id=par-009
+2026-06-28 04:20:06,875 INFO [paralegal] row 10/20 id=par-010
+2026-06-28 04:20:11,299 INFO [paralegal] row 11/20 id=par-011
+2026-06-28 04:20:16,166 INFO [paralegal] row 12/20 id=par-012
+2026-06-28 04:21:56,658 INFO [paralegal] row 13/20 id=par-013
+2026-06-28 04:26:32,202 INFO [paralegal] row 14/20 id=par-014
+2026-06-28 04:28:57,782 INFO [paralegal] row 15/20 id=par-015
+2026-06-28 04:33:51,925 INFO [paralegal] row 16/20 id=par-016
+2026-06-28 04:36:39,940 INFO [paralegal] row 17/20 id=par-017
+2026-06-28 04:41:03,572 INFO [paralegal] row 18/20 id=par-018
+2026-06-28 04:44:04,749 INFO [paralegal] row 19/20 id=par-019
+2026-06-28 04:49:04,804 WARNING [paralegal] row par-019 error: timed out
+2026-06-28 04:49:04,804 INFO [paralegal] row 20/20 id=par-020
+2026-06-28 04:51:25,622 INFO [paralegal] done: task_correct=45.0% clean=85.0% errors=3
+2026-06-28 04:51:25,623 INFO Results written to /home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/infra/runtime-eval/results/20260628T020027Z.json
+
+=== EVAL SUMMARY ===
+  enrichment_sku: task_correct=15.0% CI95[0.05,0.36]  clean=20.0%  errors=16/20 [INVALID]
+  doc_extraction: task_correct=15.0% CI95[0.05,0.36]  clean=55.0%  errors=9/20
+  pricing: task_correct=75.0% CI95[0.53,0.89]  clean=75.0%  errors=5/20
+  code_review: task_correct=50.0% CI95[0.30,0.70]  clean=55.0%  errors=9/20
+  qa_unit_tests: task_correct=10.0% CI95[0.03,0.30]  clean=75.0%  errors=5/20
+  paralegal: task_correct=45.0% CI95[0.26,0.66]  clean=85.0%  errors=3/20
+2026-06-28T09:51:25Z [nightly_eval] run_eval.py complete. Running digest_and_alert.py ...
+2026-06-28 04:51:25,691 INFO Current run: 20260628T020027Z
+2026-06-28 04:51:25,691 INFO Prior run:   20260627T152400Z
+
+============================================================
+## Nightly Local-AI Eval — 20260628
+Model: `qwen3.6:latest` | run_ts: `20260628T020027Z`
+Prior: `20260627T152400Z` | Delta shown
+
+| Class | N | task_correct | Δ | clean | Δ | tool_call | Δ | errors | status |
+|---|---|---|---|---|---|---|---|---|---|
+| enrichment_sku | 20 | 15.0% [0.05,0.36] | -40.0pp | 20.0% | -55.0pp | N/A | N/A | 16 | 🚫 INVALID |
+| doc_extraction | 20 | 15.0% [0.05,0.36] | +10.0pp | 55.0% | +45.0pp | N/A | N/A | 9 | ℹ️ FLOOR |
+| pricing | 20 | 75.0% [0.53,0.89] | +75.0pp | 75.0% | +75.0pp | N/A | N/A | 5 | ℹ️ FLOOR |
+| code_review | 20 | 50.0% [0.30,0.70] | +50.0pp | 55.0% | +55.0pp | N/A | N/A | 9 | ℹ️ FLOOR |
+| qa_unit_tests | 20 | 10.0% [0.03,0.30] | +10.0pp | 75.0% | +75.0pp | N/A | N/A | 5 | ℹ️ FLOOR |
+| paralegal | 20 | 45.0% [0.26,0.66] | +45.0pp | 85.0% | +85.0pp | N/A | N/A | 3 | ℹ️ FLOOR |
+
+### ℹ️ FLOOR (informational — no alert issued)
+- **doc_extraction** `clean_rate`: below floor 90% (no valid prior)
+- **pricing** `clean_rate`: below floor 90% (no valid prior)
+- **code_review** `clean_rate`: below floor 90% (no valid prior)
+- **qa_unit_tests** `clean_rate`: below floor 90% (no valid prior)
+- **paralegal** `clean_rate`: below floor 90% (no valid prior)
+
+### 🚫 INVALID/SKIPPED (high error rate — excluded from alerting)
+- **enrichment_sku**: error rate 16/20 (80%) ≥ threshold 50%
+
+✅ No regressions detected.
+============================================================
+
+2026-06-28 04:51:25,736 INFO Digest posted to c8304ce0-3116-40b2-a718-4e7d0fb2c6d8 (comment 9b6cd8e1-fcdc-4886-acf3-0df88ecd73ce)
+2026-06-28T09:51:25Z [nightly_eval] digest_and_alert.py exited with code 0
+{"id":"189c24cc-c45d-463c-b22a-548cf0199874","companyId":"1dc911ed-ff05-4072-b2ae-a3e3177e3873","issueId":"ea201db8-c209-4770-bba4-d3c4cd1de908","authorAgentId":null,"authorUserId":"local-board","authorType":"user","createdByRunId":null,"body":"✅ Nightly eval complete. Latest results: `20260628T020027Z.json`. Digest posted to [SAG-3196](/SAG/issues/SAG-3196).","presentation":null,"metadata":null,"deletedAt":null,"deletedByType":null,"deletedByAgentId":null,"deletedByUserId":null,"deletedByRunId":null,"sourceTrust":null,"createdAt":"2026-06-28T09:51:25.926Z","updatedAt":"2026-06-28T09:51:25.926Z"}2026-06-28T09:51:25Z [nightly_eval] Done.
+2026-06-28T09:51:25Z [nightly_eval] Lock released.
+2026-06-29T02:00:41Z [nightly_eval] Starting — PID 2131247
+2026-06-29T02:00:41Z [nightly_eval] Lock acquired.
+2026-06-29T02:00:41Z [nightly_eval] Running run_eval.py ...
+2026-06-28 21:00:41,391 INFO [enrichment_sku] 20 rows, model=qwen3.6:latest
+2026-06-28 21:00:41,391 INFO [enrichment_sku] row 1/20 id=enr-001
+2026-06-28 21:05:38,374 INFO [enrichment_sku] row 2/20 id=enr-002
+2026-06-28 21:10:33,728 INFO [enrichment_sku] row 3/20 id=enr-003
+2026-06-28 21:15:33,788 WARNING [enrichment_sku] row enr-003 error: timed out
+2026-06-28 21:15:33,788 INFO [enrichment_sku] row 4/20 id=enr-004
+2026-06-28 21:20:25,393 INFO [enrichment_sku] row 5/20 id=enr-005
+2026-06-28 21:25:25,490 WARNING [enrichment_sku] row enr-005 error: timed out
+2026-06-28 21:25:25,490 INFO [enrichment_sku] row 6/20 id=enr-006
+2026-06-28 21:29:07,218 INFO [enrichment_sku] row 7/20 id=enr-007
+2026-06-28 21:32:49,157 INFO [enrichment_sku] row 8/20 id=enr-008
+2026-06-28 21:35:16,548 INFO [enrichment_sku] row 9/20 id=enr-009
+2026-06-28 21:40:16,649 WARNING [enrichment_sku] row enr-009 error: timed out
+2026-06-28 21:40:16,650 INFO [enrichment_sku] row 10/20 id=enr-010
+2026-06-28 21:44:17,092 INFO [enrichment_sku] row 11/20 id=enr-011
+2026-06-28 21:49:17,096 WARNING [enrichment_sku] row enr-011 error: timed out
+2026-06-28 21:49:17,096 INFO [enrichment_sku] row 12/20 id=enr-012
+2026-06-28 21:54:17,197 WARNING [enrichment_sku] row enr-012 error: timed out
+2026-06-28 21:54:17,197 INFO [enrichment_sku] row 13/20 id=enr-013
+2026-06-28 21:59:17,224 WARNING [enrichment_sku] row enr-013 error: timed out
+2026-06-28 21:59:17,225 INFO [enrichment_sku] row 14/20 id=enr-014
+2026-06-28 22:04:17,326 WARNING [enrichment_sku] row enr-014 error: timed out
+2026-06-28 22:04:17,326 INFO [enrichment_sku] row 15/20 id=enr-015
+2026-06-28 22:09:17,427 WARNING [enrichment_sku] row enr-015 error: timed out
+2026-06-28 22:09:17,427 INFO [enrichment_sku] row 16/20 id=enr-016
+2026-06-28 22:14:17,478 WARNING [enrichment_sku] row enr-016 error: timed out
+2026-06-28 22:14:17,478 INFO [enrichment_sku] row 17/20 id=enr-017
+2026-06-28 22:19:17,580 WARNING [enrichment_sku] row enr-017 error: timed out
+2026-06-28 22:19:17,580 INFO [enrichment_sku] row 18/20 id=enr-018
+2026-06-28 22:24:17,681 WARNING [enrichment_sku] row enr-018 error: timed out
+2026-06-28 22:24:17,682 INFO [enrichment_sku] row 19/20 id=enr-019
+2026-06-28 22:29:17,777 WARNING [enrichment_sku] row enr-019 error: timed out
+2026-06-28 22:29:17,777 INFO [enrichment_sku] row 20/20 id=enr-020
+2026-06-28 22:34:17,878 WARNING [enrichment_sku] row enr-020 error: timed out
+2026-06-28 22:34:17,878 INFO [enrichment_sku] done: task_correct=20.0% clean=35.0% errors=13
+2026-06-28 22:34:17,879 INFO [doc_extraction] 20 rows, model=qwen3.6:latest
+2026-06-28 22:34:17,879 INFO [doc_extraction] row 1/20 id=doc-001
+2026-06-28 22:39:17,943 WARNING [doc_extraction] row doc-001 error: timed out
+2026-06-28 22:39:17,943 INFO [doc_extraction] row 2/20 id=doc-002
+2026-06-28 22:44:18,040 WARNING [doc_extraction] row doc-002 error: timed out
+2026-06-28 22:44:18,041 INFO [doc_extraction] row 3/20 id=doc-003
+2026-06-28 22:49:18,099 WARNING [doc_extraction] row doc-003 error: timed out
+2026-06-28 22:49:18,099 INFO [doc_extraction] row 4/20 id=doc-004
+2026-06-28 22:54:18,154 WARNING [doc_extraction] row doc-004 error: timed out
+2026-06-28 22:54:18,154 INFO [doc_extraction] row 5/20 id=doc-005
+2026-06-28 22:59:18,254 WARNING [doc_extraction] row doc-005 error: timed out
+2026-06-28 22:59:18,255 INFO [doc_extraction] row 6/20 id=doc-006
+2026-06-28 23:04:18,277 WARNING [doc_extraction] row doc-006 error: timed out
+2026-06-28 23:04:18,277 INFO [doc_extraction] row 7/20 id=doc-007
+2026-06-28 23:09:18,377 WARNING [doc_extraction] row doc-007 error: timed out
+2026-06-28 23:09:18,378 INFO [doc_extraction] row 8/20 id=doc-008
+2026-06-28 23:14:18,428 WARNING [doc_extraction] row doc-008 error: timed out
+2026-06-28 23:14:18,428 INFO [doc_extraction] row 9/20 id=doc-009
+2026-06-28 23:19:18,529 WARNING [doc_extraction] row doc-009 error: timed out
+2026-06-28 23:19:18,529 INFO [doc_extraction] row 10/20 id=doc-010
+2026-06-28 23:24:18,630 WARNING [doc_extraction] row doc-010 error: timed out
+2026-06-28 23:24:18,630 INFO [doc_extraction] row 11/20 id=doc-011
+2026-06-28 23:28:33,782 INFO [doc_extraction] row 12/20 id=doc-012
+2026-06-28 23:33:33,882 WARNING [doc_extraction] row doc-012 error: timed out
+2026-06-28 23:33:33,883 INFO [doc_extraction] row 13/20 id=doc-013
+2026-06-28 23:38:33,887 WARNING [doc_extraction] row doc-013 error: timed out
+2026-06-28 23:38:33,887 INFO [doc_extraction] row 14/20 id=doc-014
+2026-06-28 23:43:33,987 WARNING [doc_extraction] row doc-014 error: timed out
+2026-06-28 23:43:33,988 INFO [doc_extraction] row 15/20 id=doc-015
+2026-06-28 23:48:34,024 WARNING [doc_extraction] row doc-015 error: timed out
+2026-06-28 23:48:34,024 INFO [doc_extraction] row 16/20 id=doc-016
+2026-06-28 23:53:34,090 WARNING [doc_extraction] row doc-016 error: timed out
+2026-06-28 23:53:34,090 INFO [doc_extraction] row 17/20 id=doc-017
+2026-06-28 23:58:34,191 WARNING [doc_extraction] row doc-017 error: timed out
+2026-06-28 23:58:34,191 INFO [doc_extraction] row 18/20 id=doc-018
+2026-06-29 00:03:34,219 WARNING [doc_extraction] row doc-018 error: timed out
+2026-06-29 00:03:34,219 INFO [doc_extraction] row 19/20 id=doc-019
+2026-06-29 00:08:34,319 WARNING [doc_extraction] row doc-019 error: timed out
+2026-06-29 00:08:34,320 INFO [doc_extraction] row 20/20 id=doc-020
+2026-06-29 00:13:34,402 WARNING [doc_extraction] row doc-020 error: timed out
+2026-06-29 00:13:34,403 INFO [doc_extraction] done: task_correct=0.0% clean=5.0% errors=19
+2026-06-29 00:13:34,403 INFO [pricing] 20 rows, model=qwen3.6:latest
+2026-06-29 00:13:34,403 INFO [pricing] row 1/20 id=price-001
+2026-06-29 00:18:34,503 WARNING [pricing] row price-001 error: timed out
+2026-06-29 00:18:34,504 INFO [pricing] row 2/20 id=price-002
+2026-06-29 00:23:34,574 WARNING [pricing] row price-002 error: timed out
+2026-06-29 00:23:34,574 INFO [pricing] row 3/20 id=price-003
+2026-06-29 00:28:34,674 WARNING [pricing] row price-003 error: timed out
+2026-06-29 00:28:34,675 INFO [pricing] row 4/20 id=price-004
+2026-06-29 00:33:34,739 WARNING [pricing] row price-004 error: timed out
+2026-06-29 00:33:34,739 INFO [pricing] row 5/20 id=price-005
+2026-06-29 00:38:34,831 WARNING [pricing] row price-005 error: timed out
+2026-06-29 00:38:34,831 INFO [pricing] row 6/20 id=price-006
+2026-06-29 00:43:34,833 WARNING [pricing] row price-006 error: timed out
+2026-06-29 00:43:34,833 INFO [pricing] row 7/20 id=price-007
+2026-06-29 00:48:34,899 WARNING [pricing] row price-007 error: timed out
+2026-06-29 00:48:34,899 INFO [pricing] row 8/20 id=price-008
+2026-06-29 00:53:35,000 WARNING [pricing] row price-008 error: timed out
+2026-06-29 00:53:35,000 INFO [pricing] row 9/20 id=price-009
+2026-06-29 00:58:35,083 WARNING [pricing] row price-009 error: timed out
+2026-06-29 00:58:35,083 INFO [pricing] row 10/20 id=price-010
+2026-06-29 01:03:35,165 WARNING [pricing] row price-010 error: timed out
+2026-06-29 01:03:35,165 INFO [pricing] row 11/20 id=price-011
+2026-06-29 01:08:35,218 WARNING [pricing] row price-011 error: timed out
+2026-06-29 01:08:35,218 INFO [pricing] row 12/20 id=price-012
+2026-06-29 01:12:27,710 INFO [pricing] row 13/20 id=price-013
+2026-06-29 01:17:27,810 WARNING [pricing] row price-013 error: timed out
+2026-06-29 01:17:27,811 INFO [pricing] row 14/20 id=price-014
+2026-06-29 01:22:27,912 WARNING [pricing] row price-014 error: timed out
+2026-06-29 01:22:27,912 INFO [pricing] row 15/20 id=price-015
+2026-06-29 01:27:28,002 WARNING [pricing] row price-015 error: timed out
+2026-06-29 01:27:28,002 INFO [pricing] row 16/20 id=price-016
+2026-06-29 01:32:28,103 WARNING [pricing] row price-016 error: timed out
+2026-06-29 01:32:28,103 INFO [pricing] row 17/20 id=price-017
+2026-06-29 01:37:28,204 WARNING [pricing] row price-017 error: timed out
+2026-06-29 01:37:28,204 INFO [pricing] row 18/20 id=price-018
+2026-06-29 01:42:28,243 WARNING [pricing] row price-018 error: timed out
+2026-06-29 01:42:28,243 INFO [pricing] row 19/20 id=price-019
+2026-06-29 01:47:28,294 WARNING [pricing] row price-019 error: timed out
+2026-06-29 01:47:28,294 INFO [pricing] row 20/20 id=price-020
+2026-06-29 01:52:28,395 WARNING [pricing] row price-020 error: timed out
+2026-06-29 01:52:28,396 INFO [pricing] done: task_correct=5.0% clean=5.0% errors=19
+2026-06-29 01:52:28,397 INFO [code_review] 20 rows, model=qwen3.6:latest
+2026-06-29 01:52:28,397 INFO [code_review] row 1/20 id=cr-001
+2026-06-29 01:57:28,497 WARNING [code_review] row cr-001 error: timed out
+2026-06-29 01:57:28,497 INFO [code_review] row 2/20 id=cr-002
+2026-06-29 02:02:28,513 WARNING [code_review] row cr-002 error: timed out
+2026-06-29 02:02:28,513 INFO [code_review] row 3/20 id=cr-003
+2026-06-29 02:07:28,614 WARNING [code_review] row cr-003 error: timed out
+2026-06-29 02:07:28,614 INFO [code_review] row 4/20 id=cr-004
+2026-06-29 02:12:28,619 WARNING [code_review] row cr-004 error: timed out
+2026-06-29 02:12:28,619 INFO [code_review] row 5/20 id=cr-005
+2026-06-29 02:16:54,876 INFO [code_review] row 6/20 id=cr-006
+2026-06-29 02:21:11,106 INFO [code_review] row 7/20 id=cr-007
+2026-06-29 02:26:11,127 WARNING [code_review] row cr-007 error: timed out
+2026-06-29 02:26:11,128 INFO [code_review] row 8/20 id=cr-008
+2026-06-29 02:30:59,381 INFO [code_review] row 9/20 id=cr-009
+2026-06-29 02:35:59,481 WARNING [code_review] row cr-009 error: timed out
+2026-06-29 02:35:59,482 INFO [code_review] row 10/20 id=cr-010
+2026-06-29 02:40:59,581 WARNING [code_review] row cr-010 error: timed out
+2026-06-29 02:40:59,582 INFO [code_review] row 11/20 id=cr-011
+2026-06-29 02:45:59,682 WARNING [code_review] row cr-011 error: timed out
+2026-06-29 02:45:59,683 INFO [code_review] row 12/20 id=cr-012
+2026-06-29 02:50:59,748 WARNING [code_review] row cr-012 error: timed out
+2026-06-29 02:50:59,748 INFO [code_review] row 13/20 id=cr-013
+2026-06-29 02:55:59,848 WARNING [code_review] row cr-013 error: timed out
+2026-06-29 02:55:59,849 INFO [code_review] row 14/20 id=cr-014
+2026-06-29 03:00:59,949 WARNING [code_review] row cr-014 error: timed out
+2026-06-29 03:00:59,949 INFO [code_review] row 15/20 id=cr-015
+2026-06-29 03:06:00,038 WARNING [code_review] row cr-015 error: timed out
+2026-06-29 03:06:00,038 INFO [code_review] row 16/20 id=cr-016
+2026-06-29 03:11:00,107 WARNING [code_review] row cr-016 error: timed out
+2026-06-29 03:11:00,107 INFO [code_review] row 17/20 id=cr-017
+2026-06-29 03:16:00,207 WARNING [code_review] row cr-017 error: timed out
+2026-06-29 03:16:00,208 INFO [code_review] row 18/20 id=cr-018
+2026-06-29 03:21:00,293 WARNING [code_review] row cr-018 error: timed out
+2026-06-29 03:21:00,294 INFO [code_review] row 19/20 id=cr-019
+2026-06-29 03:26:00,393 WARNING [code_review] row cr-019 error: timed out
+2026-06-29 03:26:00,394 INFO [code_review] row 20/20 id=cr-020
+2026-06-29 03:31:00,494 WARNING [code_review] row cr-020 error: timed out
+2026-06-29 03:31:00,495 INFO [code_review] done: task_correct=15.0% clean=15.0% errors=17
+2026-06-29 03:31:00,495 INFO [qa_unit_tests] 20 rows, model=qwen3.6:latest
+2026-06-29 03:31:00,495 INFO [qa_unit_tests] row 1/20 id=qa-001
+2026-06-29 03:35:55,642 INFO [qa_unit_tests] row 2/20 id=qa-002
+2026-06-29 03:40:55,689 WARNING [qa_unit_tests] row qa-002 error: timed out
+2026-06-29 03:40:55,690 INFO [qa_unit_tests] row 3/20 id=qa-003
+2026-06-29 03:45:48,414 INFO [qa_unit_tests] row 4/20 id=qa-004
+2026-06-29 03:49:23,937 INFO [qa_unit_tests] row 5/20 id=qa-005
+2026-06-29 03:54:08,099 INFO [qa_unit_tests] row 6/20 id=qa-006
+2026-06-29 03:57:25,105 INFO [qa_unit_tests] row 7/20 id=qa-007
+2026-06-29 04:00:39,420 INFO [qa_unit_tests] row 8/20 id=qa-008
+2026-06-29 04:04:23,905 INFO [qa_unit_tests] row 9/20 id=qa-009
+2026-06-29 04:09:24,006 WARNING [qa_unit_tests] row qa-009 error: timed out
+2026-06-29 04:09:24,006 INFO [qa_unit_tests] row 10/20 id=qa-010
+2026-06-29 04:13:20,391 INFO [qa_unit_tests] row 11/20 id=qa-011
+2026-06-29 04:18:20,492 WARNING [qa_unit_tests] row qa-011 error: timed out
+2026-06-29 04:18:20,492 INFO [qa_unit_tests] row 12/20 id=qa-012
+2026-06-29 04:22:56,560 INFO [qa_unit_tests] row 13/20 id=qa-013
+2026-06-29 04:27:44,720 INFO [qa_unit_tests] row 14/20 id=qa-014
+2026-06-29 04:32:44,730 WARNING [qa_unit_tests] row qa-014 error: timed out
+2026-06-29 04:32:44,730 INFO [qa_unit_tests] row 15/20 id=qa-015
+2026-06-29 04:37:44,793 WARNING [qa_unit_tests] row qa-015 error: timed out
+2026-06-29 04:37:44,793 INFO [qa_unit_tests] row 16/20 id=qa-016
+2026-06-29 04:42:44,882 WARNING [qa_unit_tests] row qa-016 error: timed out
+2026-06-29 04:42:44,882 INFO [qa_unit_tests] row 17/20 id=qa-017
+2026-06-29 04:47:44,983 WARNING [qa_unit_tests] row qa-017 error: timed out
+2026-06-29 04:47:44,983 INFO [qa_unit_tests] row 18/20 id=qa-018
+2026-06-29 04:52:45,083 WARNING [qa_unit_tests] row qa-018 error: timed out
+2026-06-29 04:52:45,084 INFO [qa_unit_tests] row 19/20 id=qa-019
+2026-06-29 04:57:45,184 WARNING [qa_unit_tests] row qa-019 error: timed out
+2026-06-29 04:57:45,185 INFO [qa_unit_tests] row 20/20 id=qa-020
+2026-06-29 05:02:45,283 WARNING [qa_unit_tests] row qa-020 error: timed out
+2026-06-29 05:02:45,284 INFO [qa_unit_tests] done: task_correct=10.0% clean=50.0% errors=10
+2026-06-29 05:02:45,285 INFO [paralegal] 20 rows, model=qwen3.6:latest
+2026-06-29 05:02:45,285 INFO [paralegal] row 1/20 id=par-001
+2026-06-29 05:07:45,349 WARNING [paralegal] row par-001 error: timed out
+2026-06-29 05:07:45,349 INFO [paralegal] row 2/20 id=par-002
+2026-06-29 05:12:45,451 WARNING [paralegal] row par-002 error: timed out
+2026-06-29 05:12:45,451 INFO [paralegal] row 3/20 id=par-003
+2026-06-29 05:17:45,552 WARNING [paralegal] row par-003 error: timed out
+2026-06-29 05:17:45,552 INFO [paralegal] row 4/20 id=par-004
+2026-06-29 05:22:45,653 WARNING [paralegal] row par-004 error: timed out
+2026-06-29 05:22:45,654 INFO [paralegal] row 5/20 id=par-005
+2026-06-29 05:27:45,755 WARNING [paralegal] row par-005 error: timed out
+2026-06-29 05:27:45,755 INFO [paralegal] row 6/20 id=par-006
+2026-06-29 05:32:45,830 WARNING [paralegal] row par-006 error: timed out
+2026-06-29 05:32:45,830 INFO [paralegal] row 7/20 id=par-007
+2026-06-29 05:37:45,887 WARNING [paralegal] row par-007 error: timed out
+2026-06-29 05:37:45,887 INFO [paralegal] row 8/20 id=par-008
+2026-06-29 05:42:45,988 WARNING [paralegal] row par-008 error: timed out
+2026-06-29 05:42:45,988 INFO [paralegal] row 9/20 id=par-009
+2026-06-29 05:47:45,990 WARNING [paralegal] row par-009 error: timed out
+2026-06-29 05:47:45,991 INFO [paralegal] row 10/20 id=par-010
+2026-06-29 05:52:46,013 WARNING [paralegal] row par-010 error: timed out
+2026-06-29 05:52:46,013 INFO [paralegal] row 11/20 id=par-011
+2026-06-29 05:57:46,114 WARNING [paralegal] row par-011 error: timed out
+2026-06-29 05:57:46,114 INFO [paralegal] row 12/20 id=par-012
+2026-06-29 06:02:46,215 WARNING [paralegal] row par-012 error: timed out
+2026-06-29 06:02:46,215 INFO [paralegal] row 13/20 id=par-013
+2026-06-29 06:07:46,294 WARNING [paralegal] row par-013 error: timed out
+2026-06-29 06:07:46,294 INFO [paralegal] row 14/20 id=par-014
+2026-06-29 06:12:46,396 WARNING [paralegal] row par-014 error: timed out
+2026-06-29 06:12:46,396 INFO [paralegal] row 15/20 id=par-015
+2026-06-29 06:17:46,410 WARNING [paralegal] row par-015 error: timed out
+2026-06-29 06:17:46,410 INFO [paralegal] row 16/20 id=par-016
+2026-06-29 06:22:46,511 WARNING [paralegal] row par-016 error: timed out
+2026-06-29 06:22:46,512 INFO [paralegal] row 17/20 id=par-017
+2026-06-29 06:27:46,570 WARNING [paralegal] row par-017 error: timed out
+2026-06-29 06:27:46,571 INFO [paralegal] row 18/20 id=par-018
+2026-06-29 06:32:46,636 WARNING [paralegal] row par-018 error: timed out
+2026-06-29 06:32:46,636 INFO [paralegal] row 19/20 id=par-019
+2026-06-29 06:37:46,676 WARNING [paralegal] row par-019 error: timed out
+2026-06-29 06:37:46,677 INFO [paralegal] row 20/20 id=par-020
+2026-06-29 06:41:49,506 INFO [paralegal] done: task_correct=0.0% clean=5.0% errors=19
+2026-06-29 06:41:49,506 INFO Results written to /home/gus-pinsoneault/.paperclip/instances/default/projects/1dc911ed-ff05-4072-b2ae-a3e3177e3873/4dc8eabc-212d-4a46-a0eb-aa61b75e82d0/_default/infra/runtime-eval/results/20260629T020041Z.json
+
+=== EVAL SUMMARY ===
+  enrichment_sku: task_correct=20.0% CI95[0.08,0.42]  clean=35.0%  errors=13/20 [INVALID]
+  doc_extraction: task_correct=0.0% CI95[0.00,0.16]  clean=5.0%  errors=19/20 [INVALID]
+  pricing: task_correct=5.0% CI95[0.01,0.24]  clean=5.0%  errors=19/20 [INVALID]
+  code_review: task_correct=15.0% CI95[0.05,0.36]  clean=15.0%  errors=17/20 [INVALID]
+  qa_unit_tests: task_correct=10.0% CI95[0.03,0.30]  clean=50.0%  errors=10/20 [INVALID]
+  paralegal: task_correct=0.0% CI95[0.00,0.16]  clean=5.0%  errors=19/20 [INVALID]
+2026-06-29T11:41:49Z [nightly_eval] run_eval.py complete. Running digest_and_alert.py ...
+2026-06-29 06:41:49,568 INFO Current run: 20260629T020041Z
+2026-06-29 06:41:49,568 INFO Prior run:   20260628T020027Z
+
+============================================================
+## Nightly Local-AI Eval — 20260629
+Model: `qwen3.6:latest` | run_ts: `20260629T020041Z`
+Prior: `20260628T020027Z` | Delta shown
+
+| Class | N | task_correct | Δ | clean | Δ | tool_call | Δ | errors | status |
+|---|---|---|---|---|---|---|---|---|---|
+| enrichment_sku | 20 | 20.0% [0.08,0.42] | +5.0pp | 35.0% | +15.0pp | N/A | N/A | 13 | 🚫 INVALID |
+| doc_extraction | 20 | 0.0% [0.00,0.16] | -15.0pp | 5.0% | -50.0pp | N/A | N/A | 19 | 🚫 INVALID |
+| pricing | 20 | 5.0% [0.01,0.24] | -70.0pp | 5.0% | -70.0pp | N/A | N/A | 19 | 🚫 INVALID |
+| code_review | 20 | 15.0% [0.05,0.36] | -35.0pp | 15.0% | -40.0pp | N/A | N/A | 17 | 🚫 INVALID |
+| qa_unit_tests | 20 | 10.0% [0.03,0.30] | +0.0pp | 50.0% | -25.0pp | N/A | N/A | 10 | 🚫 INVALID |
+| paralegal | 20 | 0.0% [0.00,0.16] | -45.0pp | 5.0% | -80.0pp | N/A | N/A | 19 | 🚫 INVALID |
+
+### 🚫 INVALID/SKIPPED (high error rate — excluded from alerting)
+- **enrichment_sku**: error rate 13/20 (65%) ≥ threshold 50%
+- **doc_extraction**: error rate 19/20 (95%) ≥ threshold 50%
+- **pricing**: error rate 19/20 (95%) ≥ threshold 50%
+- **code_review**: error rate 17/20 (85%) ≥ threshold 50%
+- **qa_unit_tests**: error rate 10/20 (50%) ≥ threshold 50%
+- **paralegal**: error rate 19/20 (95%) ≥ threshold 50%
+
+✅ No regressions detected.
+============================================================
+
+2026-06-29 06:41:49,616 INFO Digest posted to c8304ce0-3116-40b2-a718-4e7d0fb2c6d8 (comment 84a6cea0-9f0f-49be-a0e5-144187a2674b)
+2026-06-29T11:41:49Z [nightly_eval] digest_and_alert.py exited with code 0
+{"id":"1d50c850-6e06-4c18-9be0-5d4e06035f36","companyId":"1dc911ed-ff05-4072-b2ae-a3e3177e3873","issueId":"ea201db8-c209-4770-bba4-d3c4cd1de908","authorAgentId":null,"authorUserId":"local-board","authorType":"user","createdByRunId":null,"body":"✅ Nightly eval complete. Latest results: `20260629T020041Z.json`. Digest posted to [SAG-3196](/SAG/issues/SAG-3196).","presentation":null,"metadata":null,"deletedAt":null,"deletedByType":null,"deletedByAgentId":null,"deletedByUserId":null,"deletedByRunId":null,"sourceTrust":null,"createdAt":"2026-06-29T11:41:49.822Z","updatedAt":"2026-06-29T11:41:49.822Z"}2026-06-29T11:41:49Z [nightly_eval] Done.
+2026-06-29T11:41:49Z [nightly_eval] Lock released.

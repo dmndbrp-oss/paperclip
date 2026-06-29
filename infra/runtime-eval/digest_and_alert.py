@@ -253,6 +253,7 @@ def format_digest(
     floor_breaches = classify.get("floor_breaches", [])
     invalid_classes = classify.get("invalid_classes", [])
     invalid_cls_names = {iv["class"] for iv in invalid_classes}
+    all_classes_invalid = bool(current.get("classes")) and len(invalid_cls_names) == len(current["classes"])
 
     run_ts = current.get("run_ts", "unknown")
     model = current.get("model", "unknown")
@@ -330,6 +331,9 @@ def format_digest(
     if not regressions and not floor_breaches and not invalid_classes:
         lines.append("")
         lines.append("✅ No regressions. All classes within threshold.")
+    elif all_classes_invalid:
+        lines.append("")
+        lines.append("🚫 EVAL OUTAGE: all classes are invalid; no meaningful regression verdict is available.")
     elif not regressions:
         lines.append("")
         lines.append("✅ No regressions detected.")

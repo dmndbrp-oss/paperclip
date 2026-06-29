@@ -16,6 +16,11 @@
 #   EVAL_MODEL          (optional override, default gemma4:26b-a4b-it-q4_K_M)
 #   EVAL_TIMEOUT_S      (optional, default 300)
 #   NIGHTLY_EVAL_NOTIFY_ISSUE  (issue ID to post completion comment to, default SAG-4193)
+#   LOCAL_AI_EVAL_SKIP_ON_PRESSURE      (optional, default 1)
+#   LOCAL_AI_EVAL_MAX_QWEN_PROCS        (optional, default 0)
+#   LOCAL_AI_EVAL_MAX_OPENCODE_PROCS    (optional, default 0)
+#   LOCAL_AI_EVAL_MAX_LOADED_MODELS     (optional, default 0)
+#   LOCAL_AI_EVAL_PREFLIGHT_ONLY        (optional test mode: run preflight then exit)
 
 set -euo pipefail
 
@@ -42,6 +47,35 @@ echo "$(ts) [nightly_eval] Lock acquired." >> "$LOG_FILE"
 
 # Ensure lock is released on exit (even on error)
 trap 'flock -u 9; echo "$(ts) [nightly_eval] Lock released." >> "$LOG_FILE"' EXIT
+
+# ---------------------------------------------------------------------------
+# Non-destructive local-AI pressure guard (SAG-5279)
+# ---------------------------------------------------------------------------
+echo "$(ts) [nightly_eval] Running local-AI pressure preflight ..." >> "$LOG_FILE"
+PREFLIGHT_EXIT=0
+python3 "$SCRIPT_DIR/local_ai_pressure_preflight.py" >> "$LOG_FILE" 2>&1 || PREFLIGHT_EXIT=$?
+if [ "$PREFLIGHT_EXIT" -eq 2 ]; then
+  echo "$(ts) [nightly_eval] EVAL SKIPPED: local model pressure. run_eval.py was not started." >> "$LOG_FILE"
+  if [ -n "${PAPERCLIP_API_URL:-}" ] && [ -n "${PAPERCLIP_API_KEY:-}" ]; then
+    SKIP_BODY=$(printf '%s' '## Nightly Eval SKIPPED
+
+EVAL SKIPPED: local model pressure. `run_eval.py` was not started; check `infra/runtime-eval/results/nightly.log` and the timestamped `local_ai_pressure_preflight_*.json` diagnostics artifact.' | python3 -c 'import json, sys; print(json.dumps({"body": sys.stdin.read()}))')
+    curl -s -X POST "$PAPERCLIP_API_URL/api/issues/$NOTIFY_ISSUE/comments" \
+      -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+      -H "Content-Type: application/json" \
+      ${PAPERCLIP_RUN_ID:+-H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID"} \
+      -d "$SKIP_BODY" >> "$LOG_FILE" 2>&1 || true
+  fi
+  exit 0
+elif [ "$PREFLIGHT_EXIT" -ne 0 ]; then
+  echo "$(ts) [nightly_eval] Pressure preflight failed with code $PREFLIGHT_EXIT" >> "$LOG_FILE"
+  exit "$PREFLIGHT_EXIT"
+fi
+
+if [ "${LOCAL_AI_EVAL_PREFLIGHT_ONLY:-0}" = "1" ]; then
+  echo "$(ts) [nightly_eval] LOCAL_AI_EVAL_PREFLIGHT_ONLY=1; exiting before run_eval.py." >> "$LOG_FILE"
+  exit 0
+fi
 
 # ---------------------------------------------------------------------------
 # Run eval

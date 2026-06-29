@@ -365,7 +365,8 @@ class TestFormatDigest:
         out = format_digest(cur, pri, classify)
         assert "INVALID" in out
         assert "pricing" in out
-        assert "CTO" not in out
+        # After run-health fix (Defect A): 1/1 = 100% ≥ 50% → run_unhealthy = True → CTO IS mentioned
+        assert "[@CTO]" in out
 
     def test_all_invalid_run_is_not_reported_as_no_regressions_detected(self):
         classify = {
@@ -385,9 +386,11 @@ class TestFormatDigest:
             "code_review": _cls(),
         })
         out = format_digest(cur, pri, classify)
-        assert "EVAL OUTAGE" in out
+        # After run-health fix (Defect A): "EVAL OUTAGE" replaced by "Eval run incomplete: 2/2 classes INVALID"
+        assert "Eval run incomplete" in out, f"Expected 'Eval run incomplete' in output, got:\n{out}"
         assert "No regressions detected" not in out
-        assert "CTO" not in out
+        # After run-health fix: CTO IS mentioned for unhealthy run
+        assert "[@CTO]" in out
 
     def test_alert_issue_id_referenced_in_regression(self):
         classify = {
@@ -483,10 +486,10 @@ class TestIntegration:
         floor_names = {f["class"] for f in result["floor_breaches"]}
         assert "enrichment_sku" in floor_names
 
-        # Verify the digest does NOT say "REGRESSIONS DETECTED" and does NOT @-mention CTO
+        # After run-health fix (Defect A): 5/6 = 83% ≥ 50% → run_unhealthy → CTO IS mentioned
         digest = format_digest(cur, pri, result)
         assert "REGRESSIONS DETECTED" not in digest
-        assert "[@CTO]" not in digest  # no @-mention — infra outage is not a regression
+        assert "[@CTO]" in digest  # run-health alert due to 5/6 classes INVALID
         assert "INVALID" in digest
 
     def test_synthetic_true_regression_still_alerts(self):
@@ -588,9 +591,10 @@ class TestAllInvalidDoesNotTriggerRegressionOrFloor:
             "qa_unit_tests": _cls(),
         })
         out = format_digest(cur, pri, classify)
-        assert "EVAL OUTAGE" in out
+        # After run-health fix (Defect A): 3/3 = 100% ≥ 50% → run_unhealthy → "Eval run incomplete" + CTO
+        assert "Eval run incomplete" in out
         assert "No regressions detected" not in out
-        assert "CTO" not in out
+        assert "[@CTO]" in out
 
     def test_partial_invalid_still_shows_regressions_when_present(self):
         # Not all classes invalid; regression present → should show regression, not outage
@@ -709,3 +713,115 @@ class TestDemoAlert:
         cancel_calls = [(m, p, b) for m, p, b in api_calls if "/issues/uuid-demo-alert" in p and m == "PATCH"]
         assert len(cancel_calls) >= 1, "demo-alert must cancel the created issue"
         assert cancel_calls[0][2].get("status") == "cancelled"
+
+
+# ---------------------------------------------------------------------------
+# TestRunHealthAlert — Defect A (SAG-5280)
+# ---------------------------------------------------------------------------
+
+class TestRunHealthAlert:
+    def test_all_invalid_triggers_cto(self):
+        """2/2 classes invalid → 100% ≥ 50% → run_unhealthy → [@CTO] in output, not 'No regressions detected'."""
+        classify = {
+            "regressions": [],
+            "floor_breaches": [],
+            "invalid_classes": [
+                {"class": "pricing", "reason": "error rate 20/20"},
+                {"class": "code_review", "reason": "error rate 20/20"},
+            ],
+        }
+        cur = _make_result("T2", classes={
+            "pricing": _cls(n=20, errors=20),
+            "code_review": _cls(n=20, errors=20),
+        })
+        pri = _make_result("T1", classes={
+            "pricing": _cls(),
+            "code_review": _cls(),
+        })
+        out = format_digest(cur, pri, classify)
+        assert "[@CTO]" in out, f"Expected [@CTO] in output, got:\n{out}"
+        assert "No regressions detected" not in out, "Should NOT say 'no regressions' when run is unhealthy"
+
+    def test_half_invalid_triggers_alert(self):
+        """1/2 classes invalid (50% >= threshold) → [@CTO] in output."""
+        classify = {
+            "regressions": [],
+            "floor_breaches": [],
+            "invalid_classes": [{"class": "pricing", "reason": "error rate 20/20"}],
+        }
+        cur = _make_result("T2", classes={
+            "pricing": _cls(n=20, errors=20),
+            "code_review": _cls(),
+        })
+        pri = _make_result("T1", classes={
+            "pricing": _cls(),
+            "code_review": _cls(),
+        })
+        out = format_digest(cur, pri, classify)
+        assert "[@CTO]" in out, f"Expected [@CTO] in output, got:\n{out}"
+
+    def test_minority_invalid_no_alert(self):
+        """1/3 classes invalid (33% < 50%) → no run-health alert, CTO NOT in output."""
+        classify = {
+            "regressions": [],
+            "floor_breaches": [],
+            "invalid_classes": [{"class": "pricing", "reason": "error rate 20/20"}],
+        }
+        cur = _make_result("T2", classes={
+            "pricing": _cls(n=20, errors=20),
+            "code_review": _cls(),
+            "qa": _cls(),
+        })
+        pri = _make_result("T1", classes={
+            "pricing": _cls(),
+            "code_review": _cls(),
+            "qa": _cls(),
+        })
+        out = format_digest(cur, pri, classify)
+        assert "[@CTO]" not in out, f"Should NOT mention CTO for minority invalid, got:\n{out}"
+        assert "No regressions detected" in out or "No regressions" in out, (
+            f"Expected 'no regressions' message when healthy, got:\n{out}"
+        )
+
+    def test_run_health_message_shows_class_count(self):
+        """2/2 invalid → message includes '2/2'."""
+        classify = {
+            "regressions": [],
+            "floor_breaches": [],
+            "invalid_classes": [
+                {"class": "pricing", "reason": "error rate 20/20"},
+                {"class": "code_review", "reason": "error rate 20/20"},
+            ],
+        }
+        cur = _make_result("T2", classes={
+            "pricing": _cls(n=20, errors=20),
+            "code_review": _cls(n=20, errors=20),
+        })
+        pri = _make_result("T1", classes={
+            "pricing": _cls(),
+            "code_review": _cls(),
+        })
+        out = format_digest(cur, pri, classify)
+        assert "2/2" in out, f"Expected '2/2' in output, got:\n{out}"
+
+
+# ---------------------------------------------------------------------------
+# TestTimeoutClassification — Defect C (SAG-5280)
+# ---------------------------------------------------------------------------
+
+class TestTimeoutClassification:
+    def test_timeout_reason_added_to_invalid_class(self):
+        """cs with per_row containing 'timed out' → compute_regressions includes 'timed out' in reason."""
+        per_row = [
+            {"id": "r1", "error": "timed out after 300s", "task_correct": 0.0},
+            {"id": "r2", "error": "connection refused", "task_correct": 0.0},
+            {"id": "r3", "error": None, "task_correct": 1.0},
+        ]
+        cs = _cls(n=20, errors=20)
+        cs["per_row"] = per_row
+        cur = _make_result("T2", classes={"pricing": cs})
+        pri = _make_result("T1", classes={"pricing": _cls()})
+        result = compute_regressions(cur, pri)
+        assert len(result["invalid_classes"]) == 1, f"Expected 1 invalid class, got {result['invalid_classes']}"
+        reason = result["invalid_classes"][0]["reason"]
+        assert "timed out" in reason.lower(), f"Expected 'timed out' in reason, got: {reason}"

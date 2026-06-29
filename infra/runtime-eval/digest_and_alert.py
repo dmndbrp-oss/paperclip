@@ -48,6 +48,7 @@ PROJECT_ID = "4dc8eabc-212d-4a46-a0eb-aa61b75e82d0"
 REGRESSION_DROP_THRESHOLD = 0.05   # 5 percentage points
 CLEAN_FLOOR = 0.90                  # absolute floor for contamination-clean
 INVALID_ERROR_THRESHOLD = 0.50     # classes with ≥ 50% errors are invalid/skipped
+RUN_HEALTH_INVALID_THRESHOLD = 0.50  # ≥ this fraction of classes INVALID → run-health alert
 
 
 # ---------------------------------------------------------------------------
@@ -132,6 +133,14 @@ def _is_class_invalid(cs: dict) -> bool:
     return cs.get("invalid", False) or _class_error_rate(cs) >= INVALID_ERROR_THRESHOLD
 
 
+def _run_health_unhealthy(classify: dict, n_total: int) -> tuple[bool, int]:
+    """Return (unhealthy, n_invalid). Unhealthy when ≥ RUN_HEALTH_INVALID_THRESHOLD of classes are invalid."""
+    n_invalid = len(classify.get("invalid_classes", []))
+    if n_total == 0:
+        return False, 0
+    return n_invalid / n_total >= RUN_HEALTH_INVALID_THRESHOLD, n_invalid
+
+
 # ---------------------------------------------------------------------------
 # Delta computation
 # ---------------------------------------------------------------------------
@@ -179,13 +188,17 @@ def compute_regressions(current: dict, prior: dict) -> dict:
             n = cs.get("n", 0)
             errs = cs.get("errors", 0)
             rate = _class_error_rate(cs)
-            invalid_classes.append({
-                "class": cls,
-                "reason": (
-                    cs.get("invalid_reason")
-                    or f"error rate {errs}/{n} ({rate:.0%}) ≥ {INVALID_ERROR_THRESHOLD:.0%} threshold"
-                ),
-            })
+            per_row = cs.get("per_row", [])
+            n_timeout = sum(
+                1 for r in per_row if "timed out" in (r.get("error") or "").lower()
+            )
+            reason = (
+                cs.get("invalid_reason")
+                or f"error rate {errs}/{n} ({rate:.0%}) ≥ {INVALID_ERROR_THRESHOLD:.0%} threshold"
+            )
+            if n_timeout:
+                reason += f"; {n_timeout}/{errs} timed out"
+            invalid_classes.append({"class": cls, "reason": reason})
             continue
 
         prior_invalid = _is_class_invalid(ps)
@@ -253,7 +266,6 @@ def format_digest(
     floor_breaches = classify.get("floor_breaches", [])
     invalid_classes = classify.get("invalid_classes", [])
     invalid_cls_names = {iv["class"] for iv in invalid_classes}
-    all_classes_invalid = bool(current.get("classes")) and len(invalid_cls_names) == len(current["classes"])
 
     run_ts = current.get("run_ts", "unknown")
     model = current.get("model", "unknown")
@@ -328,12 +340,22 @@ def format_digest(
         for iv in invalid_classes:
             lines.append(f"- **{iv['class']}**: {iv.get('reason', 'high error rate')}")
 
+    n_total = len(current.get("classes", {}))
+    run_unhealthy, n_invalid = _run_health_unhealthy(classify, n_total)
+
     if not regressions and not floor_breaches and not invalid_classes:
         lines.append("")
         lines.append("✅ No regressions. All classes within threshold.")
-    elif all_classes_invalid:
+    elif run_unhealthy and not regressions:
         lines.append("")
-        lines.append("🚫 EVAL OUTAGE: all classes are invalid; no meaningful regression verdict is available.")
+        lines.append(f"⚠️ Eval run incomplete: {n_invalid}/{n_total} classes INVALID (high error/timeout rate)")
+        cto_line = f"[@CTO](agent://{CTO_AGENT_ID})"
+        if alert_issue_identifier:
+            cto_line += f" — run-health alert: [{alert_issue_identifier}](/SAG/issues/{alert_issue_identifier})"
+        else:
+            cto_line += " — run-health alert (issue creation failed, check logs)"
+        lines.append("")
+        lines.append(cto_line)
     elif not regressions:
         lines.append("")
         lines.append("✅ No regressions detected.")
@@ -375,6 +397,36 @@ def format_alert_description(classify: dict, run_ts: str, prior_ts: str | None) 
     return "\n".join(lines)
 
 
+def format_run_health_alert_description(
+    classify: dict,
+    current: dict,
+    prior_ts: str | None,
+    n_invalid: int,
+    n_total: int,
+) -> str:
+    run_ts = current.get("run_ts", "unknown")
+    invalid_classes = classify.get("invalid_classes", [])
+    lines = [
+        "## Run-Health Alert — Nightly Eval",
+        "",
+        f"Run: `{run_ts}` vs prior: `{prior_ts or 'N/A'}`",
+        "",
+        f"**{n_invalid}/{n_total} classes are INVALID** (high error/timeout rate — eval run incomplete)",
+        "",
+        "### Invalid/Skipped Classes",
+    ]
+    for iv in invalid_classes:
+        lines.append(f"- **{iv['class']}**: {iv.get('reason', 'high error rate')}")
+    lines.append("")
+    lines.append("### Required Action")
+    lines.append("1. Check eval harness connectivity and model health.")
+    lines.append("2. **Do NOT** autonomously swap models or bulk-PATCH agents.")
+    lines.append("3. Escalate to CTO if outage persists across two consecutive nights.")
+    lines.append("")
+    lines.append(f"Parent: [SAG-4193](/SAG/issues/SAG-4193)")
+    return "\n".join(lines)
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -403,6 +455,9 @@ def run(
         "regressions": [], "floor_breaches": [], "invalid_classes": [],
     }
 
+    n_total_classes = len(current.get("classes", {}))
+    run_unhealthy, n_invalid_classes = _run_health_unhealthy(classify, n_total_classes)
+
     if demo_alert:
         # --demo-alert: inject a synthetic regression, create a ticket, then immediately cancel it
         # to verify end-to-end API connectivity without leaving noise in the issue tracker.
@@ -426,20 +481,29 @@ def run(
         log.info("--no-post: skipping API calls")
         return 0
 
-    # Create regression alert issue FIRST (if needed) so we can reference it in the digest
+    # Create alert issue FIRST (regression or run-health) so we can reference it in the digest
     alert_issue_identifier: str | None = None
-    if regressions:
+    if regressions or run_unhealthy:
         prior_ts = prior.get("run_ts") if prior else None
-        alert_desc = format_alert_description(classify, current["run_ts"], prior_ts)
-        alert_title = (
-            f"[REGRESSION ALERT] Nightly eval {current['run_ts'][:8]}: "
-            f"{len(regressions)} metric(s) regressed"
-        )
+        if regressions:
+            alert_desc = format_alert_description(classify, current["run_ts"], prior_ts)
+            alert_title = (
+                f"[REGRESSION ALERT] Nightly eval {current['run_ts'][:8]}: "
+                f"{len(regressions)} metric(s) regressed"
+            )
+        else:
+            alert_desc = format_run_health_alert_description(
+                classify, current, prior_ts, n_invalid_classes, n_total_classes
+            )
+            alert_title = (
+                f"[RUN-HEALTH ALERT] Nightly eval {current['run_ts'][:8]}: "
+                f"{n_invalid_classes}/{n_total_classes} classes INVALID"
+            )
         try:
             alert_issue = create_issue(alert_title, alert_desc)
             alert_issue_identifier = alert_issue.get("identifier")
-            log.info("Regression alert issue created: %s", alert_issue_identifier)
-            if demo_alert:
+            log.info("Alert issue created: %s", alert_issue_identifier)
+            if demo_alert and regressions:
                 _api("PATCH", f"/api/issues/{alert_issue['id']}", {
                     "status": "cancelled",
                     "comment": "Auto-cancelled: demo-alert connectivity test (safe to ignore)",

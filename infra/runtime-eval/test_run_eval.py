@@ -292,3 +292,38 @@ class TestIncrementalWrite:
         assert "enrichment_sku" in data["classes"], "First class must be persisted before crash"
         assert data["classes"]["enrichment_sku"]["task_correct_rate"] == 0.75
         assert "doc_extraction" not in data["classes"], "Crashed class must not appear"
+
+
+# ---------------------------------------------------------------------------
+# TestWallSOnError — Defect B: wall_s must reflect elapsed time on exception
+# ---------------------------------------------------------------------------
+
+class TestWallSOnError:
+    def test_wall_s_nonzero_on_exception(self, monkeypatch, tmp_path):
+        import time
+        import run_eval as re_mod
+
+        calls = []
+
+        def fake_monotonic():
+            n = len(calls)
+            calls.append(n)
+            return float(n * 5)
+
+        monkeypatch.setattr(time, "monotonic", fake_monotonic)
+        monkeypatch.setattr(re_mod, "time", time)
+
+        def fake_ollama(**kwargs):
+            raise TimeoutError("timed out")
+
+        monkeypatch.setattr(re_mod, "_ollama_call", fake_ollama)
+
+        def fake_load(cls):
+            return [{"id": "r1", "input": "x", "expected": {"a": "b"}}]
+
+        monkeypatch.setattr(re_mod, "load_gold_set", fake_load)
+
+        result = re_mod.eval_class("test_class")
+        assert result["per_row"][0]["wall_s"] > 0.0, (
+            f"wall_s should be > 0 on exception, got {result['per_row'][0]['wall_s']}"
+        )

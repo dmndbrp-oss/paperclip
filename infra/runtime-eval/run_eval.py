@@ -338,6 +338,7 @@ def eval_class(class_name: str, model: str = DEFAULT_MODEL, dry_run: bool = Fals
             per_row.append(result)
             continue
 
+        t0 = time.monotonic()
         try:
             check_type = row.get("check_type", "json_values")
             last_exc: Exception | None = None
@@ -376,7 +377,7 @@ def eval_class(class_name: str, model: str = DEFAULT_MODEL, dry_run: bool = Fals
                 "task_correct": 0.0,
                 "tool_call_correct": None,
                 "clean": 0.0,
-                "wall_s": 0.0,
+                "wall_s": round(time.monotonic() - t0, 2),
                 "error": str(exc),
             }
         per_row.append(scores)

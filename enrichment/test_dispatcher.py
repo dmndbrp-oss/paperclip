@@ -255,6 +255,17 @@ class TestRowTierRouting(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(tier, "failed")
 
+    async def test_fallback_nested_applications_list_is_normalized(self):
+        fallback = _minimal_valid_output()
+        fallback["applications"] = [["countertop", "bathroom_vanity"]]
+
+        tier = await self._run_with_primary_content(
+            primary_content="bad",
+            fallback_content=json.dumps(fallback),
+        )
+
+        self.assertEqual(tier, "fallback")
+
 
 # ---------------------------------------------------------------------------
 # Tests: preflight auth check (SAG-3455 fix 1)

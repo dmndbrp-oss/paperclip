@@ -327,6 +327,7 @@ class TestDispatcherUsesHeadroomCompress(unittest.IsolatedAsyncioTestCase):
         cfg = _make_cfg(self._tmp)
 
         with patch("headroom_compress.check_health", side_effect=recording_health), \
+             patch("dispatcher._preflight_auth_check", new=AsyncMock()), \
              patch("dispatcher._db_connect"), \
              patch("dispatcher._fetch_pending_rows", return_value=[]):
             dispatcher = EnrichmentDispatcher(cfg)

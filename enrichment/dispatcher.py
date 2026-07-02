@@ -471,6 +471,27 @@ def _repair_cross_fields(parsed: dict) -> None:
     """Enforce schema cross-field invariants that models frequently miss.
     Mutates parsed in-place; logs any repairs made.
     """
+    for field_name in (
+        "applications",
+        "edge_profiles_available",
+        "certifications",
+        "thickness_options_mm",
+    ):
+        value = parsed.get(field_name)
+        if isinstance(value, list) and any(isinstance(item, list) for item in value):
+            flattened = []
+            for item in value:
+                if isinstance(item, list):
+                    flattened.extend(item)
+                else:
+                    flattened.append(item)
+            parsed[field_name] = flattened
+            logger.info(
+                "Cross-field repair: flattened nested %s list sku=%s",
+                field_name,
+                parsed.get("sku"),
+            )
+
     # Rule: is_outdoor=true requires weather_rating != null
     if parsed.get("is_outdoor") and not parsed.get("weather_rating"):
         parsed["weather_rating"] = "not_rated"

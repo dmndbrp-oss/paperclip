@@ -163,17 +163,24 @@ async function createControlledGatewayServer() {
 describeEmbeddedPostgres("heartbeat comment wake batching", () => {
   let db!: ReturnType<typeof createDb>;
   let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
+  let heartbeat!: ReturnType<typeof heartbeatService>;
 
   beforeAll(async () => {
     const started = await startEmbeddedPostgresTestDatabase("paperclip-heartbeat-comment-wake-");
     db = createDb(started.connectionString);
     tempDb = started;
+    heartbeat = heartbeatService(db);
   }, 120_000);
 
   afterAll(async () => {
+    // Draining pendingBackgroundRunChains covers cascaded fire-and-forget
+    // heartbeat.executeRun -> startNextQueuedRunForAgent chains kicked off by
+    // earlier tests (including retry/backoff tails), which can take longer
+    // than vitest's default 10s hook timeout to fully settle.
+    await heartbeat.waitForIdleBackgroundRuns();
     await closeDbClient(db);
     await tempDb?.cleanup();
-  });
+  }, 60_000);
 
   afterEach(() => {
     runningProcesses.clear();
@@ -185,7 +192,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const issueId = randomUUID();
     const runId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     await db.insert(companies).values({
       id: companyId,
@@ -299,7 +305,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const agentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({
@@ -498,7 +503,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const agentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({
@@ -644,7 +648,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const agentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({
@@ -837,7 +840,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const mentionedAgentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({
@@ -1036,7 +1038,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const agentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({
@@ -1202,7 +1203,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const agentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({
@@ -1413,7 +1413,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const agentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({
@@ -1563,7 +1562,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const mentionedAgentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({
@@ -1764,7 +1762,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const mentionedAgentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({
@@ -1911,7 +1908,6 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
     const agentId = randomUUID();
     const issueId = randomUUID();
     const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const heartbeat = heartbeatService(db);
 
     try {
       await db.insert(companies).values({

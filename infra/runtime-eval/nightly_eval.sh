@@ -16,6 +16,10 @@
 #   EVAL_MODEL          (optional override, default gemma4:26b-a4b-it-q4_K_M)
 #   EVAL_TIMEOUT_S      (optional, default 300)
 #   NIGHTLY_EVAL_NOTIFY_ISSUE  (issue ID to post completion comment to, default SAG-4193)
+#   TMP_HOUSEKEEPING_APPLY              (SAG-6346: default 0/dry-run; set 1 to actually delete)
+#   TMP_HOUSEKEEPING_ROOT               (optional, default /tmp)
+#   TMP_HOUSEKEEPING_PCVT_AGE_HOURS     (optional, default 12)
+#   TMP_HOUSEKEEPING_WORKTREE_AGE_HOURS (optional, default 24)
 
 set -euo pipefail
 
@@ -77,6 +81,15 @@ echo "$(ts) [nightly_eval] digest_and_alert.py exited with code $DIGEST_EXIT" >>
 if [ $DIGEST_EXIT -ne 0 ]; then
   echo "$(ts) [nightly_eval] Digest/alert step failed (see log). Eval results are still in $RESULTS_DIR." >> "$LOG_FILE"
 fi
+
+# ---------------------------------------------------------------------------
+# /tmp housekeeping (SAG-6346) — dry-run by default; never blocks nightly exit.
+# Set TMP_HOUSEKEEPING_APPLY=1 to enable real deletion once dry-run logs look right.
+# ---------------------------------------------------------------------------
+echo "$(ts) [nightly_eval] Running tmp_housekeeping.py (apply=${TMP_HOUSEKEEPING_APPLY:-0}) ..." >> "$LOG_FILE"
+HOUSEKEEPING_EXIT=0
+python3 "$SCRIPT_DIR/tmp_housekeeping.py" >> "$LOG_FILE" 2>&1 || HOUSEKEEPING_EXIT=$?
+echo "$(ts) [nightly_eval] tmp_housekeeping.py exited with code $HOUSEKEEPING_EXIT" >> "$LOG_FILE"
 
 # Post completion notice to the routine issue
 if [ -n "${PAPERCLIP_API_URL:-}" ] && [ -n "${PAPERCLIP_API_KEY:-}" ]; then

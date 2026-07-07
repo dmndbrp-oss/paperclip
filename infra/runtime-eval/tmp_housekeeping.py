@@ -105,20 +105,41 @@ def _default_git_status_clean(path: Path) -> bool:
     return result.stdout.strip() == b""
 
 
-def _default_prune_worktree_repo(repo_path: Path) -> None:
+def _default_resolve_main_repo(path: Path) -> Optional[Path]:
+    """Resolve `path` (a worktree dir) to its main repo dir, before `path` is deleted.
+
+    `git worktree prune` must run against the surviving main repo, not the
+    worktree being removed — so this must be called while `path` still exists.
+    """
     try:
-        common_dir = subprocess.run(
-            ["git", "-C", str(repo_path), "rev-parse", "--git-common-dir"],
+        result = subprocess.run(
+            ["git", "-C", str(path), "rev-parse", "--git-common-dir"],
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             timeout=30,
         )
-        if common_dir.returncode != 0:
-            return
-        git_dir = Path(common_dir.stdout.decode().strip())
-        main_repo = git_dir.parent if git_dir.name == ".git" else git_dir
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+    git_dir = Path(result.stdout.decode().strip())
+    if not git_dir.is_absolute():
+        git_dir = (path / git_dir).resolve()
+    return git_dir.parent if git_dir.name == ".git" else git_dir
+
+
+def _default_prune_worktree_repo(repo_path: Path) -> None:
+    # `repo_path` is expected to already be the resolved main repo (see
+    # `_default_resolve_main_repo`, called by `find_worktree_candidates`
+    # before the worktree dir is deleted). Re-deriving it here via another
+    # `git rev-parse --git-common-dir` is not just redundant: that command
+    # returns a *relative* ".git" for a plain repo dir, which previously
+    # made this function silently `git -C .` against the caller's cwd
+    # instead of `repo_path`, so `worktree prune` never actually ran against
+    # the right repo.
+    try:
         subprocess.run(
-            ["git", "-C", str(main_repo), "worktree", "prune"],
+            ["git", "-C", str(repo_path), "worktree", "prune"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=60,
@@ -161,6 +182,7 @@ def find_worktree_candidates(
     min_age_hours: float = DEFAULT_WORKTREE_MIN_AGE_HOURS,
     has_open_handles: Callable[[Path], bool] = _default_has_open_handles,
     git_status_clean: Callable[[Path], bool] = _default_git_status_clean,
+    resolve_main_repo: Callable[[Path], Optional[Path]] = _default_resolve_main_repo,
     now: Optional[float] = None,
 ) -> List[Candidate]:
     candidates: List[Candidate] = []
@@ -180,12 +202,15 @@ def find_worktree_candidates(
             continue
         if has_open_handles(entry):
             continue
+        # Resolve the main repo now, while `entry` still exists — the apply
+        # branch deletes `entry` before `repo_hint` is used to `worktree prune`.
+        repo_hint = resolve_main_repo(entry) if is_git_dir else None
         candidates.append(
             Candidate(
                 path=entry,
                 kind="worktree",
                 reason=f"clean={is_git_dir}, no open handles, age>{min_age_hours}h",
-                repo_hint=entry if is_git_dir else None,
+                repo_hint=repo_hint,
             )
         )
     return candidates
@@ -204,6 +229,7 @@ def run_housekeeping(
     is_pid_alive: Callable[[int], bool] = _default_is_pid_alive,
     has_open_handles: Callable[[Path], bool] = _default_has_open_handles,
     git_status_clean: Callable[[Path], bool] = _default_git_status_clean,
+    resolve_main_repo: Callable[[Path], Optional[Path]] = _default_resolve_main_repo,
     prune_worktree_repo: Callable[[Path], None] = _default_prune_worktree_repo,
 ) -> Summary:
     summary = Summary()
@@ -216,6 +242,7 @@ def run_housekeeping(
             min_age_hours=worktree_min_age_hours,
             has_open_handles=has_open_handles,
             git_status_clean=git_status_clean,
+            resolve_main_repo=resolve_main_repo,
         )
     )
 

@@ -249,3 +249,56 @@ def test_apply_mode_prunes_affected_worktree_repos(tmp_path):
 
     assert not d.exists()
     assert pruned == [d]
+
+
+def test_apply_mode_actually_prunes_real_linked_worktree(tmp_path):
+    """SAG-6354: end-to-end against the DEFAULT prune_worktree_repo.
+
+    Regression test for the bug where `repo_hint` was set to the worktree
+    dir itself, which is deleted by `shutil.rmtree` before
+    `prune_worktree_repo` runs — making `git worktree prune` a silent no-op
+    against a path that no longer exists. Uses a real `git worktree add`
+    linked worktree (not the mocked `prune_worktree_repo` lambda above) so
+    the main repo's stale registration must actually be cleared.
+    """
+    main_repo = tmp_path / "main-repo"
+    main_repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=main_repo, check=True)
+    subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=main_repo, check=True)
+    subprocess.run(["git", "config", "user.name", "test"], cwd=main_repo, check=True)
+    (main_repo / "README.md").write_text("hello\n")
+    subprocess.run(["git", "add", "-A"], cwd=main_repo, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=main_repo, check=True)
+
+    worktree_dir = tmp_path / "paperclip-worktree-sag2"
+    subprocess.run(
+        ["git", "worktree", "add", "-q", str(worktree_dir), "-b", "sag2-branch"],
+        cwd=main_repo,
+        check=True,
+    )
+    os.utime(worktree_dir, (time.time() - 25 * 3600,) * 2)
+
+    def _worktree_list(repo: Path) -> str:
+        result = subprocess.run(
+            ["git", "-C", str(repo), "worktree", "list", "--porcelain"],
+            stdout=subprocess.PIPE,
+            check=True,
+        )
+        return result.stdout.decode()
+
+    assert str(worktree_dir) in _worktree_list(main_repo)
+
+    log_path = tmp_path / "results" / "tmp_housekeeping.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    run_housekeeping(
+        tmp_root=tmp_path,
+        log_path=log_path,
+        apply=True,
+        has_open_handles=lambda p: False,
+        # prune_worktree_repo and resolve_main_repo both use their real
+        # (non-mocked) default implementations here.
+    )
+
+    assert not worktree_dir.exists()
+    assert str(worktree_dir) not in _worktree_list(main_repo)

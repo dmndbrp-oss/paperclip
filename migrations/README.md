@@ -32,7 +32,11 @@ psql -U postgres -d <your_db> -f migrations/001_enrichment_staging_up.sql
 # Migration 002: review view + enrichment_ui_reader role (SAG-2149)
 psql -U postgres -d <your_db> -f migrations/002_review_view_up.sql
 
-# Rollback 002 first, then 001
+# Migration 003: pricing_staleness_alerts table + roles (SAG-6327 Phase 1)
+psql -U postgres -d <your_db> -f migrations/003_pricing_staleness_alerts_up.sql
+
+# Rollback 003, then 002, then 001
+psql -U postgres -d <your_db> -f migrations/003_pricing_staleness_alerts_down.sql
 psql -U postgres -d <your_db> -f migrations/002_review_view_down.sql
 psql -U postgres -d <your_db> -f migrations/001_enrichment_staging_down.sql
 ```
@@ -47,14 +51,22 @@ After applying the forward migration, run the negative-test suite:
 
 ```bash
 psql -U postgres -d <your_db> -f migrations/tests/test_permissions.sql
+
+# Migration 003: pricing_staleness_alerts negative-test suite
+psql -U postgres -d <your_db> -f migrations/tests/test_pricing_staleness_permissions.sql
 ```
 
 Scan the output for any `UNEXPECTED` lines. Zero such lines = all checks passed.
 
-The test script verifies:
+`test_permissions.sql` verifies:
 1. `enrichment_dispatcher` cannot INSERT/UPDATE/DELETE into `public` schema tables.
 2. `enrichment_reviewer` cannot INSERT into `public` schema tables.
 3. `enrichment_promotion_log` is append-only: INSERT allowed, UPDATE/DELETE denied for both roles.
+
+`test_pricing_staleness_permissions.sql` verifies:
+1. `pricing_staleness_writer` cannot INSERT into `public` schema tables.
+2. `pricing_staleness_reader` cannot INSERT into `public` schema tables.
+3. `pricing_staleness_alerts` is append-only: INSERT allowed for the writer role, UPDATE/DELETE denied for both roles.
 
 ---
 
@@ -100,6 +112,30 @@ The test script verifies:
 | `promoted_at` | TIMESTAMPTZ | Auto-set; promotion timestamp |
 | `payload_json` | JSONB | Snapshot of promoted rows or promotion metadata |
 
+### `enrichment_staging.pricing_staleness_alerts`
+
+[SAG-6327](/SAG/issues/SAG-6327) Phase 1 | Parent: [SAG-6302](/SAG/issues/SAG-6302)
+
+Append-only detection-alert log written by the nightly pricing staleness runner
+(SAG-6327 Phase 3+4). One row per detection event across the four signals
+(anomaly, version/hash drift, manual-change SLA breach, bulk escalator).
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | `gen_random_uuid()` |
+| `detected_at` | TIMESTAMPTZ | Auto-set; indexed |
+| `signal_type` | TEXT | CHECK-constrained: `anomaly` \| `version_hash_drift` \| `manual_change_sla_breach` \| `bulk_escalator` |
+| `severity` | TEXT | CHECK-constrained: `info` \| `warning` \| `critical` |
+| `sku` | TEXT | Plain text identifier; no FK |
+| `bucket_code` | TEXT | Fee/cost bucket (e.g. `FQ3-A`); no FK |
+| `schedule_id` | TEXT | Nullable — not every signal maps to a single rate schedule |
+| `affected_record_count` | INTEGER | > 0 |
+| `measured_vs_baseline` | NUMERIC(8,4) | Nullable; deviation ratio vs trailing 3-mo median, where applicable |
+| `auto_issue_id` | TEXT | Nullable; Paperclip issue identifier if the detection escalated to one |
+
+Indexed on `(detected_at)` and `(sku, bucket_code)` — the latter serves the
+Phase 5 freeze-arming check ("≥1 clean baseline median per (SKU, bucket)").
+
 ---
 
 ## Roles
@@ -112,4 +148,6 @@ The test script verifies:
 | `enrichment_reviewer` | `enrichment_queue` | SELECT only |
 | `enrichment_reviewer` | `enrichment_staging` | SELECT, INSERT, UPDATE |
 | `enrichment_reviewer` | `enrichment_promotion_log` | INSERT only |
-| Both roles | `public` schema | **No write access** (explicitly revoked) |
+| `pricing_staleness_writer` | `pricing_staleness_alerts` | SELECT, INSERT (append-only; nightly runner) |
+| `pricing_staleness_reader` | `pricing_staleness_alerts` | SELECT only (digest / QA / freeze-arming consumers) |
+| All roles | `public` schema | **No write access** (explicitly revoked) |

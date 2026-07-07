@@ -232,20 +232,56 @@ def test_apply_mode_removes_only_gated_candidates(tmp_path):
     assert summary.removed == [doomed]
 
 
+def _add_real_worktree(main_repo: Path, worktree_dir: Path, branch: str) -> Path:
+    subprocess.run(
+        ["git", "worktree", "add", "-b", branch, str(worktree_dir)],
+        cwd=main_repo,
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return worktree_dir
+
+
 def test_apply_mode_prunes_affected_worktree_repos(tmp_path):
-    d = _init_git_dir(tmp_path / "paperclip-worktree-sag1", dirty=False)
+    # SAG-6356: use a *real* `git worktree add` registration (not a bare
+    # `git init` dir) and the real default prune function, so this test
+    # catches the post-delete common-dir resolution bug — asserting the
+    # registration is actually cleared, not just that a mock was called.
+    main_repo = tmp_path / "mainrepo"
+    _init_git_dir(main_repo, dirty=False)
+    d = _add_real_worktree(main_repo, tmp_path / "paperclip-worktree-sag1", "wtbranch")
     os.utime(d, (time.time() - 25 * 3600,) * 2)
     log_path = tmp_path / "results" / "tmp_housekeeping.log"
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    pruned = []
 
     run_housekeeping(
         tmp_root=tmp_path,
         log_path=log_path,
         apply=True,
         has_open_handles=lambda p: False,
-        prune_worktree_repo=lambda p: pruned.append(p),
     )
 
     assert not d.exists()
-    assert pruned == [d]
+    listing = subprocess.run(
+        ["git", "-C", str(main_repo), "worktree", "list", "--porcelain"],
+        stdout=subprocess.PIPE,
+        check=True,
+    ).stdout.decode()
+    assert str(d) not in listing
+
+
+def test_worktree_candidate_repo_hint_resolves_to_main_repo_not_entry(tmp_path):
+    # SAG-6356: repo_hint must be the resolved main-repo path (computed at
+    # discovery time, before any delete), never the worktree's own path —
+    # otherwise post-delete prune has nothing left to resolve against.
+    main_repo = tmp_path / "mainrepo"
+    _init_git_dir(main_repo, dirty=False)
+    d = _add_real_worktree(main_repo, tmp_path / "paperclip-worktree-sag2", "wtbranch2")
+    os.utime(d, (time.time() - 25 * 3600,) * 2)
+
+    cands = find_worktree_candidates(tmp_path, min_age_hours=24, has_open_handles=lambda p: False)
+
+    assert len(cands) == 1
+    assert cands[0].repo_hint == main_repo.resolve()
+    assert cands[0].repo_hint != d

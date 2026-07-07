@@ -21,6 +21,9 @@
 #   LOCAL_AI_EVAL_MAX_OPENCODE_PROCS    (optional, default 0)
 #   LOCAL_AI_EVAL_MAX_LOADED_MODELS     (optional, default 0)
 #   LOCAL_AI_EVAL_PREFLIGHT_ONLY        (optional test mode: run preflight then exit)
+#   PRICING_STALENESS_DB_DSN            (optional; SAG-6327/SAG-6344 pricing staleness
+#                                        detection runner. Unset = loud-fail skip, logged
+#                                        but non-fatal to this pipeline.)
 
 set -euo pipefail
 
@@ -111,6 +114,21 @@ echo "$(ts) [nightly_eval] digest_and_alert.py exited with code $DIGEST_EXIT" >>
 if [ $DIGEST_EXIT -ne 0 ]; then
   echo "$(ts) [nightly_eval] Digest/alert step failed (see log). Eval results are still in $RESULTS_DIR." >> "$LOG_FILE"
 fi
+
+# ---------------------------------------------------------------------------
+# Pricing staleness detection (SAG-6327 Phase 3+4 / SAG-6344)
+#
+# Independent of the local-AI eval above. Exits 0 both on a clean detection
+# run and on the expected pending-dependency state (real rate feeds still
+# pending, SAG-6341/SAG-6343 — Phase 1's alerts table already landed in
+# migration 003, commit b35be578) — it never fails nightly_eval.sh. A
+# non-zero exit here means an unexpected error, which is logged but still
+# does not abort the unrelated eval/digest steps above.
+# ---------------------------------------------------------------------------
+echo "$(ts) [nightly_eval] Running pricing_staleness_runner.py ..." >> "$LOG_FILE"
+STALENESS_EXIT=0
+python3 "$SCRIPT_DIR/pricing_staleness_runner.py" >> "$LOG_FILE" 2>&1 || STALENESS_EXIT=$?
+echo "$(ts) [nightly_eval] pricing_staleness_runner.py exited with code $STALENESS_EXIT" >> "$LOG_FILE"
 
 # Post completion notice to the routine issue
 if [ -n "${PAPERCLIP_API_URL:-}" ] && [ -n "${PAPERCLIP_API_KEY:-}" ]; then

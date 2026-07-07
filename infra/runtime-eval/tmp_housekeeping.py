@@ -105,20 +105,40 @@ def _default_git_status_clean(path: Path) -> bool:
     return result.stdout.strip() == b""
 
 
-def _default_prune_worktree_repo(repo_path: Path) -> None:
+def _default_resolve_main_repo(entry: Path) -> Optional[Path]:
+    """Resolve a worktree's owning main-repo path via --git-common-dir.
+
+    Must be called while `entry` still exists (i.e. at discovery time,
+    before any delete) — `git -C <entry>` needs the directory to be present
+    to resolve anything.
+    """
     try:
         common_dir = subprocess.run(
-            ["git", "-C", str(repo_path), "rev-parse", "--git-common-dir"],
+            ["git", "-C", str(entry), "rev-parse", "--git-common-dir"],
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             timeout=30,
         )
-        if common_dir.returncode != 0:
-            return
-        git_dir = Path(common_dir.stdout.decode().strip())
-        main_repo = git_dir.parent if git_dir.name == ".git" else git_dir
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    if common_dir.returncode != 0:
+        return None
+    git_dir = Path(common_dir.stdout.decode().strip())
+    if not git_dir.is_absolute():
+        git_dir = (entry / git_dir).resolve()
+    return git_dir.parent if git_dir.name == ".git" else git_dir
+
+
+def _default_prune_worktree_repo(repo_path: Path) -> None:
+    """Run `git worktree prune` on an already-resolved main-repo path.
+
+    `repo_path` must be the main repo (resolved via `_default_resolve_main_repo`
+    at discovery time), not the worktree checkout — the checkout may already be
+    deleted by the time this runs.
+    """
+    try:
         subprocess.run(
-            ["git", "-C", str(main_repo), "worktree", "prune"],
+            ["git", "-C", str(repo_path), "worktree", "prune"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=60,
@@ -161,6 +181,7 @@ def find_worktree_candidates(
     min_age_hours: float = DEFAULT_WORKTREE_MIN_AGE_HOURS,
     has_open_handles: Callable[[Path], bool] = _default_has_open_handles,
     git_status_clean: Callable[[Path], bool] = _default_git_status_clean,
+    resolve_main_repo: Callable[[Path], Optional[Path]] = _default_resolve_main_repo,
     now: Optional[float] = None,
 ) -> List[Candidate]:
     candidates: List[Candidate] = []
@@ -185,7 +206,7 @@ def find_worktree_candidates(
                 path=entry,
                 kind="worktree",
                 reason=f"clean={is_git_dir}, no open handles, age>{min_age_hours}h",
-                repo_hint=entry if is_git_dir else None,
+                repo_hint=resolve_main_repo(entry) if is_git_dir else None,
             )
         )
     return candidates

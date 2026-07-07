@@ -932,6 +932,13 @@
       "when": 1783034521000,
       "tag": "0133_resource_membership_stars",
       "breakpoints": true
+    },
+    {
+      "idx": 134,
+      "version": "7",
+      "when": 1749168000000,
+      "tag": "0134_web_push_subscriptions",
+      "breakpoints": true
     }
   ]
 }

@@ -115,26 +115,26 @@ Scan the output for any `UNEXPECTED` lines. Zero such lines = all checks passed.
 ### `enrichment_staging.pricing_staleness_alerts`
 
 [SAG-6327](/SAG/issues/SAG-6327) Phase 1 | Parent: [SAG-6302](/SAG/issues/SAG-6302)
+Reconciled to the tested runner contract in [SAG-6353](/SAG/issues/SAG-6353).
 
 Append-only detection-alert log written by the nightly pricing staleness runner
-(SAG-6327 Phase 3+4). One row per detection event across the four signals
-(anomaly, version/hash drift, manual-change SLA breach, bulk escalator).
+(SAG-6327 Phase 3+4, SAG-6344). One row per detection event across the four
+signals (anomaly, version/hash drift, SLA breach, bulk escalation). Column
+grain matches the runner's own `StalenessAlert` shape 1:1 — no reconciliation
+layer needed between the two.
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | UUID PK | `gen_random_uuid()` |
+| `signal_type` | TEXT | CHECK-constrained: `anomaly` \| `version_hash_drift` \| `sla_breach` \| `bulk_escalation` |
+| `severity` | TEXT | CHECK-constrained: `warn` \| `critical` |
+| `record_key` | TEXT | Plain text identifier; no FK; decoupled from Pricing's feed-spec grain (SAG-6341) |
 | `detected_at` | TIMESTAMPTZ | Auto-set; indexed |
-| `signal_type` | TEXT | CHECK-constrained: `anomaly` \| `version_hash_drift` \| `manual_change_sla_breach` \| `bulk_escalator` |
-| `severity` | TEXT | CHECK-constrained: `info` \| `warning` \| `critical` |
-| `sku` | TEXT | Plain text identifier; no FK |
-| `bucket_code` | TEXT | Fee/cost bucket (e.g. `FQ3-A`); no FK |
-| `schedule_id` | TEXT | Nullable — not every signal maps to a single rate schedule |
-| `affected_record_count` | INTEGER | > 0 |
-| `measured_vs_baseline` | NUMERIC(8,4) | Nullable; deviation ratio vs trailing 3-mo median, where applicable |
-| `auto_issue_id` | TEXT | Nullable; Paperclip issue identifier if the detection escalated to one |
+| `warm_up` | BOOLEAN | True while inside the Phase 4 30-day warm-up window |
+| `details_json` | JSONB | Signal-specific evidence (pct_delta, versions, due/committed timestamps, etc.) |
 
-Indexed on `(detected_at)` and `(sku, bucket_code)` — the latter serves the
-Phase 5 freeze-arming check ("≥1 clean baseline median per (SKU, bucket)").
+Indexed on `(detected_at)` and `(record_key)` — the latter serves the Phase 5
+freeze-arming check ("≥1 clean baseline median per record").
 
 ---
 

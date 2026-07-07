@@ -72,9 +72,9 @@ DECLARE
 BEGIN
     -- First, insert a test row (INSERT is allowed).
     INSERT INTO enrichment_staging.pricing_staleness_alerts
-        (id, detected_at, signal_type, severity, sku, bucket_code, affected_record_count)
+        (id, detected_at, signal_type, severity, record_key, warm_up, details_json)
     VALUES
-        (v_id, NOW(), 'anomaly', 'warning', 'TEST-SKU', 'FQ3-A', 1);
+        (v_id, NOW(), 'anomaly', 'warn', 'TEST-SKU|FQ3-A', FALSE, '{}'::jsonb);
     RAISE NOTICE 'PASS: pricing_staleness_writer INSERT on pricing_staleness_alerts succeeded (expected).';
 
     -- Now attempt UPDATE — must be denied.
@@ -106,8 +106,8 @@ DO $$
 BEGIN
     BEGIN
         EXECUTE $q$INSERT INTO enrichment_staging.pricing_staleness_alerts
-            (detected_at, signal_type, severity, sku, bucket_code, affected_record_count)
-            VALUES (NOW(), 'anomaly', 'info', 'TEST-SKU', 'FQ3-A', 1)$q$;
+            (detected_at, signal_type, severity, record_key, warm_up, details_json)
+            VALUES (NOW(), 'anomaly', 'warn', 'TEST-SKU|FQ3-A', FALSE, '{}'::jsonb)$q$;
         RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader INSERT on pricing_staleness_alerts SUCCEEDED.';
     EXCEPTION
         WHEN insufficient_privilege THEN

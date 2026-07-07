@@ -15,6 +15,9 @@ from pricing_staleness_alerts import (
 
 NOW = datetime(2026, 7, 7, 12, 0, 0)
 
+ALL_SIGNAL_TYPES = ["anomaly", "version_hash_drift", "sla_breach", "bulk_escalation"]
+ALL_SEVERITIES = ["warn", "critical"]
+
 
 def _alert(**overrides) -> StalenessAlert:
     defaults = dict(
@@ -50,86 +53,43 @@ class TestInMemoryAlertSink:
 
 
 # ---------------------------------------------------------------------------
-# alert_to_row: reconciliation between the runner's StalenessAlert shape and
-# the migrated `pricing_staleness_alerts` table's exact column/CHECK values.
+# alert_to_row: the table's grain matches the runner's StalenessAlert shape
+# 1:1 (SAG-6353), so this is a direct field-for-field mapping onto the
+# `pricing_staleness_alerts` columns -- no splitting or enum translation.
 # ---------------------------------------------------------------------------
 
 
 class TestAlertToRow:
-    def test_anomaly_maps_severity_warn_to_warning_and_splits_record_key(self):
+    @pytest.mark.parametrize("signal_type", ALL_SIGNAL_TYPES)
+    @pytest.mark.parametrize("severity", ALL_SEVERITIES)
+    def test_maps_fields_directly_onto_table_columns(self, signal_type, severity):
         alert = _alert(
-            signal_type="anomaly",
-            severity="warn",
+            signal_type=signal_type,
+            severity=severity,
             record_key="FG3|FQ3-A|TX",
-            details={"pct_delta": 0.06, "field": "fee_per_sqft"},
+            warm_up=False,
+            details={"pct_delta": 0.06},
         )
 
         row = alert_to_row(alert)
 
-        assert row["signal_type"] == "anomaly"
-        assert row["severity"] == "warning"
-        assert row["sku"] == "FG3"
-        assert row["bucket_code"] == "FQ3-A"
-        assert row["measured_vs_baseline"] == 0.06
-        assert row["affected_record_count"] == 1
-        assert row["schedule_id"] is None
-        assert row["auto_issue_id"] is None
+        assert row["signal_type"] == signal_type
+        assert row["severity"] == severity
+        assert row["record_key"] == "FG3|FQ3-A|TX"
+        assert row["detected_at"] == NOW
+        assert row["warm_up"] is False
+        assert row["details_json"].adapted == {"pct_delta": 0.06}
 
-    def test_version_hash_drift_maps_rate_card_version_to_schedule_id(self):
-        alert = _alert(
-            signal_type="version_hash_drift",
-            severity="critical",
-            record_key="FG3|FQ3-A|TX",
-            details={"rate_card_version": "v3"},
-        )
+    def test_details_json_wraps_arbitrary_evidence_dict(self):
+        alert = _alert(details={"count": 5, "affected_keys": ["MULTIPLE"], "signal_types": ["anomaly"]})
 
         row = alert_to_row(alert)
 
-        assert row["signal_type"] == "version_hash_drift"
-        assert row["severity"] == "critical"
-        assert row["schedule_id"] == "v3"
-        assert row["measured_vs_baseline"] is None
-
-    def test_sla_breach_maps_to_manual_change_sla_breach_and_falls_back_on_opaque_key(self):
-        alert = _alert(
-            signal_type="sla_breach",
-            severity="warn",
-            record_key="FG3-FQ3-A-TX",
-            details={},
-        )
-
-        row = alert_to_row(alert)
-
-        assert row["signal_type"] == "manual_change_sla_breach"
-        assert row["sku"] == "FG3-FQ3-A-TX"
-        assert row["bucket_code"] == "FG3-FQ3-A-TX"
-
-    def test_bulk_escalation_maps_to_bulk_escalator_and_uses_details_count(self):
-        alert = _alert(
-            signal_type="bulk_escalation",
-            severity="critical",
-            record_key="MULTIPLE",
-            details={"count": 5},
-        )
-
-        row = alert_to_row(alert)
-
-        assert row["signal_type"] == "bulk_escalator"
-        assert row["affected_record_count"] == 5
-        assert row["sku"] == "MULTIPLE"
-        assert row["bucket_code"] == "MULTIPLE"
-
-    def test_unknown_signal_type_raises(self):
-        alert = _alert(signal_type="nonsense")
-
-        with pytest.raises(ValueError, match="nonsense"):
-            alert_to_row(alert)
-
-    def test_unknown_severity_raises(self):
-        alert = _alert(severity="nonsense")
-
-        with pytest.raises(ValueError, match="nonsense"):
-            alert_to_row(alert)
+        assert row["details_json"].adapted == {
+            "count": 5,
+            "affected_keys": ["MULTIPLE"],
+            "signal_types": ["anomaly"],
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -140,7 +100,11 @@ class TestAlertToRow:
 
 
 class TestPostgresAlertSink:
-    def test_write_alert_executes_insert_with_mapped_row(self, monkeypatch):
+    @pytest.mark.parametrize("signal_type", ALL_SIGNAL_TYPES)
+    @pytest.mark.parametrize("severity", ALL_SEVERITIES)
+    def test_write_alert_inserts_new_grain_for_every_signal_type_and_severity(
+        self, monkeypatch, signal_type, severity
+    ):
         fake_cursor = MagicMock()
         fake_cursor.__enter__.return_value = fake_cursor
         fake_conn = MagicMock()
@@ -148,14 +112,21 @@ class TestPostgresAlertSink:
         monkeypatch.setattr(pricing_staleness_alerts.psycopg2, "connect", lambda dsn: fake_conn)
 
         sink = PostgresAlertSink(dsn="postgresql://pricing_staleness_writer@localhost/db")
-        sink.write_alert(_alert(signal_type="anomaly", severity="warn", details={"pct_delta": 0.06}))
+        sink.write_alert(_alert(signal_type=signal_type, severity=severity))
 
         assert fake_conn.autocommit is True
         assert fake_cursor.execute.called
         sql, params = fake_cursor.execute.call_args.args
         assert "enrichment_staging.pricing_staleness_alerts" in sql
-        assert params["signal_type"] == "anomaly"
-        assert params["severity"] == "warning"
+        assert "record_key" in sql
+        assert "warm_up" in sql
+        assert "details_json" in sql
+        assert params["signal_type"] == signal_type
+        assert params["severity"] == severity
+        assert params["record_key"] == "FG3|FQ3-A|TX"
+        assert params["detected_at"] == NOW
+        assert params["warm_up"] is True
+        assert params["details_json"].adapted == {"pct_delta": 0.06}
 
     def test_close_closes_connection(self, monkeypatch):
         fake_conn = MagicMock()

@@ -320,6 +320,35 @@ class TestDetectBulkEscalation:
         assert result[0].signal_type == "bulk_escalation"
         assert result[0].severity == "critical"
         assert result[0].details["count"] == BULK_ESCALATION_THRESHOLD
+        assert result[0].details["alert_row_count"] == BULK_ESCALATION_THRESHOLD
+
+    def test_no_escalation_when_single_record_has_many_field_breaches(self):
+        # One record with >= threshold anomalous fields is a per-record signal,
+        # not a systemic bulk-breadth signal — must not self-trip escalation.
+        as_of = datetime(2026, 7, 7, tzinfo=UTC)
+        prior_alerts = [
+            _anomaly_alert("key-0", as_of) for _ in range(BULK_ESCALATION_THRESHOLD)
+        ]
+
+        result = detect_bulk_escalation(prior_alerts, as_of=as_of, warm_up=True)
+
+        assert result == []
+
+    def test_escalation_count_reflects_distinct_records_not_rows(self):
+        as_of = datetime(2026, 7, 7, tzinfo=UTC)
+        # 5 distinct records, but one of them has 2 anomalous fields (2 rows),
+        # so alert_row_count (6) != distinct-record count (5).
+        prior_alerts = [
+            _anomaly_alert(f"key-{i}", as_of) for i in range(BULK_ESCALATION_THRESHOLD)
+        ]
+        prior_alerts.append(_anomaly_alert("key-0", as_of))
+
+        result = detect_bulk_escalation(prior_alerts, as_of=as_of, warm_up=True)
+
+        assert len(result) == 1
+        assert result[0].details["count"] == BULK_ESCALATION_THRESHOLD
+        assert result[0].details["alert_row_count"] == BULK_ESCALATION_THRESHOLD + 1
+        assert len(result[0].details["affected_keys"]) == BULK_ESCALATION_THRESHOLD
 
 
 def _anomaly_alert(key, as_of):

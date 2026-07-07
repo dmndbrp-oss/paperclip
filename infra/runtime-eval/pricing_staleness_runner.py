@@ -238,7 +238,8 @@ def detect_sla_breaches(
 def detect_bulk_escalation(
     prior_alerts: list[StalenessAlert], as_of: datetime, warm_up: bool
 ) -> list[StalenessAlert]:
-    if len(prior_alerts) < BULK_ESCALATION_THRESHOLD:
+    affected_keys = {a.record_key for a in prior_alerts}
+    if len(affected_keys) < BULK_ESCALATION_THRESHOLD:
         return []
     return [
         StalenessAlert(
@@ -248,8 +249,9 @@ def detect_bulk_escalation(
             detected_at=as_of,
             warm_up=warm_up,
             details={
-                "count": len(prior_alerts),
-                "affected_keys": sorted({a.record_key for a in prior_alerts}),
+                "count": len(affected_keys),
+                "alert_row_count": len(prior_alerts),
+                "affected_keys": sorted(affected_keys),
                 "signal_types": sorted({a.signal_type for a in prior_alerts}),
             },
         )

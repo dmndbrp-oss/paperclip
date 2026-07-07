@@ -20,6 +20,14 @@
 #   TMP_HOUSEKEEPING_ROOT               (optional, default /tmp)
 #   TMP_HOUSEKEEPING_PCVT_AGE_HOURS     (optional, default 12)
 #   TMP_HOUSEKEEPING_WORKTREE_AGE_HOURS (optional, default 24)
+#   LOCAL_AI_EVAL_SKIP_ON_PRESSURE      (optional, default 1)
+#   LOCAL_AI_EVAL_MAX_QWEN_PROCS        (optional, default 0)
+#   LOCAL_AI_EVAL_MAX_OPENCODE_PROCS    (optional, default 0)
+#   LOCAL_AI_EVAL_MAX_LOADED_MODELS     (optional, default 0)
+#   LOCAL_AI_EVAL_PREFLIGHT_ONLY        (optional test mode: run preflight then exit)
+#   PRICING_STALENESS_DB_DSN            (optional; SAG-6327/SAG-6344 pricing staleness
+#                                        detection runner. Unset = loud-fail skip, logged
+#                                        but non-fatal to this pipeline.)
 
 set -euo pipefail
 
@@ -46,6 +54,35 @@ echo "$(ts) [nightly_eval] Lock acquired." >> "$LOG_FILE"
 
 # Ensure lock is released on exit (even on error)
 trap 'flock -u 9; echo "$(ts) [nightly_eval] Lock released." >> "$LOG_FILE"' EXIT
+
+# ---------------------------------------------------------------------------
+# Non-destructive local-AI pressure guard (SAG-5279)
+# ---------------------------------------------------------------------------
+echo "$(ts) [nightly_eval] Running local-AI pressure preflight ..." >> "$LOG_FILE"
+PREFLIGHT_EXIT=0
+python3 "$SCRIPT_DIR/local_ai_pressure_preflight.py" >> "$LOG_FILE" 2>&1 || PREFLIGHT_EXIT=$?
+if [ "$PREFLIGHT_EXIT" -eq 2 ]; then
+  echo "$(ts) [nightly_eval] EVAL SKIPPED: local model pressure. run_eval.py was not started." >> "$LOG_FILE"
+  if [ -n "${PAPERCLIP_API_URL:-}" ] && [ -n "${PAPERCLIP_API_KEY:-}" ]; then
+    SKIP_BODY=$(printf '%s' '## Nightly Eval SKIPPED
+
+EVAL SKIPPED: local model pressure. `run_eval.py` was not started; check `infra/runtime-eval/results/nightly.log` and the timestamped `local_ai_pressure_preflight_*.json` diagnostics artifact.' | python3 -c 'import json, sys; print(json.dumps({"body": sys.stdin.read()}))')
+    curl -s -X POST "$PAPERCLIP_API_URL/api/issues/$NOTIFY_ISSUE/comments" \
+      -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+      -H "Content-Type: application/json" \
+      ${PAPERCLIP_RUN_ID:+-H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID"} \
+      -d "$SKIP_BODY" >> "$LOG_FILE" 2>&1 || true
+  fi
+  exit 0
+elif [ "$PREFLIGHT_EXIT" -ne 0 ]; then
+  echo "$(ts) [nightly_eval] Pressure preflight failed with code $PREFLIGHT_EXIT" >> "$LOG_FILE"
+  exit "$PREFLIGHT_EXIT"
+fi
+
+if [ "${LOCAL_AI_EVAL_PREFLIGHT_ONLY:-0}" = "1" ]; then
+  echo "$(ts) [nightly_eval] LOCAL_AI_EVAL_PREFLIGHT_ONLY=1; exiting before run_eval.py." >> "$LOG_FILE"
+  exit 0
+fi
 
 # ---------------------------------------------------------------------------
 # Run eval
@@ -90,6 +127,21 @@ echo "$(ts) [nightly_eval] Running tmp_housekeeping.py (apply=${TMP_HOUSEKEEPING
 HOUSEKEEPING_EXIT=0
 python3 "$SCRIPT_DIR/tmp_housekeeping.py" >> "$LOG_FILE" 2>&1 || HOUSEKEEPING_EXIT=$?
 echo "$(ts) [nightly_eval] tmp_housekeeping.py exited with code $HOUSEKEEPING_EXIT" >> "$LOG_FILE"
+
+# ---------------------------------------------------------------------------
+# Pricing staleness detection (SAG-6327 Phase 3+4 / SAG-6344)
+#
+# Independent of the local-AI eval above. Exits 0 both on a clean detection
+# run and on the expected pending-dependency state (real rate feeds still
+# pending, SAG-6341/SAG-6343 — Phase 1's alerts table already landed in
+# migration 003, commit b35be578) — it never fails nightly_eval.sh. A
+# non-zero exit here means an unexpected error, which is logged but still
+# does not abort the unrelated eval/digest steps above.
+# ---------------------------------------------------------------------------
+echo "$(ts) [nightly_eval] Running pricing_staleness_runner.py ..." >> "$LOG_FILE"
+STALENESS_EXIT=0
+python3 "$SCRIPT_DIR/pricing_staleness_runner.py" >> "$LOG_FILE" 2>&1 || STALENESS_EXIT=$?
+echo "$(ts) [nightly_eval] pricing_staleness_runner.py exited with code $STALENESS_EXIT" >> "$LOG_FILE"
 
 # Post completion notice to the routine issue
 if [ -n "${PAPERCLIP_API_URL:-}" ] && [ -n "${PAPERCLIP_API_KEY:-}" ]; then

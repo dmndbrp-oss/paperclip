@@ -10328,7 +10328,22 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
           });
           await releaseRuntimeServicesForRun(run.id).catch(() => undefined);
           activeRunExecutions.delete(run.id);
-          await startNextQueuedRunForAgent(run.agentId);
+          // startNextQueuedRunForAgent is the only path that promotes this agent's
+          // next queued run; nothing else retries it. A transient DB error here
+          // (e.g. a connection drop) must not be allowed to silently strand the
+          // agent's queue, so retry once before giving up.
+          await startNextQueuedRunForAgent(run.agentId).catch(async (err) => {
+            logger.error(
+              { err, agentId: run.agentId, runId: run.id },
+              "failed to promote next queued run after run completion; retrying once",
+            );
+            await startNextQueuedRunForAgent(run.agentId).catch((retryErr) => {
+              logger.error(
+                { err: retryErr, agentId: run.agentId, runId: run.id },
+                "failed to promote next queued run after run completion on retry; agent queue may stall until next external wake",
+              );
+            });
+          });
         }
   }
 

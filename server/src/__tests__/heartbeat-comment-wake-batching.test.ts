@@ -636,6 +636,14 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
         const runs = await db.select().from(heartbeatRuns).where(eq(heartbeatRuns.agentId, agentId));
         return runs.length === 2 && runs.every((run) => ["cancelled", "succeeded"].includes(run.status));
       }, 90_000);
+      // Drain any fire-and-forget executeRun -> startNextQueuedRunForAgent
+      // chains kicked off by the cancel above (e.g. the cancelled run's own
+      // tail finishing late, or a "missing_issue_comment" retry cascade)
+      // before the finally block below closes the mock gateway. Without this,
+      // a still-running background chain can hit the closed gateway, fail to
+      // connect, and cascade for many seconds after this test has already
+      // returned, bleeding into (and destabilizing) the next test file.
+      await heartbeat.waitForIdleBackgroundRuns();
     } finally {
       gateway.releaseFirstWait();
       await gateway.close();

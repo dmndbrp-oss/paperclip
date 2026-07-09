@@ -43,6 +43,7 @@ import {
   ROUTINE_SECTION_KEYS,
   SECTION_FIELD_KEYS,
   RoutineDetailContext,
+  createDefaultNewTrigger,
   type RoutineDetailContextValue,
   type RoutineEditDraft,
   type RoutineSectionKey,
@@ -154,12 +155,7 @@ export function RoutineDetail() {
   const [secretMessage, setSecretMessage] = useState<SecretMessage | null>(null);
   const [saveConflict, setSaveConflict] = useState(false);
   const [runVariablesOpen, setRunVariablesOpen] = useState(false);
-  const [newTrigger, setNewTrigger] = useState({
-    kind: "schedule",
-    cronExpression: "0 10 * * *",
-    signingMode: "bearer",
-    replayWindowSec: "300",
-  });
+  const [newTrigger, setNewTrigger] = useState(createDefaultNewTrigger);
   const [editDraft, setEditDraft] = useState<RoutineEditDraft>({
     title: "",
     description: "",
@@ -811,7 +807,7 @@ export function RoutineDetail() {
               <Badge variant="outline" className="hidden shrink-0 gap-1.5 text-xs text-muted-foreground sm:inline-flex">
                 <Sparkles className="h-3 w-3" />
                 {routine.managedByPlugin.pluginDisplayName}
-                <span className="font-mono text-[10px]">{routine.managedByPlugin.resourceKey}</span>
+                <span className="font-mono text-(length:--text-nano)">{routine.managedByPlugin.resourceKey}</span>
               </Badge>
             ) : null}
           </div>

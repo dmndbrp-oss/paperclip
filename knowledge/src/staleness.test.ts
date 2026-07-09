@@ -5,11 +5,14 @@ import {
   classifyBlockedSubtype,
   isWaitingOnBoard,
   shouldEmitMention,
+  planEscalations,
+  applyEscalationPosts,
   renderTicketHealthDigest,
   CEO_AGENT_ID,
   SLA_HOURS,
   MAX_MENTIONS,
   type HealthItem,
+  type EscalationRecord,
 } from './staleness.js';
 
 const NOW = Date.now();
@@ -377,6 +380,153 @@ describe('shouldEmitMention — idempotency', () => {
       storedStep = step2;
     }
     expect(emitCount).toBe(2);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// planEscalations + applyEscalationPosts — confirm-before-advance
+// ─────────────────────────────────────────────────────────────────────────────
+
+function makeEscalationHealthItem(overrides: Partial<HealthItem> = {}): HealthItem {
+  return {
+    id: 'issue-1',
+    identifier: 'SAG-1',
+    title: 'Stale ticket',
+    priority: 'medium',
+    status: 'in_progress',
+    idleHours: 25,
+    slaHours: 24,
+    breached: true,
+    multiplier: 25 / 24,
+    isWaitingOnBoard: false,
+    escalationStep: 1,
+    assigneeAgentId: 'agent-1',
+    assigneeUserId: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
+describe('ticket-health escalation state advancement', () => {
+  const RUN_AT = '2026-07-02T12:00:00.000Z';
+
+  it('transient direct-post failure does not persist delivered state', async () => {
+    const planned = planEscalations({
+      healthItems: [makeEscalationHealthItem()],
+      priorEscalations: {},
+      agents: [{ id: 'agent-1', name: 'Agent One' }],
+      runAt: RUN_AT,
+    });
+
+    expect(planned.escalationsEmitted).toHaveLength(1);
+
+    const state = await applyEscalationPosts({
+      escalationsEmitted: planned.escalationsEmitted,
+      state: planned.newEscalationState,
+      runAt: RUN_AT,
+      postFn: async () => {
+        throw new Error('postComment: HTTP 500 - temporary failure');
+      },
+    });
+
+    expect(state['issue-1']).toBeUndefined();
+  });
+
+  it('successful direct post persists delivered state', async () => {
+    const planned = planEscalations({
+      healthItems: [makeEscalationHealthItem()],
+      priorEscalations: {},
+      agents: [{ id: 'agent-1', name: 'Agent One' }],
+      runAt: RUN_AT,
+    });
+
+    const state = await applyEscalationPosts({
+      escalationsEmitted: planned.escalationsEmitted,
+      state: planned.newEscalationState,
+      runAt: RUN_AT,
+      postFn: async () => 'comment-1',
+    });
+
+    expect(state['issue-1']).toEqual({ step: 1, lastEscalatedAt: RUN_AT });
+  });
+
+  it('403 authorization-boundary failure advances state and keeps item in digest escalation input', async () => {
+    const planned = planEscalations({
+      healthItems: [makeEscalationHealthItem()],
+      priorEscalations: {},
+      agents: [{ id: 'agent-1', name: 'Agent One' }],
+      runAt: RUN_AT,
+    });
+
+    expect(planned.escalationsEmitted.map((e) => e.identifier)).toContain('SAG-1');
+
+    const state = await applyEscalationPosts({
+      escalationsEmitted: planned.escalationsEmitted,
+      state: planned.newEscalationState,
+      runAt: RUN_AT,
+      postFn: async () => {
+        throw new Error('postComment: HTTP 403 - Issue is outside this actor authorization boundary');
+      },
+    });
+
+    expect(state['issue-1']).toEqual({ step: 1, lastEscalatedAt: RUN_AT });
+  });
+
+  it('non-posting branches keep their state-advance behavior', () => {
+    const agents = [{ id: 'agent-1', name: 'Agent One' }];
+    const prior: Record<string, EscalationRecord> = {
+      'step-bump': { step: 2, lastEscalatedAt: '2026-07-01T12:00:00.000Z' },
+    };
+    const unassigned = planEscalations({
+      healthItems: [makeEscalationHealthItem({ id: 'unassigned', identifier: 'SAG-2', assigneeAgentId: null })],
+      priorEscalations: {},
+      agents,
+      runAt: RUN_AT,
+    });
+    const capReached = planEscalations({
+      healthItems: [makeEscalationHealthItem({ id: 'cap', identifier: 'SAG-3' })],
+      priorEscalations: {},
+      agents,
+      runAt: RUN_AT,
+      maxMentions: 0,
+    });
+    const noManager = planEscalations({
+      healthItems: [
+        makeEscalationHealthItem({
+          id: 'no-manager',
+          identifier: 'SAG-4',
+          escalationStep: 2,
+          idleHours: 50,
+          multiplier: 50 / 24,
+        }),
+      ],
+      priorEscalations: {},
+      agents,
+      runAt: RUN_AT,
+    });
+    const stepBump = planEscalations({
+      healthItems: [
+        makeEscalationHealthItem({
+          id: 'step-bump',
+          identifier: 'SAG-5',
+          escalationStep: 3,
+          idleHours: 80,
+          multiplier: 80 / 24,
+        }),
+      ],
+      priorEscalations: prior,
+      agents,
+      runAt: RUN_AT,
+    });
+
+    expect(unassigned.escalationsEmitted).toHaveLength(0);
+    expect(capReached.escalationsEmitted).toHaveLength(0);
+    expect(noManager.escalationsEmitted).toHaveLength(0);
+    expect(stepBump.escalationsEmitted).toHaveLength(0);
+    expect(unassigned.newEscalationState['unassigned']).toEqual({ step: 1, lastEscalatedAt: RUN_AT });
+    expect(capReached.newEscalationState['cap']).toEqual({ step: 1, lastEscalatedAt: RUN_AT });
+    expect(noManager.newEscalationState['no-manager']).toEqual({ step: 2, lastEscalatedAt: RUN_AT });
+    expect(stepBump.newEscalationState['step-bump']).toEqual({ step: 3, lastEscalatedAt: RUN_AT });
   });
 });
 

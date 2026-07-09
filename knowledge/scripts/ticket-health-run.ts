@@ -36,12 +36,13 @@ import {
   escalationStep,
   classifyBlockedSubtype,
   isWaitingOnBoard,
-  shouldEmitMention,
+  planEscalations,
+  applyEscalationPosts,
   ticketHealthHash,
   renderTicketHealthDigest,
   MAX_MENTIONS,
   type HealthItem,
-  type EscalationEmit,
+  type EscalationRecord,
   type IssueStatus,
 } from '../src/staleness.js';
 
@@ -80,11 +81,6 @@ const DEBUG = cliArgs.includes('--debug');
 // ─────────────────────────────────────────────────────────────────────────────
 // State
 // ─────────────────────────────────────────────────────────────────────────────
-
-interface EscalationRecord {
-  step: number;
-  lastEscalatedAt: string;
-}
 
 interface TicketHealthState {
   lastRunAt: string;
@@ -282,7 +278,6 @@ async function main(): Promise<void> {
 
   console.log('[ticket-health] loading agent roster…');
   const agents = await listAgents();
-  const agentMap = new Map<string, AgentInfo>(agents.map((a) => [a.id, a]));
 
   // ── 4. Classify all issues ────────────────────────────────────────────────
 
@@ -379,90 +374,14 @@ async function main(): Promise<void> {
 
   // ── 6. Compute escalations (idempotent, capped at MAX_MENTIONS) ───────────
 
-  const escalationsEmitted: EscalationEmit[] = [];
-  const newEscalationState: Record<string, EscalationRecord> = { ...state.escalations };
-  let mentionCount = 0;
-
-  for (const item of healthItems) {
-    if (!item.breached || item.escalationStep === 0) continue;
-
-    // in_review waiting on board → no agent ping (board section handles it)
-    if (item.isWaitingOnBoard) continue;
-
-    const prevStep = state.escalations[item.id]?.step ?? 0;
-    const currentStep = item.escalationStep;
-
-    if (!shouldEmitMention(currentStep, prevStep)) {
-      // Still update step in state so we don't re-ping at a lower step
-      if (currentStep > prevStep) {
-        newEscalationState[item.id] = { step: currentStep, lastEscalatedAt: runAt };
-      }
-      continue;
-    }
-
-    // Past the cap → fold into digest only
-    if (mentionCount >= MAX_MENTIONS) {
-      newEscalationState[item.id] = { step: currentStep, lastEscalatedAt: runAt };
-      if (DEBUG) {
-        console.log(
-          `  [ticket-health] cap reached — ${item.identifier} step ${currentStep} folded into digest`,
-        );
-      }
-      continue;
-    }
-
-    let targetAgentId: string | null = null;
-    let targetName = 'assignee';
-
-    if (currentStep === 1) {
-      targetAgentId = item.assigneeAgentId;
-      const agentInfo = item.assigneeAgentId ? agentMap.get(item.assigneeAgentId) : null;
-      targetName = agentInfo?.name ?? 'assignee';
-    } else if (currentStep === 2) {
-      if (item.assigneeAgentId) {
-        const assigneeInfo = agentMap.get(item.assigneeAgentId);
-        const managerId = assigneeInfo?.reportsTo ?? null;
-        if (managerId) {
-          targetAgentId = managerId;
-          const managerInfo = agentMap.get(managerId);
-          targetName = managerInfo?.name ?? 'manager';
-        } else {
-          // No manager found — fold into digest
-          newEscalationState[item.id] = { step: currentStep, lastEscalatedAt: runAt };
-          if (DEBUG) {
-            console.log(
-              `  [ticket-health] ${item.identifier} step 2 — no reportsTo found, folding into digest`,
-            );
-          }
-          continue;
-        }
-      }
-    }
-
-    if (!targetAgentId) {
-      // Unassigned — update state but don't ping
-      newEscalationState[item.id] = { step: currentStep, lastEscalatedAt: runAt };
-      continue;
-    }
-
-    const idleStr = `${Math.round(item.idleHours)}h idle (${item.slaHours * (currentStep === 1 ? 1 : 2)}h SLA)`;
-    const commentBody =
-      currentStep === 1
-        ? `[@${targetName}](agent://${targetAgentId}) Nudge: [${item.identifier}](/SAG/issues/${item.identifier}) "${item.title.slice(0, 60)}" is stale — ${idleStr}. Please resume or update status. *(Ticket Health step 1 — SAG-2931)*`
-        : `[@${targetName}](agent://${targetAgentId}) Escalation: [${item.identifier}](/SAG/issues/${item.identifier}) "${item.title.slice(0, 60)}" remains stale — ${idleStr}. Assignee needs to resume. *(Ticket Health step 2 — SAG-2931)*`;
-
-    escalationsEmitted.push({
-      issueId: item.id,
-      identifier: item.identifier,
-      title: item.title,
-      step: currentStep,
-      targetAgentId,
-      commentBody,
-    });
-
-    newEscalationState[item.id] = { step: currentStep, lastEscalatedAt: runAt };
-    mentionCount++;
-  }
+  const escalationPlan = planEscalations({
+    healthItems,
+    priorEscalations: state.escalations,
+    agents,
+    runAt,
+    maxMentions: MAX_MENTIONS,
+  });
+  const { escalationsEmitted } = escalationPlan;
 
   // ── 7. Classification summary ─────────────────────────────────────────────
 
@@ -543,16 +462,26 @@ async function main(): Promise<void> {
 
   // ── 9. Post escalation comments ───────────────────────────────────────────
 
-  for (const esc of escalationsEmitted) {
-    console.log(
-      `[ticket-health] posting step-${esc.step} escalation for ${esc.identifier} → agent ${esc.targetAgentId.slice(0, 8)}…`,
-    );
-    try {
-      await postComment(esc.issueId, esc.commentBody);
-    } catch (err) {
-      console.error(`[ticket-health] escalation comment failed for ${esc.identifier}: ${err}`);
-    }
-  }
+  const newEscalationState = await applyEscalationPosts({
+    escalationsEmitted,
+    state: escalationPlan.newEscalationState,
+    runAt,
+    postFn: async (issueId, body) => {
+      const esc = escalationsEmitted.find((item) => item.issueId === issueId);
+      if (esc) {
+        console.log(
+          `[ticket-health] posting step-${esc.step} escalation for ${esc.identifier} → agent ${esc.targetAgentId.slice(0, 8)}…`,
+        );
+      }
+      return postComment(issueId, body);
+    },
+    onPostError: (esc, err, permanent) => {
+      const disposition = permanent ? 'folded to digest and recorded handled' : 'will retry next run';
+      console.error(
+        `[ticket-health] escalation comment failed for ${esc.identifier}: ${err} (${disposition})`,
+      );
+    },
+  });
 
   // ── 10. Post digest ───────────────────────────────────────────────────────
 

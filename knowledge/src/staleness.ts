@@ -70,6 +70,17 @@ export interface EscalationEmit {
   commentBody: string;
 }
 
+export interface EscalationRecord {
+  step: number;
+  lastEscalatedAt: string;
+}
+
+export interface EscalationAgentInfo {
+  id: string;
+  name: string;
+  reportsTo?: string | null;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants (board-tunable named values)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -170,6 +181,137 @@ export function shouldEmitMention(
   prevStep: number,
 ): boolean {
   return currentStep > prevStep && currentStep > 0 && currentStep < 3;
+}
+
+export interface PlanEscalationsOptions {
+  healthItems: HealthItem[];
+  priorEscalations: Record<string, EscalationRecord>;
+  agents: EscalationAgentInfo[];
+  runAt: string;
+  maxMentions?: number;
+}
+
+export interface PlanEscalationsResult {
+  escalationsEmitted: EscalationEmit[];
+  newEscalationState: Record<string, EscalationRecord>;
+}
+
+/**
+ * Select direct escalation comments and advance state only for non-posting
+ * branches. Direct-post state is confirmed later by applyEscalationPosts().
+ */
+export function planEscalations(opts: PlanEscalationsOptions): PlanEscalationsResult {
+  const maxMentions = opts.maxMentions ?? MAX_MENTIONS;
+  const escalationsEmitted: EscalationEmit[] = [];
+  const newEscalationState: Record<string, EscalationRecord> = { ...opts.priorEscalations };
+  const agentMap = new Map<string, EscalationAgentInfo>(opts.agents.map((a) => [a.id, a]));
+  let mentionCount = 0;
+
+  for (const item of opts.healthItems) {
+    if (!item.breached || item.escalationStep === 0) continue;
+
+    // in_review waiting on board -> no agent ping (board section handles it)
+    if (item.isWaitingOnBoard) continue;
+
+    const prevStep = opts.priorEscalations[item.id]?.step ?? 0;
+    const currentStep = item.escalationStep;
+
+    if (!shouldEmitMention(currentStep, prevStep)) {
+      // Still update step in state so we don't re-ping at a lower step.
+      if (currentStep > prevStep) {
+        newEscalationState[item.id] = { step: currentStep, lastEscalatedAt: opts.runAt };
+      }
+      continue;
+    }
+
+    // Past the cap -> fold into digest only.
+    if (mentionCount >= maxMentions) {
+      newEscalationState[item.id] = { step: currentStep, lastEscalatedAt: opts.runAt };
+      continue;
+    }
+
+    let targetAgentId: string | null = null;
+    let targetName = 'assignee';
+
+    if (currentStep === 1) {
+      targetAgentId = item.assigneeAgentId;
+      const agentInfo = item.assigneeAgentId ? agentMap.get(item.assigneeAgentId) : null;
+      targetName = agentInfo?.name ?? 'assignee';
+    } else if (currentStep === 2) {
+      if (item.assigneeAgentId) {
+        const assigneeInfo = agentMap.get(item.assigneeAgentId);
+        const managerId = assigneeInfo?.reportsTo ?? null;
+        if (managerId) {
+          targetAgentId = managerId;
+          const managerInfo = agentMap.get(managerId);
+          targetName = managerInfo?.name ?? 'manager';
+        } else {
+          // No manager found - fold into digest.
+          newEscalationState[item.id] = { step: currentStep, lastEscalatedAt: opts.runAt };
+          continue;
+        }
+      }
+    }
+
+    if (!targetAgentId) {
+      // Unassigned - update state but don't ping.
+      newEscalationState[item.id] = { step: currentStep, lastEscalatedAt: opts.runAt };
+      continue;
+    }
+
+    const idleStr = `${Math.round(item.idleHours)}h idle (${item.slaHours * (currentStep === 1 ? 1 : 2)}h SLA)`;
+    const commentBody =
+      currentStep === 1
+        ? `[@${targetName}](agent://${targetAgentId}) Nudge: [${item.identifier}](/SAG/issues/${item.identifier}) "${item.title.slice(0, 60)}" is stale — ${idleStr}. Please resume or update status. *(Ticket Health step 1 — SAG-2931)*`
+        : `[@${targetName}](agent://${targetAgentId}) Escalation: [${item.identifier}](/SAG/issues/${item.identifier}) "${item.title.slice(0, 60)}" remains stale — ${idleStr}. Assignee needs to resume. *(Ticket Health step 2 — SAG-2931)*`;
+
+    escalationsEmitted.push({
+      issueId: item.id,
+      identifier: item.identifier,
+      title: item.title,
+      step: currentStep,
+      targetAgentId,
+      commentBody,
+    });
+
+    mentionCount++;
+  }
+
+  return { escalationsEmitted, newEscalationState };
+}
+
+export interface ApplyEscalationPostsOptions {
+  escalationsEmitted: EscalationEmit[];
+  state: Record<string, EscalationRecord>;
+  runAt: string;
+  postFn: (issueId: string, body: string) => Promise<unknown>;
+  onPostError?: (escalation: EscalationEmit, error: unknown, permanent: boolean) => void;
+}
+
+export function isPermanentAuthorizationBoundaryError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes('HTTP 403') && message.includes('authorization boundary');
+}
+
+export async function applyEscalationPosts(
+  opts: ApplyEscalationPostsOptions,
+): Promise<Record<string, EscalationRecord>> {
+  const nextState: Record<string, EscalationRecord> = { ...opts.state };
+
+  for (const esc of opts.escalationsEmitted) {
+    try {
+      await opts.postFn(esc.issueId, esc.commentBody);
+      nextState[esc.issueId] = { step: esc.step, lastEscalatedAt: opts.runAt };
+    } catch (err) {
+      const permanent = isPermanentAuthorizationBoundaryError(err);
+      opts.onPostError?.(esc, err, permanent);
+      if (permanent) {
+        nextState[esc.issueId] = { step: esc.step, lastEscalatedAt: opts.runAt };
+      }
+    }
+  }
+
+  return nextState;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -572,6 +572,8 @@ describe('runDigester incremental save', () => {
     };
 
     const config = makeRunDigesterConfig();
+    fs.writeFileSync(config.stateFile, JSON.stringify({ lastRunAt: '2026-04-30T00:00:00.000Z' }), 'utf8');
+
     await runDigester(config, fakeSummarizer);
 
     const stateRaw = JSON.parse(fs.readFileSync(config.stateFile, 'utf8')) as { lastRunAt: string };

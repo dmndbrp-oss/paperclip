@@ -96,6 +96,86 @@ interface ClaudeRuntimeConfig {
   extraArgs: string[];
 }
 
+type GoalEvaluation = { met: boolean; reason: string; tokensUsed: number };
+
+async function callGoalEvaluator(input: {
+  condition: string;
+  workerOutput: string;
+  evaluatorModel: string;
+  apiKey: string;
+}): Promise<GoalEvaluation> {
+  const tail = input.workerOutput.split(/\r?\n/).slice(-50).join("\n");
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": input.apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: input.evaluatorModel,
+        max_tokens: 128,
+        system:
+          'You are a goal completion evaluator. Respond ONLY with valid JSON: {"met": boolean, "reason": string}. "met" is true only when the condition is fully satisfied. "reason" is one sentence.',
+        messages: [{
+          role: "user",
+          content: `Goal condition: ${input.condition}\n\nWorker last output:\n${tail}`,
+        }],
+      }),
+    });
+    if (!response.ok) {
+      return { met: false, reason: `evaluator HTTP error ${response.status}`, tokensUsed: 0 };
+    }
+    const data = await response.json() as Record<string, unknown>;
+    const usage = parseObject(data.usage);
+    const tokensUsed = asNumber(usage.input_tokens, 0) + asNumber(usage.output_tokens, 0);
+    const content = Array.isArray(data.content)
+      ? asString(parseObject(data.content[0]).text, "")
+      : "";
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      return { met: false, reason: `parse error: ${content.slice(0, 80)}`, tokensUsed };
+    }
+    if (typeof parsed !== "object" || parsed === null || typeof (parsed as Record<string, unknown>).met !== "boolean") {
+      return { met: false, reason: "parse error: missing met boolean", tokensUsed };
+    }
+    const result = parsed as Record<string, unknown>;
+    return {
+      met: result.met as boolean,
+      reason: asString(result.reason, "no reason"),
+      tokensUsed,
+    };
+  } catch (error) {
+    return {
+      met: false,
+      reason: `evaluator error: ${error instanceof Error ? error.message : String(error)}`,
+      tokensUsed: 0,
+    };
+  }
+}
+
+async function paperclipApiRequest(input: {
+  method: "POST" | "PATCH";
+  path: string;
+  body: Record<string, unknown>;
+  apiKey: string;
+  runId: string;
+}): Promise<void> {
+  const apiUrl = process.env.PAPERCLIP_API_URL ?? "http://127.0.0.1:3100";
+  await fetch(`${apiUrl}${input.path}`, {
+    method: input.method,
+    headers: {
+      Authorization: `Bearer ${input.apiKey}`,
+      "Content-Type": "application/json",
+      "X-Paperclip-Run-Id": input.runId,
+    },
+    body: JSON.stringify(input.body),
+  });
+}
+
 export function claudeSessionCwdMatchesExecutionTarget(input: {
   runtimeSessionCwd: string;
   effectiveExecutionCwd: string;
@@ -380,6 +460,13 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     DEFAULT_PAPERCLIP_AGENT_PROMPT_TEMPLATE,
   );
   const model = asString(config.model, "");
+  const goalCondition = asString(config.goalCondition, "").trim();
+  const goalMaxTurns = asNumber(config.goalMaxTurns, 0);
+  const goalBudgetTokensEvaluator = asNumber(config.goalBudgetTokensEvaluator, 0);
+  const goalEvaluatorModel =
+    asString(config.goalEvaluatorModel, "claude-haiku-4-5-20251001").trim() ||
+    "claude-haiku-4-5-20251001";
+  const isGoalMode = goalCondition.length > 0 && goalMaxTurns > 0 && goalBudgetTokensEvaluator > 0;
   const effort = asString(config.effort, "");
   const chrome = asBoolean(config.chrome, false);
   const maxTurns = asNumber(config.maxTurnsPerRun, 0);
@@ -754,7 +841,10 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       : `Claude exited with code ${proc.exitCode ?? -1}`;
   };
 
-  const runAttempt = async (resumeSessionId: string | null) => {
+  const runAttempt = async (
+    resumeSessionId: string | null,
+    envOverride: Record<string, string> = env,
+  ) => {
     const attemptInstructionsFilePath = resumeSessionId ? undefined : effectiveInstructionsFilePath;
     const args = buildClaudeArgs(resumeSessionId, attemptInstructionsFilePath);
     const commandNotes: string[] = [];
@@ -778,7 +868,13 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
         cwd: effectiveExecutionCwd,
         commandArgs: args,
         commandNotes,
-        env: loggedEnv,
+        env: envOverride === env
+          ? loggedEnv
+          : buildInvocationEnvForLogs(envOverride, {
+              runtimeEnv: ensurePathInEnv({ ...process.env, ...envOverride }),
+              includeRuntimeKeys: ["HOME", "CLAUDE_CONFIG_DIR"],
+              resolvedCommand,
+            }),
         prompt,
         promptMetrics,
         context,
@@ -787,7 +883,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
 
     const proc = await runAdapterExecutionTargetProcess(runId, runtimeExecutionTarget, command, args, {
       cwd,
-      env,
+      env: envOverride,
       stdin: prompt,
       timeoutSec,
       graceSec,
@@ -1045,6 +1141,151 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
         Boolean(opts.clearSessionOnMissingSession && !resolvedSessionId),
     };
   };
+
+  const buildGoalResult = (input: {
+    met: boolean;
+    turns: number;
+    evaluatorTokensUsed: number;
+    lastWorkerOutput: string;
+  }): AdapterExecutionResult => ({
+    exitCode: 0,
+    signal: null,
+    timedOut: false,
+    provider: "anthropic",
+    biller: isBedrockAuth(effectiveEnv) ? "aws_bedrock" : "anthropic",
+    model,
+    billingType,
+    usage: { inputTokens: 0, outputTokens: 0 },
+    summary: input.lastWorkerOutput,
+    resultJson: {
+      goalMode: true,
+      goalMet: input.met,
+      goalTurns: input.turns,
+      evaluatorTokensUsed: input.evaluatorTokensUsed,
+      stdout: input.lastWorkerOutput,
+    },
+  });
+
+  const wakeTaskId =
+    (typeof context.taskId === "string" && context.taskId.trim()) ||
+    (typeof context.issueId === "string" && context.issueId.trim()) ||
+    null;
+
+  // Goal mode deliberately lives at the adapter boundary. The normal path
+  // below remains unchanged when no complete goal configuration is supplied.
+  if (isGoalMode && !process.env.ANTHROPIC_API_KEY) {
+    await onLog("stderr", "[goal-mode] ANTHROPIC_API_KEY not set; falling back to standard mode\n");
+  }
+
+  if (isGoalMode && process.env.ANTHROPIC_API_KEY) {
+    let turns = 0;
+    let evaluatorTokensUsed = 0;
+    let lastReason = "no evaluation performed";
+    let lastWorkerOutput = "";
+
+    while (turns < goalMaxTurns) {
+      if (process.env.PAPERCLIP_AGENT_PAUSED === "true") {
+        if (authToken && wakeTaskId) {
+          await paperclipApiRequest({
+            method: "POST",
+            runId,
+            path: `/api/issues/${wakeTaskId}/comments`,
+            body: {
+              body: [
+                "## Goal-Mode: Paused",
+                "",
+                `Paused by operator after turn ${turns}/${goalMaxTurns}. Goal condition: ${goalCondition}`,
+                "",
+                "Resume to continue.",
+              ].join("\n"),
+            },
+            apiKey: authToken,
+          });
+        }
+        break;
+      }
+
+      turns += 1;
+      const goalEnv = { ...env };
+      delete goalEnv.PAPERCLIP_API_KEY;
+      goalEnv.PAPERCLIP_GOAL_TURN = String(turns);
+      goalEnv.PAPERCLIP_GOAL_MAX_TURNS = String(goalMaxTurns);
+      goalEnv.PAPERCLIP_GOAL_CONDITION = goalCondition;
+      const attempt = await runAttempt(null, goalEnv);
+      lastWorkerOutput = attempt.parsedStream.summary || attempt.proc.stdout;
+      const evaluation = await callGoalEvaluator({
+        condition: goalCondition,
+        workerOutput: lastWorkerOutput,
+        evaluatorModel: goalEvaluatorModel,
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
+      evaluatorTokensUsed += evaluation.tokensUsed;
+      lastReason = evaluation.reason;
+
+      if (evaluation.met) {
+        if (authToken && wakeTaskId) {
+          const outputTail = lastWorkerOutput.split(/\r?\n/).slice(-20).join("\n");
+          const closingComment = [
+            "## Goal-Mode Result: MET",
+            "",
+            `**Goal condition:** ${goalCondition}`,
+            `**Turns taken:** ${turns}/${goalMaxTurns}`,
+            `**Evaluator model:** ${goalEvaluatorModel}`,
+            `**Evaluator reason:** ${evaluation.reason}`,
+            `**Evaluator tokens used:** ${evaluatorTokensUsed}`,
+            "",
+            "### Worker last output (tail)",
+            "```",
+            outputTail,
+            "```",
+          ].join("\n");
+          await paperclipApiRequest({
+            method: "POST",
+            runId,
+            path: `/api/issues/${wakeTaskId}/comments`,
+            body: { body: closingComment },
+            apiKey: authToken,
+          });
+          await paperclipApiRequest({
+            method: "PATCH",
+            runId,
+            path: `/api/issues/${wakeTaskId}`,
+            body: { status: "done" },
+            apiKey: authToken,
+          });
+        }
+        return buildGoalResult({ met: true, turns, evaluatorTokensUsed, lastWorkerOutput });
+      }
+    }
+
+    if (process.env.PAPERCLIP_AGENT_PAUSED !== "true" && authToken && wakeTaskId) {
+      const blockedComment = [
+        "## Goal-Mode Result: BLOCKED — maxTurns Reached",
+        "",
+        `**Goal condition:** ${goalCondition}`,
+        `**Turns taken:** ${turns}/${goalMaxTurns}`,
+        `**Last evaluator reason:** ${lastReason}`,
+        `**Evaluator tokens used:** ${evaluatorTokensUsed}`,
+        "",
+        "Recommended next action: Review task scope, refine goal condition, or raise maxTurns with CEO approval.",
+      ].join("\n");
+      await paperclipApiRequest({
+        method: "POST",
+        runId,
+        path: `/api/issues/${wakeTaskId}/comments`,
+        body: { body: blockedComment },
+        apiKey: authToken,
+      });
+      await paperclipApiRequest({
+        method: "PATCH",
+        runId,
+        path: `/api/issues/${wakeTaskId}`,
+        body: { status: "blocked" },
+        apiKey: authToken,
+      });
+    }
+    return buildGoalResult({ met: false, turns, evaluatorTokensUsed, lastWorkerOutput });
+  }
 
   try {
     const initial = await runAttempt(sessionId ?? null);

@@ -2397,6 +2397,22 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
       runStatus: "succeeded",
       livenessState: "advanced",
     });
+    const recoveryOwnerAgentId = randomUUID();
+    await db.insert(agents).values({
+      id: recoveryOwnerAgentId,
+      companyId,
+      name: "RecoveryManager",
+      role: "manager",
+      status: "idle",
+      adapterType: "codex_local",
+      adapterConfig: {},
+      runtimeConfig: {},
+      permissions: {},
+    });
+    await db
+      .update(agents)
+      .set({ reportsTo: recoveryOwnerAgentId })
+      .where(eq(agents.id, agentId));
     const sourceRunId = randomUUID();
     await db
       .update(heartbeatRuns)
@@ -2422,15 +2438,27 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     expect(result.successfulContinuationObserved).toBe(0);
     expect(result.successfulRunHandoffEscalated).toBe(1);
 
+    const sourceIssue = await db
+      .select()
+      .from(issues)
+      .where(eq(issues.id, issueId))
+      .then((rows) => rows[0] ?? null);
+    expect(sourceIssue).toMatchObject({
+      status: "blocked",
+      assigneeAgentId: agentId,
+    });
+
     const recoveryAction = await expectSourceScopedStrandedRecoveryAction({
       companyId,
-      agentId,
+      agentId: recoveryOwnerAgentId,
       issueId,
       runId,
       previousStatus: "in_progress",
       retryReason: null,
       cause: SUCCESSFUL_RUN_MISSING_STATE_REASON,
       kind: "missing_disposition",
+      previousOwnerAgentId: agentId,
+      returnOwnerAgentId: agentId,
     });
     expect(recoveryAction.evidence).toMatchObject({
       sourceRunId,
@@ -3379,7 +3407,7 @@ describeEmbeddedPostgres("heartbeat orphaned process recovery", () => {
     });
     expect(sourceIssue).toMatchObject({
       status: "blocked",
-      assigneeAgentId: agentId,
+      assigneeAgentId: sourceAssigneeAgentId,
     });
 
     const recoveryAction = await expectSourceScopedStrandedRecoveryAction({

@@ -30,6 +30,7 @@ const DEFAULT_SELECTORS = {
 
 const DEFAULT_MAX_SKUS = 25;
 const DEFAULT_RATE_LIMIT_MS = 1000;
+const EXPECTED_CHROMIUM_REVISION = "1217";
 
 class SecretValue {
   constructor(value) {
@@ -198,19 +199,44 @@ async function installReadOnlyRouteGuard(context, loginUrl) {
 }
 
 function loadPlaywright() {
-  const attempts = [
-    () => require("playwright"),
-    () => createRequire(path.join(process.cwd(), "dispatcher", "package.json"))("playwright"),
-    () => createRequire(path.join(process.cwd(), "review-ui", "package.json"))("playwright"),
-  ];
-  for (const attempt of attempts) {
-    try {
-      return attempt();
-    } catch (_err) {
-      // Try the next local package that may already have Playwright installed.
-    }
+  try {
+    return createRequire(path.join(__dirname, "package.json"))("playwright");
+  } catch (err) {
+    throw new Error(
+      "Playwright is required for live SSI exploration but was not found in the enrichment runtime; " +
+        `install the enrichment runtime dependencies (${err.message})`
+    );
   }
-  throw new Error("Playwright is required for live SSI exploration but was not found");
+}
+
+function assertChromiumAvailable(playwright) {
+  let executablePath;
+  try {
+    executablePath = playwright.chromium.executablePath();
+  } catch (err) {
+    throw new Error(
+      `Chromium browser preflight failed for Playwright 1.59.1; expected cached Chromium revision ` +
+        `${EXPECTED_CHROMIUM_REVISION} (${err.message}). Credentials are not involved.`
+    );
+  }
+
+  if (!executablePath || !fs.existsSync(executablePath)) {
+    throw new Error(
+      `Chromium browser executable is missing at ${executablePath || "the Playwright cache path"}; ` +
+        `Playwright 1.59.1 requires the pre-provisioned Chromium revision ${EXPECTED_CHROMIUM_REVISION}. ` +
+        "Provision that browser before running the enrichment tool; credentials are not involved."
+    );
+  }
+
+  if (!executablePath.includes(`chromium-${EXPECTED_CHROMIUM_REVISION}`)) {
+    throw new Error(
+      `Playwright resolved an unexpected Chromium executable (${executablePath}); ` +
+        `the enrichment runtime requires Chromium revision ${EXPECTED_CHROMIUM_REVISION}. ` +
+        "Check the pinned Playwright dependency and browser cache; credentials are not involved."
+    );
+  }
+
+  return executablePath;
 }
 
 async function authenticate(page, context, config) {
@@ -279,8 +305,9 @@ async function runLive() {
   const config = parseConfigFromEnv();
   const guards = buildRunGuards();
   const { chromium } = loadPlaywright();
+  const executablePath = assertChromiumAvailable({ chromium });
   const storageState = fs.existsSync(config.authStatePath) ? config.authStatePath : undefined;
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath });
   const context = await browser.newContext({ storageState });
   await installReadOnlyRouteGuard(context, config.loginUrl);
 
@@ -325,4 +352,5 @@ module.exports = {
   serializeRows,
   installReadOnlyRouteGuard,
   loadPlaywright,
+  assertChromiumAvailable,
 };

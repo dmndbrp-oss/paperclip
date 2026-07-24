@@ -6,6 +6,8 @@ const {
   buildCatalogOutput,
   buildRunGuards,
   installReadOnlyRouteGuard,
+  loadPlaywright,
+  assertChromiumAvailable,
   parseConfigFromEnv,
   serializeRows,
 } = require("./ssi_explore.js");
@@ -128,5 +130,22 @@ test("read-only route guard allows only exact login POST and blocks nearby mutat
   assert.deepEqual(
     await routeRequest("POST", "https://ssi.example.test/catalog/update"),
     ["abort:blockedbyclient"]
+  );
+});
+
+test("resolves Playwright from the enrichment package without caller environment overrides", () => {
+  const playwright = loadPlaywright();
+
+  assert.equal(require("playwright/package.json").version, "1.59.1");
+  assert.doesNotThrow(() => assertChromiumAvailable(playwright));
+});
+
+test("reports a missing Chromium executable before attempting a live SSI run", () => {
+  assert.throws(
+    () =>
+      assertChromiumAvailable({
+        chromium: { executablePath: () => "/missing/chromium" },
+      }),
+    /Chromium browser executable is missing/
   );
 });

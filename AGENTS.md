@@ -169,6 +169,22 @@ When creating a pull request (via `gh pr create` or any other method), you **mus
 - **Model Used** — the AI model that produced or assisted with the change (provider, exact model ID, context window, capabilities). Write "None — human-authored" if no AI was used.
 - **Checklist** — all items checked
 
+## Cross-Review Merge Policy
+
+This repo requires cross-agent review before merge: the identity that opens a PR is never the identity that approves/merges it, so GitHub's self-approval block is satisfied structurally rather than by convention. This applies to this repo and the other private `dmndbrp-oss` operator repos that share this reviewer/merger identity.
+
+- **Author ≠ reviewer, structurally.** PR author = the executor's GitHub identity (`dmndbrp-oss`). PR reviewer/merger = the Director of Engineering acting under the `sage-reviewer-bot` identity — a distinct agent AND a distinct GitHub account from the author. No agent approves or merges its own PR.
+- **Auto-mergeable by the DoE (no board escalation needed) only when ALL of the following hold:**
+  1. The PR-validation/CI check is green.
+  2. A recorded QA or reviewer PASS exists on the issue/PR.
+  3. The approving GitHub review is submitted by `sage-reviewer-bot` (≠ author).
+  4. No deploy/sensitive files are touched: nothing under `.github/workflows/**`, no Azure/deploy config, no `Dockerfile`/infra, no `AZURE_DEPLOY_ENABLED`, no secrets/credential files, no branch-protection change.
+- **Always escalates to the board** (never auto-merged), regardless of the above:
+  - Any deploy/workflow/infra/secret-touching change.
+  - Branch-protection or repo-settings changes.
+  - Upstream `paperclip` merges — these require an upstream human maintainer; the machine account has no upstream merge authority.
+  - Anything a reviewer explicitly flags as needing a human call (e.g. ordering-risk data migrations, irreversible ops).
+
 ## 11. Definition of Done
 
 A change is done when all are true:

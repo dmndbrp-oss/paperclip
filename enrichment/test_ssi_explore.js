@@ -2,9 +2,12 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 
 const {
+  DEFAULT_SELECTORS,
   REQUIRED_FIELDS,
   buildCatalogOutput,
   buildRunGuards,
+  assertLoginControlsPresent,
+  submitLoginForm,
   installReadOnlyRouteGuard,
   loadPlaywright,
   assertChromiumAvailable,
@@ -63,6 +66,98 @@ test("parses username/password credential contract without exposing secret value
   assert.equal(config.auth.username, "operator@example.test");
   assert.equal(config.authStatePath, "tmp/ssi-auth-state.json");
   assert.equal(JSON.stringify(config).includes("secret-password"), false);
+});
+
+test("defaults the username selector to the current SSI login field", () => {
+  const config = parseConfigFromEnv({
+    SSI_BASE_URL: "https://ssi.example.test",
+    SSI_USERNAME: "operator",
+    SSI_PASSWORD: "secret-password",
+    SSI_AUTH_STATE_PATH: "tmp/ssi-auth-state.json",
+  });
+
+  assert.match(config.selectors.username, /input\[name="userName"\]/);
+});
+
+test("defaults the submit selector to the visible DevExtreme button wrapper", () => {
+  assert.match(DEFAULT_SELECTORS.submit, /\.dx-button\[role="button"\]/);
+});
+
+test("submits the login form by clicking the first submit control", async () => {
+  const calls = [];
+  const page = {
+    locator(selector) {
+      assert.equal(selector, DEFAULT_SELECTORS.submit);
+      return {
+        first: () => ({
+          click: async (options) => calls.push(options),
+        }),
+      };
+    },
+  };
+
+  await submitLoginForm(page, {
+    submit: DEFAULT_SELECTORS.submit,
+    password: DEFAULT_SELECTORS.password,
+  });
+
+  assert.deepEqual(calls, [{ timeout: 7500 }]);
+});
+
+test("falls back to pressing Enter in the password field when submit click fails", async () => {
+  const calls = [];
+  const page = {
+    locator(selector) {
+      if (selector === DEFAULT_SELECTORS.submit) {
+        return {
+          first: () => ({
+            click: async () => {
+              calls.push("click");
+              throw new Error("element is not visible");
+            },
+          }),
+        };
+      }
+      assert.equal(selector, DEFAULT_SELECTORS.password);
+      return {
+        press: async (key) => calls.push(`press:${key}`),
+      };
+    },
+  };
+
+  await submitLoginForm(page, {
+    submit: DEFAULT_SELECTORS.submit,
+    password: DEFAULT_SELECTORS.password,
+  });
+
+  assert.deepEqual(calls, ["click", "press:Enter"]);
+});
+
+test("preflights login controls before any credential interaction", async () => {
+  const selectors = {
+    username: 'input[name="userName"]',
+    password: 'input[name="password"]',
+    submit: 'button[type="submit"]',
+  };
+  const calls = [];
+  const page = {
+    locator(selector) {
+      calls.push(selector);
+      return { count: async () => (selector === selectors.username ? 0 : 1) };
+    },
+  };
+
+  await assert.rejects(
+    () => assertLoginControlsPresent(page, selectors),
+    (error) => {
+      assert.match(error.message, /SSI login form preflight failed/);
+      assert.match(error.message, /username control was not found/);
+      assert.match(error.message, /not a credential failure/);
+      assert.equal(error.message.includes("secret-password"), false);
+      return true;
+    }
+  );
+  assert.deepEqual(calls, [selectors.username]);
 });
 
 test("parses session-token auth and fast-fails on missing credentials", () => {

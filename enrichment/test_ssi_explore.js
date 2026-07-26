@@ -1,4 +1,6 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 
 const {
@@ -77,6 +79,22 @@ test("defaults the username selector to the current SSI login field", () => {
   });
 
   assert.match(config.selectors.username, /input\[name="userName"\]/);
+});
+
+test("matches the sanitized SAG-7864 login DOM fixture", async () => {
+  const playwright = loadPlaywright();
+  const browser = await playwright.chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    const fixture = fs.readFileSync(path.join(__dirname, "fixtures", "ssi-login-form.html"), "utf8");
+    await page.setContent(fixture);
+
+    assert.equal(await page.locator(DEFAULT_SELECTORS.username).count(), 1);
+    assert.equal(await page.locator(DEFAULT_SELECTORS.password).count(), 1);
+    assert.ok((await page.locator(DEFAULT_SELECTORS.submit).count()) > 0);
+  } finally {
+    await browser.close();
+  }
 });
 
 test("defaults the submit selector to the visible DevExtreme button wrapper", () => {

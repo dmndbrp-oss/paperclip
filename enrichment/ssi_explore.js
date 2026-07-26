@@ -14,6 +14,10 @@ const REQUIRED_FIELDS = [
   "raw_description",
 ];
 
+// Login and catalog selectors can be retargeted with the matching SSI_*_SELECTOR
+// environment variables without changing this file. The default submit selector
+// starts with the visible DevExtreme .dx-button wrapper, then keeps plain-form
+// button/input fallbacks for compatible login pages.
 const DEFAULT_SELECTORS = {
   item: "[data-ssi-product]",
   sku: "[data-ssi-sku]",
@@ -23,9 +27,9 @@ const DEFAULT_SELECTORS = {
   cost: "[data-ssi-cost], [data-ssi-wholesale]",
   description: "[data-ssi-description]",
   next: "[data-ssi-next]",
-  username: 'input[name="username"], input[type="email"]',
+  username: 'input[name="userName"], input[name="username"], input[type="email"]',
   password: 'input[name="password"], input[type="password"]',
-  submit: 'button[type="submit"], input[type="submit"]',
+  submit: '.dx-button[role="button"], .dx-button, button[type="submit"], input[type="submit"]',
 };
 
 const DEFAULT_MAX_SKUS = 25;
@@ -198,6 +202,33 @@ async function installReadOnlyRouteGuard(context, loginUrl) {
   });
 }
 
+async function assertLoginControlsPresent(page, selectors) {
+  const controls = [
+    ["username", selectors.username],
+    ["password", selectors.password],
+    ["submit", selectors.submit],
+  ];
+
+  for (const [name, selector] of controls) {
+    const count = await page.locator(selector).count();
+    if (count === 0) {
+      throw new Error(
+        `SSI login form preflight failed: ${name} control was not found for selector ${selector}. ` +
+          "This is a login-page/selector mismatch, not a credential failure; " +
+          `set SSI_${name.toUpperCase()}_SELECTOR to the current non-secret DOM selector.`
+      );
+    }
+  }
+}
+
+async function submitLoginForm(page, selectors) {
+  try {
+    await page.locator(selectors.submit).first().click({ timeout: 7500 });
+  } catch (_err) {
+    await page.locator(selectors.password).press("Enter");
+  }
+}
+
 function loadPlaywright() {
   try {
     return createRequire(path.join(__dirname, "package.json"))("playwright");
@@ -248,11 +279,12 @@ async function authenticate(page, context, config) {
   }
 
   await page.goto(config.loginUrl, { waitUntil: "domcontentloaded" });
+  await assertLoginControlsPresent(page, config.selectors);
   await page.locator(config.selectors.username).fill(config.auth.username);
   await page.locator(config.selectors.password).fill(config.auth.password.value);
   await Promise.all([
     page.waitForLoadState("networkidle").catch(() => undefined),
-    page.locator(config.selectors.submit).click(),
+    submitLoginForm(page, config.selectors),
   ]);
 }
 
@@ -345,12 +377,15 @@ if (require.main === module) {
 }
 
 module.exports = {
+  DEFAULT_SELECTORS,
   REQUIRED_FIELDS,
   buildCatalogOutput,
   buildRunGuards,
   parseConfigFromEnv,
   serializeRows,
   installReadOnlyRouteGuard,
+  assertLoginControlsPresent,
+  submitLoginForm,
   loadPlaywright,
   assertChromiumAvailable,
 };

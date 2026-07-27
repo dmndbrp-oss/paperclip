@@ -1,11 +1,18 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 
 const {
+  DEFAULT_SELECTORS,
   REQUIRED_FIELDS,
   buildCatalogOutput,
   buildRunGuards,
+  assertLoginControlsPresent,
+  submitLoginForm,
   installReadOnlyRouteGuard,
+  loadPlaywright,
+  assertChromiumAvailable,
   parseConfigFromEnv,
   serializeRows,
 } = require("./ssi_explore.js");
@@ -61,6 +68,114 @@ test("parses username/password credential contract without exposing secret value
   assert.equal(config.auth.username, "operator@example.test");
   assert.equal(config.authStatePath, "tmp/ssi-auth-state.json");
   assert.equal(JSON.stringify(config).includes("secret-password"), false);
+});
+
+test("defaults the username selector to the current SSI login field", () => {
+  const config = parseConfigFromEnv({
+    SSI_BASE_URL: "https://ssi.example.test",
+    SSI_USERNAME: "operator",
+    SSI_PASSWORD: "secret-password",
+    SSI_AUTH_STATE_PATH: "tmp/ssi-auth-state.json",
+  });
+
+  assert.match(config.selectors.username, /input\[name="userName"\]/);
+});
+
+test("matches the sanitized SAG-7864 login DOM fixture", async () => {
+  const playwright = loadPlaywright();
+  const browser = await playwright.chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    const fixture = fs.readFileSync(path.join(__dirname, "fixtures", "ssi-login-form.html"), "utf8");
+    await page.setContent(fixture);
+
+    assert.equal(await page.locator(DEFAULT_SELECTORS.username).count(), 1);
+    assert.equal(await page.locator(DEFAULT_SELECTORS.password).count(), 1);
+    assert.ok((await page.locator(DEFAULT_SELECTORS.submit).count()) > 0);
+  } finally {
+    await browser.close();
+  }
+});
+
+test("defaults the submit selector to the visible DevExtreme button wrapper", () => {
+  assert.match(DEFAULT_SELECTORS.submit, /\.dx-button\[role="button"\]/);
+});
+
+test("submits the login form by clicking the first submit control", async () => {
+  const calls = [];
+  const page = {
+    locator(selector) {
+      assert.equal(selector, DEFAULT_SELECTORS.submit);
+      return {
+        first: () => ({
+          click: async (options) => calls.push(options),
+        }),
+      };
+    },
+  };
+
+  await submitLoginForm(page, {
+    submit: DEFAULT_SELECTORS.submit,
+    password: DEFAULT_SELECTORS.password,
+  });
+
+  assert.deepEqual(calls, [{ timeout: 7500 }]);
+});
+
+test("falls back to pressing Enter in the password field when submit click fails", async () => {
+  const calls = [];
+  const page = {
+    locator(selector) {
+      if (selector === DEFAULT_SELECTORS.submit) {
+        return {
+          first: () => ({
+            click: async () => {
+              calls.push("click");
+              throw new Error("element is not visible");
+            },
+          }),
+        };
+      }
+      assert.equal(selector, DEFAULT_SELECTORS.password);
+      return {
+        press: async (key) => calls.push(`press:${key}`),
+      };
+    },
+  };
+
+  await submitLoginForm(page, {
+    submit: DEFAULT_SELECTORS.submit,
+    password: DEFAULT_SELECTORS.password,
+  });
+
+  assert.deepEqual(calls, ["click", "press:Enter"]);
+});
+
+test("preflights login controls before any credential interaction", async () => {
+  const selectors = {
+    username: 'input[name="userName"]',
+    password: 'input[name="password"]',
+    submit: 'button[type="submit"]',
+  };
+  const calls = [];
+  const page = {
+    locator(selector) {
+      calls.push(selector);
+      return { count: async () => (selector === selectors.username ? 0 : 1) };
+    },
+  };
+
+  await assert.rejects(
+    () => assertLoginControlsPresent(page, selectors),
+    (error) => {
+      assert.match(error.message, /SSI login form preflight failed/);
+      assert.match(error.message, /username control was not found/);
+      assert.match(error.message, /not a credential failure/);
+      assert.equal(error.message.includes("secret-password"), false);
+      return true;
+    }
+  );
+  assert.deepEqual(calls, [selectors.username]);
 });
 
 test("parses session-token auth and fast-fails on missing credentials", () => {
@@ -128,5 +243,22 @@ test("read-only route guard allows only exact login POST and blocks nearby mutat
   assert.deepEqual(
     await routeRequest("POST", "https://ssi.example.test/catalog/update"),
     ["abort:blockedbyclient"]
+  );
+});
+
+test("resolves Playwright from the enrichment package without caller environment overrides", () => {
+  const playwright = loadPlaywright();
+
+  assert.equal(require("playwright/package.json").version, "1.59.1");
+  assert.doesNotThrow(() => assertChromiumAvailable(playwright));
+});
+
+test("reports a missing Chromium executable before attempting a live SSI run", () => {
+  assert.throws(
+    () =>
+      assertChromiumAvailable({
+        chromium: { executablePath: () => "/missing/chromium" },
+      }),
+    /Chromium browser executable is missing/
   );
 });

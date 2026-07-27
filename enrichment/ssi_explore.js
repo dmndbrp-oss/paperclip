@@ -14,6 +14,10 @@ const REQUIRED_FIELDS = [
   "raw_description",
 ];
 
+// Login and catalog selectors can be retargeted with the matching SSI_*_SELECTOR
+// environment variables without changing this file. The default submit selector
+// starts with the visible DevExtreme .dx-button wrapper, then keeps plain-form
+// button/input fallbacks for compatible login pages.
 const DEFAULT_SELECTORS = {
   item: "[data-ssi-product]",
   sku: "[data-ssi-sku]",
@@ -23,13 +27,14 @@ const DEFAULT_SELECTORS = {
   cost: "[data-ssi-cost], [data-ssi-wholesale]",
   description: "[data-ssi-description]",
   next: "[data-ssi-next]",
-  username: 'input[name="username"], input[type="email"]',
+  username: 'input[name="userName"], input[name="username"], input[type="email"]',
   password: 'input[name="password"], input[type="password"]',
-  submit: 'button[type="submit"], input[type="submit"]',
+  submit: '.dx-button[role="button"], .dx-button, button[type="submit"], input[type="submit"]',
 };
 
 const DEFAULT_MAX_SKUS = 25;
 const DEFAULT_RATE_LIMIT_MS = 1000;
+const EXPECTED_CHROMIUM_REVISION = "1217";
 
 class SecretValue {
   constructor(value) {
@@ -197,20 +202,72 @@ async function installReadOnlyRouteGuard(context, loginUrl) {
   });
 }
 
-function loadPlaywright() {
-  const attempts = [
-    () => require("playwright"),
-    () => createRequire(path.join(process.cwd(), "dispatcher", "package.json"))("playwright"),
-    () => createRequire(path.join(process.cwd(), "review-ui", "package.json"))("playwright"),
+async function assertLoginControlsPresent(page, selectors) {
+  const controls = [
+    ["username", selectors.username],
+    ["password", selectors.password],
+    ["submit", selectors.submit],
   ];
-  for (const attempt of attempts) {
-    try {
-      return attempt();
-    } catch (_err) {
-      // Try the next local package that may already have Playwright installed.
+
+  for (const [name, selector] of controls) {
+    const count = await page.locator(selector).count();
+    if (count === 0) {
+      throw new Error(
+        `SSI login form preflight failed: ${name} control was not found for selector ${selector}. ` +
+          "This is a login-page/selector mismatch, not a credential failure; " +
+          `set SSI_${name.toUpperCase()}_SELECTOR to the current non-secret DOM selector.`
+      );
     }
   }
-  throw new Error("Playwright is required for live SSI exploration but was not found");
+}
+
+async function submitLoginForm(page, selectors) {
+  try {
+    await page.locator(selectors.submit).first().click({ timeout: 7500 });
+  } catch (_err) {
+    await page.locator(selectors.password).press("Enter");
+  }
+}
+
+function loadPlaywright() {
+  try {
+    return createRequire(path.join(__dirname, "package.json"))("playwright");
+  } catch (err) {
+    throw new Error(
+      "Playwright is required for live SSI exploration but was not found in the enrichment runtime; " +
+        `install the enrichment runtime dependencies (${err.message})`
+    );
+  }
+}
+
+function assertChromiumAvailable(playwright) {
+  let executablePath;
+  try {
+    executablePath = playwright.chromium.executablePath();
+  } catch (err) {
+    throw new Error(
+      `Chromium browser preflight failed for Playwright 1.59.1; expected cached Chromium revision ` +
+        `${EXPECTED_CHROMIUM_REVISION} (${err.message}). Credentials are not involved.`
+    );
+  }
+
+  if (!executablePath || !fs.existsSync(executablePath)) {
+    throw new Error(
+      `Chromium browser executable is missing at ${executablePath || "the Playwright cache path"}; ` +
+        `Playwright 1.59.1 requires the pre-provisioned Chromium revision ${EXPECTED_CHROMIUM_REVISION}. ` +
+        "Provision that browser before running the enrichment tool; credentials are not involved."
+    );
+  }
+
+  if (!executablePath.includes(`chromium-${EXPECTED_CHROMIUM_REVISION}`)) {
+    throw new Error(
+      `Playwright resolved an unexpected Chromium executable (${executablePath}); ` +
+        `the enrichment runtime requires Chromium revision ${EXPECTED_CHROMIUM_REVISION}. ` +
+        "Check the pinned Playwright dependency and browser cache; credentials are not involved."
+    );
+  }
+
+  return executablePath;
 }
 
 async function authenticate(page, context, config) {
@@ -222,11 +279,12 @@ async function authenticate(page, context, config) {
   }
 
   await page.goto(config.loginUrl, { waitUntil: "domcontentloaded" });
+  await assertLoginControlsPresent(page, config.selectors);
   await page.locator(config.selectors.username).fill(config.auth.username);
   await page.locator(config.selectors.password).fill(config.auth.password.value);
   await Promise.all([
     page.waitForLoadState("networkidle").catch(() => undefined),
-    page.locator(config.selectors.submit).click(),
+    submitLoginForm(page, config.selectors),
   ]);
 }
 
@@ -279,8 +337,9 @@ async function runLive() {
   const config = parseConfigFromEnv();
   const guards = buildRunGuards();
   const { chromium } = loadPlaywright();
+  const executablePath = assertChromiumAvailable({ chromium });
   const storageState = fs.existsSync(config.authStatePath) ? config.authStatePath : undefined;
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath });
   const context = await browser.newContext({ storageState });
   await installReadOnlyRouteGuard(context, config.loginUrl);
 
@@ -318,11 +377,15 @@ if (require.main === module) {
 }
 
 module.exports = {
+  DEFAULT_SELECTORS,
   REQUIRED_FIELDS,
   buildCatalogOutput,
   buildRunGuards,
   parseConfigFromEnv,
   serializeRows,
   installReadOnlyRouteGuard,
+  assertLoginControlsPresent,
+  submitLoginForm,
   loadPlaywright,
+  assertChromiumAvailable,
 };

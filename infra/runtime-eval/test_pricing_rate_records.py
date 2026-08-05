@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
+from types import SimpleNamespace
+import sys
 
 import pytest
 
@@ -13,6 +15,7 @@ from pricing_rate_records import (
     import_jsonl,
     import_rate_records,
     parse_imported_at,
+    PostgresRateRecordFeed,
 )
 
 
@@ -258,3 +261,48 @@ class TestJsonlCliBoundary:
         assert import_jsonl(conn, path, imported_at=FIRST_IMPORT) == {"inserted": 1, "unchanged": 0, "updated": 0}
         with pytest.raises(RateRecordImportError):
             parse_imported_at("2026-08-05T12:00:00")
+
+
+class TestPostgresRateRecordFeed:
+    def test_reads_ordered_history_as_finalized_rate_records(self, monkeypatch):
+        class Cursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def execute(self, sql, params):
+                connection.executed.append((sql, params))
+
+            def fetchall(self):
+                return [
+                    (
+                        "Countertops:FG3:Central-TX", "Countertops", "FG3", "Central-TX",
+                        Decimal("12.50"), Decimal("8.10"), Decimal("0"), 1, FIRST_IMPORT, "a" * 64,
+                    )
+                ]
+
+        class Connection:
+            def __init__(self):
+                self.executed = []
+                self.closed = False
+
+            def cursor(self):
+                return Cursor()
+
+            def close(self):
+                self.closed = True
+
+        connection = Connection()
+        monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=lambda dsn: connection))
+
+        feed = PostgresRateRecordFeed("postgresql://pricing")
+        records = feed.get_active_rate_records(FIRST_IMPORT)
+        feed.close()
+
+        assert records[0].record_key == "Countertops:FG3:Central-TX"
+        assert records[0].fee_per_sqft == Decimal("12.50")
+        assert connection.executed[0][1] == {"as_of": FIRST_IMPORT}
+        assert "ORDER BY record_key ASC, imported_at ASC" in connection.executed[0][0]
+        assert connection.closed is True

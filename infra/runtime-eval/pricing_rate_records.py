@@ -16,6 +16,8 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+from pricing_feeds import RateRecord, RateRecordFeed
+
 
 LOGGER = logging.getLogger(__name__)
 RATE_FIELDS = ("fee_per_sqft", "cost_basis_per_sqft", "install_adder_per_sqft")
@@ -235,6 +237,70 @@ INSERT INTO enrichment_staging.pricing_rate_record_imports (
     %(rate_card_version)s, %(content_hash)s, %(imported_at)s
 )
 """
+
+_HISTORY_AS_OF_SELECT = """
+SELECT
+    record_key, product_estimate_group, fee_bucket, territory,
+    fee_per_sqft, cost_basis_per_sqft, install_adder_per_sqft,
+    rate_card_version, imported_at, content_hash
+FROM enrichment_staging.pricing_rate_record_imports
+WHERE imported_at <= %(as_of)s
+ORDER BY record_key ASC, imported_at ASC
+"""
+
+
+class PostgresRateRecordFeed(RateRecordFeed):
+    """Read finalized Pricing rate-import observations from PostgreSQL.
+
+    One connection is opened for this feed's lifetime so each detection run
+    observes a single, ordered history source. Call ``close`` when the runner
+    is finished with the feed.
+    """
+
+    def __init__(self, dsn: str):
+        import psycopg2
+
+        self._connection = psycopg2.connect(dsn)
+
+    def get_active_rate_records(self, as_of: datetime) -> list[RateRecord]:
+        with self._connection.cursor() as cursor:
+            cursor.execute(_HISTORY_AS_OF_SELECT, {"as_of": as_of})
+            rows = cursor.fetchall()
+        return [self._to_rate_record(row) for row in rows]
+
+    @staticmethod
+    def _to_rate_record(row: Mapping[str, Any] | tuple[Any, ...]) -> RateRecord:
+        if isinstance(row, Mapping):
+            values = row
+        else:
+            (
+                record_key,
+                product_estimate_group,
+                fee_bucket,
+                territory,
+                fee_per_sqft,
+                cost_basis_per_sqft,
+                install_adder_per_sqft,
+                rate_card_version,
+                imported_at,
+                content_hash,
+            ) = row
+            values = {
+                "record_key": record_key,
+                "product_estimate_group": product_estimate_group,
+                "fee_bucket": fee_bucket,
+                "territory": territory,
+                "fee_per_sqft": fee_per_sqft,
+                "cost_basis_per_sqft": cost_basis_per_sqft,
+                "install_adder_per_sqft": install_adder_per_sqft,
+                "rate_card_version": rate_card_version,
+                "imported_at": imported_at,
+                "content_hash": content_hash,
+            }
+        return RateRecord(**values)
+
+    def close(self) -> None:
+        self._connection.close()
 
 
 def _active_values(active: Any) -> tuple[str, int, datetime]:

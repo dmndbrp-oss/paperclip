@@ -3,6 +3,7 @@ from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 import pytest
+import pricing_staleness_runner as runner
 
 from pricing_feeds import (
     FakeMarginPolicyChangeFeed,
@@ -251,6 +252,16 @@ class TestDetectVersionHashDrift:
 
         assert alerts == []
 
+    def test_preserves_finalized_colon_record_key_in_drift_alert(self):
+        as_of = datetime(2026, 7, 7, tzinfo=UTC)
+        record_key = "Countertops:FG3:Central-TX"
+        older = _record(as_of - timedelta(days=5), 10.00, version=3, content_hash="hash-a", record_key=record_key)
+        newer = _record(as_of, 10.00, version=3, content_hash="hash-b", record_key=record_key)
+
+        alerts = detect_version_hash_drift(FakeRateRecordFeed(records=[older, newer]), as_of, warm_up=True)
+
+        assert alerts[0].record_key == record_key
+
 
 # ---------------------------------------------------------------------------
 # Signal 3 (feed-level wiring): SLA breach detection over a change feed
@@ -424,3 +435,38 @@ class TestRunDetection:
 
         assert "arm_freeze" not in source
         assert "freeze_arm" not in source
+
+
+class TestConfiguredRateImport:
+    def test_absent_import_file_does_not_write(self, monkeypatch):
+        monkeypatch.delenv("PRICING_RATE_IMPORT_FILE", raising=False)
+        monkeypatch.delenv("PRICING_STALENESS_DB_DSN", raising=False)
+        monkeypatch.setattr(
+            runner,
+            "import_configured_rate_file",
+            lambda *_args, **_kwargs: pytest.fail("unexpected JSONL import"),
+        )
+
+        assert runner.main(["--use-fakes", "--no-post"]) == 0
+
+    def test_configured_import_runs_before_detection(self, monkeypatch, tmp_path):
+        input_path = tmp_path / "rates.jsonl"
+        input_path.write_text("{}\n")
+        calls = []
+        monkeypatch.setenv("PRICING_RATE_IMPORT_FILE", str(input_path))
+        monkeypatch.setenv("PRICING_STALENESS_DB_DSN", "postgresql://pricing")
+        monkeypatch.setattr(
+            runner,
+            "import_configured_rate_file",
+            lambda dsn, path, *, imported_at: calls.append((dsn, path, imported_at))
+            or {"inserted": 1, "unchanged": 0, "updated": 0},
+        )
+
+        assert runner.main(["--use-fakes", "--no-post"]) == 0
+        assert calls[0][0:2] == ("postgresql://pricing", input_path)
+
+    def test_configured_import_without_dsn_fails_loudly(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("PRICING_RATE_IMPORT_FILE", str(tmp_path / "rates.jsonl"))
+        monkeypatch.delenv("PRICING_STALENESS_DB_DSN", raising=False)
+
+        assert runner.main(["--use-fakes", "--no-post"]) == 1

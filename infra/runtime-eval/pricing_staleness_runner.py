@@ -53,6 +53,7 @@ from pricing_feeds import (
     NotImplementedRateRecordFeed,
     RateRecordFeed,
 )
+from pricing_rate_records import PostgresRateRecordFeed, import_jsonl
 from pricing_staleness_alerts import (
     AlertSink,
     AlertSinkUnavailableError,
@@ -104,7 +105,7 @@ def is_sla_breached(change: NegotiatedRateChange, as_of: datetime) -> bool:
 
 
 def _record_key(record) -> str:
-    return f"{record.product_estimate_group}|{record.bucket_code}|{record.territory}"
+    return record.record_key
 
 
 def _is_anomaly_suppressed(policy_feed: MarginPolicyChangeFeed, latest_imported_at: datetime) -> bool:
@@ -332,6 +333,17 @@ def post_digest_comment(body: str, issue_id: str = PRICING_LANE_ISSUE_ID) -> Non
         log.warning("Failed to post digest comment: %s", e)
 
 
+def import_configured_rate_file(dsn: str, input_path: Path, *, imported_at: datetime) -> dict[str, int]:
+    """Import one explicitly configured finalized-rate JSONL file transactionally."""
+    import psycopg2
+
+    connection = psycopg2.connect(dsn)
+    try:
+        return import_jsonl(connection, input_path, imported_at=imported_at)
+    finally:
+        connection.close()
+
+
 # ---------------------------------------------------------------------------
 # CLI entrypoint
 # ---------------------------------------------------------------------------
@@ -351,6 +363,27 @@ def main(argv: list[str] | None = None) -> int:
     as_of = datetime.now(timezone.utc)
     warm_up = is_warm_up(as_of)
     dsn = os.environ.get("PRICING_STALENESS_DB_DSN", "")
+    configured_import_file = os.environ.get("PRICING_RATE_IMPORT_FILE")
+
+    if configured_import_file:
+        if not dsn:
+            log.error("PRICING_RATE_IMPORT_FILE is configured but PRICING_STALENESS_DB_DSN is unset.")
+            return 1
+        try:
+            import_result = import_configured_rate_file(
+                dsn, Path(configured_import_file), imported_at=as_of
+            )
+        except Exception:
+            log.exception("Configured Pricing rate JSONL import failed: %s", configured_import_file)
+            return 1
+        log.info(
+            "Pricing rate import complete: inserted=%d unchanged=%d updated=%d",
+            import_result["inserted"],
+            import_result["unchanged"],
+            import_result["updated"],
+        )
+    else:
+        log.info("No PRICING_RATE_IMPORT_FILE configured; no Pricing rate import was run.")
 
     if args.use_fakes:
         from pricing_feeds import FakeMarginPolicyChangeFeed, FakeNegotiatedRateChangeFeed, FakeRateRecordFeed
@@ -361,11 +394,10 @@ def main(argv: list[str] | None = None) -> int:
         policy_feed = FakeMarginPolicyChangeFeed()
         alert_sink = InMemoryAlertSink()
     else:
-        # Rate-record/change/policy feeds still have no physical store (SAG-6341
-        # pending, blocks SAG-6343's Phase 2 real adapters) -- always
-        # NotImplemented outside --use-fakes. The alert sink, however, is real
-        # once a DSN is configured, since Phase 1 (the table) has landed.
-        rate_feed = NotImplementedRateRecordFeed()
+        # The finalized rate-record history is available when its DSN is
+        # configured. Negotiated-rate and policy feeds remain intentionally
+        # loud-failing until their separate physical stores land.
+        rate_feed = PostgresRateRecordFeed(dsn) if dsn else NotImplementedRateRecordFeed()
         change_feed = NotImplementedNegotiatedRateChangeFeed()
         policy_feed = NotImplementedMarginPolicyChangeFeed()
         if dsn:
@@ -385,7 +417,7 @@ def main(argv: list[str] | None = None) -> int:
             warm_up=warm_up,
         )
     except (FeedUnavailableError, AlertSinkUnavailableError) as e:
-        log.info(
+        log.error(
             "Pricing staleness runner not yet wired to production (%s). "
             "This is an expected pending-dependency state (SAG-6341/SAG-6343 rate "
             "feeds still pending) -- skipping this run without failing nightly_eval.",
@@ -395,6 +427,8 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         if hasattr(alert_sink, "close"):
             alert_sink.close()
+        if hasattr(rate_feed, "close"):
+            rate_feed.close()
 
     log.info("Detection complete: %d alert(s), warm_up=%s", len(alerts), warm_up)
 

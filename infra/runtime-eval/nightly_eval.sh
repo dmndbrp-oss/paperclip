@@ -24,6 +24,8 @@
 #   PRICING_STALENESS_DB_DSN            (optional; SAG-6327/SAG-6344 pricing staleness
 #                                        detection runner. Unset = loud-fail skip, logged
 #                                        but non-fatal to this pipeline.)
+#   PRICING_RATE_IMPORT_FILE             (optional JSONL; imported transactionally before
+#                                        Pricing staleness detection when configured.)
 
 set -euo pipefail
 

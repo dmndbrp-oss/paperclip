@@ -22,7 +22,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from types import MappingProxyType
+from typing import Mapping, Optional
 
 
 class FeedUnavailableError(RuntimeError):
@@ -34,20 +35,38 @@ class FeedUnavailableError(RuntimeError):
 
 @dataclass(frozen=True)
 class RateRecord:
-    """One active rate record. Grain = product estimate group x fee/cost bucket x territory.
+    """One Pricing Rev 2 rate observation at its declared record grain."""
 
-    `rate_bearing_fields` holds the columns the content-hash covers (the $/sqft fee +
-    cost-basis fields) as key/value pairs; the exact field names are a Pricing decision
-    pending SAG-6341 and are intentionally not hard-coded as dataclass fields here.
-    """
-
+    record_key: str
     product_estimate_group: str
-    bucket_code: str
+    fee_bucket: str
     territory: str
-    rate_card_version: str
+    fee_per_sqft: Decimal
+    cost_basis_per_sqft: Decimal
+    install_adder_per_sqft: Decimal
+    rate_card_version: int
     imported_at: datetime
-    rate_bearing_fields: dict[str, Decimal]
-    content_hash: Optional[str] = None
+    content_hash: str
+    effective_at: Optional[datetime] = None
+    source: Optional[str] = None
+    last_verified_at: Optional[datetime] = None
+    notes: Optional[str] = None
+
+    @property
+    def rate_bearing_fields(self) -> Mapping[str, Decimal]:
+        """The exact ordered field set used by Pricing's content hash."""
+        return MappingProxyType(
+            {
+                "fee_per_sqft": self.fee_per_sqft,
+                "cost_basis_per_sqft": self.cost_basis_per_sqft,
+                "install_adder_per_sqft": self.install_adder_per_sqft,
+            }
+        )
+
+    @property
+    def bucket_code(self) -> str:
+        """Compatibility accessor for the pre-Rev-2 runner until its Task 4 update."""
+        return self.fee_bucket
 
 
 @dataclass(frozen=True)
@@ -77,7 +96,7 @@ class PolicyChange:
 class RateRecordFeed(ABC):
     @abstractmethod
     def get_active_rate_records(self, as_of: datetime) -> list[RateRecord]:
-        """Return all rate records active as of the given timestamp."""
+        """Return Pricing import observations available as of the given timestamp."""
 
 
 class NegotiatedRateChangeFeed(ABC):

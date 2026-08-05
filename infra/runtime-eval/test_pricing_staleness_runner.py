@@ -28,14 +28,17 @@ CHICAGO = ZoneInfo("America/Chicago")
 UTC = timezone.utc
 
 
-def _record(imported_at, value, version="v1", content_hash="h1", **overrides):
+def _record(imported_at, value, version=1, content_hash="h1", **overrides):
     defaults = dict(
+        record_key="FG3:FQ3-A:TX",
         product_estimate_group="FG3",
-        bucket_code="FQ3-A",
+        fee_bucket="FQ3-A",
         territory="TX",
+        fee_per_sqft=Decimal(str(value)),
+        cost_basis_per_sqft=Decimal("8.10"),
+        install_adder_per_sqft=Decimal("0"),
         rate_card_version=version,
         imported_at=imported_at,
-        rate_bearing_fields={"fee_per_sqft": Decimal(str(value))},
         content_hash=content_hash,
     )
     defaults.update(overrides)
@@ -82,7 +85,7 @@ class TestCommitDueAt:
 class TestIsSlaBreached:
     def test_not_breached_when_committed_before_due(self):
         change = NegotiatedRateChange(
-            record_key="FG3-FQ3-A-TX",
+            record_key="FG3:FQ3-A:TX",
             old_value=Decimal("12.00"),
             new_value=Decimal("12.50"),
             source="manual",
@@ -95,7 +98,7 @@ class TestIsSlaBreached:
 
     def test_breached_when_committed_after_due(self):
         change = NegotiatedRateChange(
-            record_key="FG3-FQ3-A-TX",
+            record_key="FG3:FQ3-A:TX",
             old_value=Decimal("12.00"),
             new_value=Decimal("12.50"),
             source="manual",
@@ -108,7 +111,7 @@ class TestIsSlaBreached:
 
     def test_breached_when_still_uncommitted_past_due(self):
         change = NegotiatedRateChange(
-            record_key="FG3-FQ3-A-TX",
+            record_key="FG3:FQ3-A:TX",
             old_value=Decimal("12.00"),
             new_value=Decimal("12.50"),
             source="manual",
@@ -121,7 +124,7 @@ class TestIsSlaBreached:
 
     def test_not_breached_when_uncommitted_before_due(self):
         change = NegotiatedRateChange(
-            record_key="FG3-FQ3-A-TX",
+            record_key="FG3:FQ3-A:TX",
             old_value=Decimal("12.00"),
             new_value=Decimal("12.50"),
             source="manual",
@@ -218,8 +221,8 @@ class TestDetectAnomalies:
 class TestDetectVersionHashDrift:
     def test_flags_same_version_different_hash(self):
         as_of = datetime(2026, 7, 7, tzinfo=UTC)
-        older = _record(as_of - timedelta(days=5), 10.00, version="v3", content_hash="hash-a")
-        newer = _record(as_of, 10.00, version="v3", content_hash="hash-b")
+        older = _record(as_of - timedelta(days=5), 10.00, version=3, content_hash="hash-a")
+        newer = _record(as_of, 10.00, version=3, content_hash="hash-b")
         feed = FakeRateRecordFeed(records=[older, newer])
 
         alerts = detect_version_hash_drift(feed, as_of=as_of, warm_up=True)
@@ -230,8 +233,8 @@ class TestDetectVersionHashDrift:
 
     def test_no_alert_when_version_bumped_with_hash(self):
         as_of = datetime(2026, 7, 7, tzinfo=UTC)
-        older = _record(as_of - timedelta(days=5), 10.00, version="v3", content_hash="hash-a")
-        newer = _record(as_of, 10.50, version="v4", content_hash="hash-b")
+        older = _record(as_of - timedelta(days=5), 10.00, version=3, content_hash="hash-a")
+        newer = _record(as_of, 10.50, version=4, content_hash="hash-b")
         feed = FakeRateRecordFeed(records=[older, newer])
 
         alerts = detect_version_hash_drift(feed, as_of=as_of, warm_up=True)
@@ -240,8 +243,8 @@ class TestDetectVersionHashDrift:
 
     def test_no_alert_when_version_and_hash_both_unchanged(self):
         as_of = datetime(2026, 7, 7, tzinfo=UTC)
-        older = _record(as_of - timedelta(days=5), 10.00, version="v3", content_hash="hash-a")
-        newer = _record(as_of, 10.00, version="v3", content_hash="hash-a")
+        older = _record(as_of - timedelta(days=5), 10.00, version=3, content_hash="hash-a")
+        newer = _record(as_of, 10.00, version=3, content_hash="hash-a")
         feed = FakeRateRecordFeed(records=[older, newer])
 
         alerts = detect_version_hash_drift(feed, as_of=as_of, warm_up=True)
@@ -258,7 +261,7 @@ class TestDetectSlaBreaches:
     def test_flags_uncommitted_change_past_due(self):
         as_of = datetime(2026, 7, 8, tzinfo=CHICAGO)
         change = NegotiatedRateChange(
-            record_key="FG3-FQ3-A-TX",
+            record_key="FG3:FQ3-A:TX",
             old_value=Decimal("12.00"),
             new_value=Decimal("12.50"),
             source="manual",
@@ -272,12 +275,12 @@ class TestDetectSlaBreaches:
 
         assert len(alerts) == 1
         assert alerts[0].signal_type == "sla_breach"
-        assert alerts[0].record_key == "FG3-FQ3-A-TX"
+        assert alerts[0].record_key == "FG3:FQ3-A:TX"
 
     def test_no_alert_when_committed_on_time(self):
         as_of = datetime(2026, 7, 8, tzinfo=CHICAGO)
         change = NegotiatedRateChange(
-            record_key="FG3-FQ3-A-TX",
+            record_key="FG3:FQ3-A:TX",
             old_value=Decimal("12.00"),
             new_value=Decimal("12.50"),
             source="manual",

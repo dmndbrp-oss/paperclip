@@ -36,20 +36,28 @@ class TestNotImplementedAdapters:
 class TestFakeRateRecordFeed:
     def test_returns_only_records_imported_at_or_before_as_of(self):
         older = RateRecord(
+            record_key="FG3:FQ3-A:TX",
             product_estimate_group="FG3",
-            bucket_code="FQ3-A",
+            fee_bucket="FQ3-A",
             territory="TX",
-            rate_card_version="v1",
+            fee_per_sqft=Decimal("12.50"),
+            cost_basis_per_sqft=Decimal("8.10"),
+            install_adder_per_sqft=Decimal("0"),
+            rate_card_version=1,
             imported_at=NOW - timedelta(days=1),
-            rate_bearing_fields={"fee_per_sqft": Decimal("12.50")},
+            content_hash="a" * 64,
         )
         newer = RateRecord(
+            record_key="FG3:FQ3-A:TX",
             product_estimate_group="FG3",
-            bucket_code="FQ3-A",
+            fee_bucket="FQ3-A",
             territory="TX",
-            rate_card_version="v2",
+            fee_per_sqft=Decimal("13.00"),
+            cost_basis_per_sqft=Decimal("8.25"),
+            install_adder_per_sqft=Decimal("0"),
+            rate_card_version=2,
             imported_at=NOW + timedelta(days=1),
-            rate_bearing_fields={"fee_per_sqft": Decimal("13.00")},
+            content_hash="b" * 64,
         )
         feed = FakeRateRecordFeed(records=[older, newer])
 
@@ -59,6 +67,31 @@ class TestFakeRateRecordFeed:
 
     def test_empty_feed_returns_empty_list(self):
         assert FakeRateRecordFeed().get_active_rate_records(as_of=NOW) == []
+
+
+class TestRateRecordContract:
+    def test_rate_bearing_fields_are_read_only_and_in_pricing_order(self):
+        record = RateRecord(
+            record_key="Countertops:FG3-:Central-TX",
+            product_estimate_group="Countertops",
+            fee_bucket="FG3-",
+            territory="Central-TX",
+            fee_per_sqft=Decimal("12.50"),
+            cost_basis_per_sqft=Decimal("8.10"),
+            install_adder_per_sqft=Decimal("0"),
+            rate_card_version=1,
+            imported_at=NOW,
+            content_hash="a" * 64,
+        )
+
+        assert list(record.rate_bearing_fields) == [
+            "fee_per_sqft",
+            "cost_basis_per_sqft",
+            "install_adder_per_sqft",
+        ]
+        assert record.rate_bearing_fields["cost_basis_per_sqft"] == Decimal("8.10")
+        with pytest.raises(TypeError):
+            record.rate_bearing_fields["fee_per_sqft"] = Decimal("13.00")
 
 
 class TestFakeNegotiatedRateChangeFeed:

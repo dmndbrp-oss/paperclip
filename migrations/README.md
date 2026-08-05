@@ -35,7 +35,11 @@ psql -U postgres -d <your_db> -f migrations/002_review_view_up.sql
 # Migration 003: pricing_staleness_alerts table + roles (SAG-6327 Phase 1)
 psql -U postgres -d <your_db> -f migrations/003_pricing_staleness_alerts_up.sql
 
-# Rollback 003, then 002, then 001
+# Migration 004: Pricing rate records + import-history table + roles (SAG-6343 Task 1)
+psql -U postgres -d <your_db> -f migrations/004_pricing_rate_records_up.sql
+
+# Rollback 004, then 003, then 002, then 001
+psql -U postgres -d <your_db> -f migrations/004_pricing_rate_records_down.sql
 psql -U postgres -d <your_db> -f migrations/003_pricing_staleness_alerts_down.sql
 psql -U postgres -d <your_db> -f migrations/002_review_view_down.sql
 psql -U postgres -d <your_db> -f migrations/001_enrichment_staging_down.sql
@@ -54,6 +58,9 @@ psql -U postgres -d <your_db> -f migrations/tests/test_permissions.sql
 
 # Migration 003: pricing_staleness_alerts negative-test suite
 psql -U postgres -d <your_db> -f migrations/tests/test_pricing_staleness_permissions.sql
+
+# Migration 004: pricing rate-record permission suite
+psql -U postgres -d <your_db> -f migrations/tests/test_pricing_rate_record_permissions.sql
 ```
 
 Scan the output for any `UNEXPECTED` lines. Zero such lines = all checks passed.
@@ -67,6 +74,11 @@ Scan the output for any `UNEXPECTED` lines. Zero such lines = all checks passed.
 1. `pricing_staleness_writer` cannot INSERT into `public` schema tables.
 2. `pricing_staleness_reader` cannot INSERT into `public` schema tables.
 3. `pricing_staleness_alerts` is append-only: INSERT allowed for the writer role, UPDATE/DELETE denied for both roles.
+
+`test_pricing_rate_record_permissions.sql` verifies:
+1. `pricing_rate_importer` can INSERT/UPDATE active records and INSERT import observations.
+2. `pricing_rate_importer` cannot DELETE either pricing table or INSERT into `public`.
+3. `pricing_staleness_reader` can SELECT both pricing tables but cannot INSERT/UPDATE/DELETE either table or INSERT into `public`.
 
 ---
 
@@ -136,6 +148,33 @@ layer needed between the two.
 Indexed on `(detected_at)` and `(record_key)` — the latter serves the Phase 5
 freeze-arming check ("≥1 clean baseline median per record").
 
+### `enrichment_staging.pricing_rate_records`
+
+[SAG-6343](/SAG/issues/SAG-6343) Task 1 | Parent: [SAG-6327](/SAG/issues/SAG-6327)
+
+The active Pricing rate record at grain `(product_estimate_group, fee_bucket,
+territory)`. `record_key` is the canonical colon-form concatenation of those
+dimensions. The three rate-bearing fields and `content_hash` identify the
+versioned rate payload; optional metadata does not replace those values.
+
+| Column | Type | Notes |
+|---|---|---|
+| `record_key` | TEXT PK | Exactly `product_estimate_group:fee_bucket:territory` |
+| `product_estimate_group`, `fee_bucket`, `territory` | TEXT | Unique active-record grain |
+| `fee_per_sqft`, `cost_basis_per_sqft`, `install_adder_per_sqft` | NUMERIC | Pricing rate-bearing values |
+| `rate_card_version` | INTEGER | Positive, per-record version |
+| `content_hash` | TEXT | SHA-256 of the canonical rate-bearing payload |
+| `imported_at` | TIMESTAMPTZ | Time the active rate record was imported |
+| `effective_at`, `source`, `last_verified_at`, `notes` | nullable | Optional Pricing metadata |
+
+### `enrichment_staging.pricing_rate_record_imports`
+
+Append-only snapshots of active rate records, uniquely keyed by
+`(record_key, imported_at)`. The table stores the same grain, three rate fields,
+content hash, positive rate-card version, and import timestamp so the staleness
+runner can read ordered history and scan freshness. It is indexed by
+`(record_key, imported_at)` and by `imported_at`.
+
 ---
 
 ## Roles
@@ -150,4 +189,7 @@ freeze-arming check ("≥1 clean baseline median per record").
 | `enrichment_reviewer` | `enrichment_promotion_log` | INSERT only |
 | `pricing_staleness_writer` | `pricing_staleness_alerts` | SELECT, INSERT (append-only; nightly runner) |
 | `pricing_staleness_reader` | `pricing_staleness_alerts` | SELECT only (digest / QA / freeze-arming consumers) |
+| `pricing_rate_importer` | `pricing_rate_records` | SELECT, INSERT, UPDATE (no DELETE) |
+| `pricing_rate_importer` | `pricing_rate_record_imports` | SELECT, INSERT only (append-only; no DELETE) |
+| `pricing_staleness_reader` | `pricing_rate_records`, `pricing_rate_record_imports` | SELECT only |
 | All roles | `public` schema | **No write access** (explicitly revoked) |

@@ -1,16 +1,36 @@
 -- Permission test for Migration 004 (SAG-6343 Task 1)
 --
--- Run as a superuser after migrations 001, 003, and 004. This script creates
--- a disposable public-schema probe solely so it can prove both roles cannot
--- write public tables. Exit 0 plus no "UNEXPECTED" output is a pass.
+-- Run as a superuser after migrations 001, 003, and 004. The suite is fully
+-- transaction-scoped: it creates a unique public-schema probe, tests both
+-- roles, then rolls everything back. Exit 0 plus no "UNEXPECTED" output is a
+-- pass.
 --
 -- Usage:
---   psql -U postgres -d <isolated_db> -f migrations/tests/test_pricing_rate_record_permissions.sql
+--   psql -v ON_ERROR_STOP=1 -U postgres -d <isolated_db> \
+--     -f migrations/tests/test_pricing_rate_record_permissions.sql
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
-CREATE TABLE IF NOT EXISTS public.pricing_rate_record_permission_probe (
+BEGIN;
+
+SELECT format('pricing_rate_record_permission_probe_%s', txid_current()) AS probe_name
+\gset
+
+CREATE TABLE public.:"probe_name" (
     id INTEGER PRIMARY KEY
+);
+
+SELECT set_config('pricing_rate_record_permissions.probe_name', :'probe_name', TRUE);
+
+-- Seed an active record as the migration operator so the importer must take
+-- the ON CONFLICT DO UPDATE branch rather than only exercising INSERT.
+INSERT INTO enrichment_staging.pricing_rate_records (
+    record_key, product_estimate_group, fee_bucket, territory,
+    fee_per_sqft, cost_basis_per_sqft, install_adder_per_sqft,
+    rate_card_version, content_hash, imported_at
+) VALUES (
+    'test-group:test-bucket:test-territory', 'test-group', 'test-bucket', 'test-territory',
+    12.50, 8.10, 0, 1, repeat('seed', 16), '2025-12-31T00:00:00Z'
 );
 
 -- ── Importer expected rights ────────────────────────────────────────────────
@@ -26,13 +46,26 @@ BEGIN
             rate_card_version, content_hash, imported_at
         ) VALUES (
             'test-group:test-bucket:test-territory', 'test-group', 'test-bucket', 'test-territory',
-            12.50, 8.10, 0, 1, repeat('a', 64), '2026-01-01T00:00:00Z'
+            12.50, 8.10, 0, 2, repeat('a', 64), '2026-01-01T00:00:00Z'
         ) ON CONFLICT (record_key) DO UPDATE
-            SET imported_at = EXCLUDED.imported_at;
-        RAISE NOTICE 'PASS: pricing_rate_importer active-record INSERT/UPDATE succeeded.';
+            SET rate_card_version = EXCLUDED.rate_card_version,
+                content_hash = EXCLUDED.content_hash,
+                imported_at = EXCLUDED.imported_at;
+
+        IF EXISTS (
+            SELECT 1
+            FROM enrichment_staging.pricing_rate_records
+            WHERE record_key = 'test-group:test-bucket:test-territory'
+              AND rate_card_version = 2
+              AND imported_at = '2026-01-01T00:00:00Z'
+        ) THEN
+            RAISE NOTICE 'PASS: pricing_rate_importer active-record upsert UPDATE succeeded.';
+        ELSE
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer active-record upsert did not update the seeded row.';
+        END IF;
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer active-record INSERT/UPDATE denied: %', SQLERRM;
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer active-record upsert failed: %', SQLERRM;
     END;
 
     BEGIN
@@ -42,12 +75,12 @@ BEGIN
             rate_card_version, content_hash, imported_at
         ) VALUES (
             'test-group:test-bucket:test-territory', 'test-group', 'test-bucket', 'test-territory',
-            12.50, 8.10, 0, 1, repeat('a', 64), '2026-01-01T00:00:00Z'
-        ) ON CONFLICT (record_key, imported_at) DO NOTHING;
+            12.50, 8.10, 0, 2, repeat('a', 64), '2026-01-01T00:00:00Z'
+        );
         RAISE NOTICE 'PASS: pricing_rate_importer import-history INSERT succeeded.';
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer import-history INSERT denied: %', SQLERRM;
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer import-history INSERT failed: %', SQLERRM;
     END;
 
     BEGIN
@@ -56,6 +89,8 @@ BEGIN
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_rate_importer DELETE on pricing_rate_records correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer DELETE on pricing_rate_records failed unexpectedly: %', SQLERRM;
     END;
 
     BEGIN
@@ -64,6 +99,8 @@ BEGIN
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_rate_importer DELETE on pricing_rate_record_imports correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer DELETE on pricing_rate_record_imports failed unexpectedly: %', SQLERRM;
     END;
 
     BEGIN
@@ -74,14 +111,60 @@ BEGIN
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_rate_importer UPDATE on pricing_rate_record_imports correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer UPDATE on pricing_rate_record_imports failed unexpectedly: %', SQLERRM;
     END;
 
     BEGIN
-        INSERT INTO public.pricing_rate_record_permission_probe VALUES (1);
+        EXECUTE format(
+            'CREATE TABLE public.%I (id INTEGER)',
+            current_setting('pricing_rate_record_permissions.probe_name') || '_created'
+        );
+        RAISE NOTICE 'UNEXPECTED: pricing_rate_importer CREATE in public SUCCEEDED.';
+    EXCEPTION
+        WHEN insufficient_privilege THEN
+            RAISE NOTICE 'PASS: pricing_rate_importer CREATE in public correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer CREATE in public failed unexpectedly: %', SQLERRM;
+    END;
+
+    BEGIN
+        EXECUTE format(
+            'INSERT INTO public.%I VALUES (1)',
+            current_setting('pricing_rate_record_permissions.probe_name')
+        );
         RAISE NOTICE 'UNEXPECTED: pricing_rate_importer INSERT in public SUCCEEDED.';
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_rate_importer INSERT in public correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer INSERT in public failed unexpectedly: %', SQLERRM;
+    END;
+
+    BEGIN
+        EXECUTE format(
+            'UPDATE public.%I SET id = id WHERE false',
+            current_setting('pricing_rate_record_permissions.probe_name')
+        );
+        RAISE NOTICE 'UNEXPECTED: pricing_rate_importer UPDATE in public SUCCEEDED.';
+    EXCEPTION
+        WHEN insufficient_privilege THEN
+            RAISE NOTICE 'PASS: pricing_rate_importer UPDATE in public correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer UPDATE in public failed unexpectedly: %', SQLERRM;
+    END;
+
+    BEGIN
+        EXECUTE format(
+            'DELETE FROM public.%I WHERE false',
+            current_setting('pricing_rate_record_permissions.probe_name')
+        );
+        RAISE NOTICE 'UNEXPECTED: pricing_rate_importer DELETE in public SUCCEEDED.';
+    EXCEPTION
+        WHEN insufficient_privilege THEN
+            RAISE NOTICE 'PASS: pricing_rate_importer DELETE in public correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_rate_importer DELETE in public failed unexpectedly: %', SQLERRM;
     END;
 END
 $$;
@@ -100,7 +183,7 @@ BEGIN
         RAISE NOTICE 'PASS: pricing_staleness_reader SELECT on both pricing tables succeeded.';
     EXCEPTION
         WHEN OTHERS THEN
-            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader SELECT denied: %', SQLERRM;
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader SELECT failed: %', SQLERRM;
     END;
 
     BEGIN
@@ -116,6 +199,8 @@ BEGIN
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_staleness_reader INSERT on pricing_rate_records correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader INSERT on pricing_rate_records failed unexpectedly: %', SQLERRM;
     END;
 
     BEGIN
@@ -126,6 +211,8 @@ BEGIN
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_staleness_reader UPDATE on pricing_rate_records correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader UPDATE on pricing_rate_records failed unexpectedly: %', SQLERRM;
     END;
 
     BEGIN
@@ -134,6 +221,8 @@ BEGIN
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_staleness_reader DELETE on pricing_rate_records correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader DELETE on pricing_rate_records failed unexpectedly: %', SQLERRM;
     END;
 
     BEGIN
@@ -149,6 +238,8 @@ BEGIN
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_staleness_reader INSERT on pricing_rate_record_imports correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader INSERT on pricing_rate_record_imports failed unexpectedly: %', SQLERRM;
     END;
 
     BEGIN
@@ -159,6 +250,8 @@ BEGIN
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_staleness_reader UPDATE on pricing_rate_record_imports correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader UPDATE on pricing_rate_record_imports failed unexpectedly: %', SQLERRM;
     END;
 
     BEGIN
@@ -167,21 +260,67 @@ BEGIN
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_staleness_reader DELETE on pricing_rate_record_imports correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader DELETE on pricing_rate_record_imports failed unexpectedly: %', SQLERRM;
     END;
 
     BEGIN
-        INSERT INTO public.pricing_rate_record_permission_probe VALUES (2);
+        EXECUTE format(
+            'CREATE TABLE public.%I (id INTEGER)',
+            current_setting('pricing_rate_record_permissions.probe_name') || '_created'
+        );
+        RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader CREATE in public SUCCEEDED.';
+    EXCEPTION
+        WHEN insufficient_privilege THEN
+            RAISE NOTICE 'PASS: pricing_staleness_reader CREATE in public correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader CREATE in public failed unexpectedly: %', SQLERRM;
+    END;
+
+    BEGIN
+        EXECUTE format(
+            'INSERT INTO public.%I VALUES (2)',
+            current_setting('pricing_rate_record_permissions.probe_name')
+        );
         RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader INSERT in public SUCCEEDED.';
     EXCEPTION
         WHEN insufficient_privilege THEN
             RAISE NOTICE 'PASS: pricing_staleness_reader INSERT in public correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader INSERT in public failed unexpectedly: %', SQLERRM;
+    END;
+
+    BEGIN
+        EXECUTE format(
+            'UPDATE public.%I SET id = id WHERE false',
+            current_setting('pricing_rate_record_permissions.probe_name')
+        );
+        RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader UPDATE in public SUCCEEDED.';
+    EXCEPTION
+        WHEN insufficient_privilege THEN
+            RAISE NOTICE 'PASS: pricing_staleness_reader UPDATE in public correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader UPDATE in public failed unexpectedly: %', SQLERRM;
+    END;
+
+    BEGIN
+        EXECUTE format(
+            'DELETE FROM public.%I WHERE false',
+            current_setting('pricing_rate_record_permissions.probe_name')
+        );
+        RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader DELETE in public SUCCEEDED.';
+    EXCEPTION
+        WHEN insufficient_privilege THEN
+            RAISE NOTICE 'PASS: pricing_staleness_reader DELETE in public correctly denied.';
+        WHEN OTHERS THEN
+            RAISE NOTICE 'UNEXPECTED: pricing_staleness_reader DELETE in public failed unexpectedly: %', SQLERRM;
     END;
 END
 $$;
 
 RESET ROLE;
 
-DROP TABLE public.pricing_rate_record_permission_probe;
+ROLLBACK;
 
 -- Scan output for "UNEXPECTED". Zero lines means every expected permission
--- boundary held.
+-- boundary held, and the ROLLBACK leaves no public-schema probe or sample rows.

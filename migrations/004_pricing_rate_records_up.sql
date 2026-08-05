@@ -62,9 +62,17 @@ CREATE INDEX pricing_rate_record_imports_imported_at_idx
 -- ─── Roles ──────────────────────────────────────────────────────────────────
 
 DO $$
+DECLARE
+    created_by_migration BOOLEAN := FALSE;
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'pricing_rate_importer') THEN
         CREATE ROLE pricing_rate_importer NOLOGIN;
+        created_by_migration := TRUE;
+    END IF;
+
+    IF created_by_migration THEN
+        COMMENT ON ROLE pricing_rate_importer IS
+            'Created by SAG-6343 migration 004; safe for migration 004 down to remove.';
     END IF;
 END
 $$;
@@ -95,12 +103,15 @@ GRANT SELECT
     TO pricing_staleness_reader;
 
 -- ─── Negative isolation: no public-schema writes ────────────────────────────
+-- A privilege granted to PUBLIC is inherited by both roles. Revoke from PUBLIC
+-- as well as the direct grantees so a pre-existing broad public ACL cannot
+-- bypass this migration's isolation boundary.
 
 REVOKE CREATE ON SCHEMA public
-    FROM pricing_rate_importer, pricing_staleness_reader;
+    FROM PUBLIC, pricing_rate_importer, pricing_staleness_reader;
 
 REVOKE INSERT, UPDATE, DELETE
     ON ALL TABLES IN SCHEMA public
-    FROM pricing_rate_importer, pricing_staleness_reader;
+    FROM PUBLIC, pricing_rate_importer, pricing_staleness_reader;
 
 COMMIT;

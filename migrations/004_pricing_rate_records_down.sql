@@ -8,24 +8,36 @@
 
 BEGIN;
 
-REVOKE ALL ON TABLE enrichment_staging.pricing_rate_records,
-                    enrichment_staging.pricing_rate_record_imports
-    FROM pricing_rate_importer, pricing_staleness_reader;
-
-REVOKE USAGE ON SCHEMA enrichment_staging
-    FROM pricing_rate_importer;
-
--- Drop observations first so this migration owns the removal order even if a
--- future revision adds a relationship from history to the active table.
-DROP TABLE IF EXISTS enrichment_staging.pricing_rate_record_imports CASCADE;
-DROP TABLE IF EXISTS enrichment_staging.pricing_rate_records CASCADE;
+-- Drop observations first. Deliberately omit CASCADE: a dependency added by a
+-- later migration must make this rollback fail instead of removing objects
+-- outside Task 1.
+DROP TABLE IF EXISTS enrichment_staging.pricing_rate_record_imports;
+DROP TABLE IF EXISTS enrichment_staging.pricing_rate_records;
 
 DO $$
 BEGIN
-    DROP ROLE IF EXISTS pricing_rate_importer;
-EXCEPTION
-    WHEN dependent_objects_still_exist THEN
-        RAISE NOTICE 'Role pricing_rate_importer has dependents outside this migration; skipping drop.';
+    -- Only remove a role this migration created. An identically named role may
+    -- pre-date this migration and be used outside this Task-1 boundary.
+    IF EXISTS (
+        SELECT 1
+        FROM pg_roles AS role
+        JOIN pg_shdescription AS description ON description.objoid = role.oid
+        WHERE role.rolname = 'pricing_rate_importer'
+          AND description.description =
+              'Created by SAG-6343 migration 004; safe for migration 004 down to remove.'
+    ) THEN
+        BEGIN
+            -- This is the USAGE grant added by the matching up migration. It
+            -- must be removed before PostgreSQL can drop the marked role.
+            REVOKE USAGE ON SCHEMA enrichment_staging FROM pricing_rate_importer;
+            DROP ROLE pricing_rate_importer;
+        EXCEPTION
+            WHEN dependent_objects_still_exist THEN
+                RAISE NOTICE 'Role pricing_rate_importer has dependents outside this migration; skipping drop.';
+        END;
+    ELSE
+        RAISE NOTICE 'Role pricing_rate_importer was not created by migration 004; preserving it.';
+    END IF;
 END
 $$;
 

@@ -76,9 +76,10 @@ Scan the output for any `UNEXPECTED` lines. Zero such lines = all checks passed.
 3. `pricing_staleness_alerts` is append-only: INSERT allowed for the writer role, UPDATE/DELETE denied for both roles.
 
 `test_pricing_rate_record_permissions.sql` verifies:
-1. `pricing_rate_importer` can INSERT/UPDATE active records and INSERT import observations.
-2. `pricing_rate_importer` cannot DELETE either pricing table or INSERT into `public`.
-3. `pricing_staleness_reader` can SELECT both pricing tables but cannot INSERT/UPDATE/DELETE either table or INSERT into `public`.
+1. `pricing_rate_importer` can INSERT and take the active-record upsert UPDATE path, plus INSERT import observations.
+2. `pricing_rate_importer` cannot DELETE either pricing table or CREATE/INSERT/UPDATE/DELETE in `public`.
+3. `pricing_staleness_reader` can SELECT both pricing tables but cannot INSERT/UPDATE/DELETE either table or CREATE/INSERT/UPDATE/DELETE in `public`.
+4. The test probe and its changes are transaction-scoped, so the suite leaves no public-schema object or sample records behind.
 
 ---
 

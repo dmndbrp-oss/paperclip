@@ -3,12 +3,12 @@
 The canonical CLI entry point is `knowledge-store`, published by this package
 from `scripts/knowledge-cli.ts`.
 
-After installing the package, invoke it through the package-managed executable
-path; no manual `PATH` modification is required:
+Invoke it through npm so the package-managed executable is discoverable without
+manual `PATH` modification:
 
 ```sh
-printf '%s\n' '...' | knowledge-store validate
-printf '%s\n' '...' | knowledge-store write
+printf '%s\n' '...' | npm exec -- knowledge-store validate
+printf '%s\n' '...' | npm exec -- knowledge-store write
 ```
 
 The command accepts `write` or `validate` and reads one YAML knowledge entry

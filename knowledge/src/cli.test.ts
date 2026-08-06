@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TSX = path.resolve(__dirname, '../node_modules/.bin/tsx');
 const CLI = path.resolve(__dirname, '../scripts/knowledge-cli.ts');
+const PACKAGE_JSON = path.resolve(__dirname, '../package.json');
 
 function runCli(args: string[], input: string, extraEnv?: Record<string, string>) {
   return spawnSync(TSX, [CLI, ...args], {
@@ -89,5 +90,23 @@ describe('knowledge-cli no subcommand', () => {
     const result = runCli([], '');
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain('Usage');
+  });
+});
+
+describe('knowledge-store package entry point', () => {
+  it('publishes the canonical command to the existing CLI implementation', () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')) as {
+      bin?: Record<string, string>;
+    };
+
+    expect(packageJson.bin).toEqual({ 'knowledge-store': 'scripts/knowledge-cli.ts' });
+  });
+
+  it('declares the shebang runtime in production dependencies', () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')) as {
+      dependencies?: Record<string, string>;
+    };
+
+    expect(packageJson.dependencies?.tsx).toBe('^4.0.0');
   });
 });

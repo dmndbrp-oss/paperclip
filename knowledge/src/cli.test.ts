@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TSX = path.resolve(__dirname, '../node_modules/.bin/tsx');
 const CLI = path.resolve(__dirname, '../scripts/knowledge-cli.ts');
+const PACKAGE_JSON = path.resolve(__dirname, '../package.json');
 
 function runCli(args: string[], input: string, extraEnv?: Record<string, string>) {
   return spawnSync(TSX, [CLI, ...args], {
@@ -89,5 +90,75 @@ describe('knowledge-cli no subcommand', () => {
     const result = runCli([], '');
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain('Usage');
+  });
+});
+
+describe('knowledge-store consumer invocation', () => {
+  it('runs through npm exec after a production-only consumer install', () => {
+    const packageDir = path.resolve(__dirname, '..');
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')) as {
+      name: string;
+      version: string;
+    };
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'knowledge-store-consumer-'));
+    const packageTarball = path.join(tmpDir, `${packageJson.name}-${packageJson.version}.tgz`);
+    const consumerDir = path.join(tmpDir, 'consumer');
+
+    try {
+      fs.mkdirSync(consumerDir);
+      fs.writeFileSync(
+        path.join(consumerDir, 'package.json'),
+        JSON.stringify({ name: 'knowledge-store-consumer', private: true }),
+      );
+
+      const pack = spawnSync('npm', ['pack', '--ignore-scripts', '--pack-destination', tmpDir], {
+        cwd: packageDir,
+        encoding: 'utf8',
+        timeout: 30000,
+      });
+      expect(pack.status, pack.stderr).toBe(0);
+      expect(fs.existsSync(packageTarball)).toBe(true);
+
+      const install = spawnSync(
+        'npm',
+        ['install', '--offline', '--omit=dev', '--no-audit', '--no-fund', packageTarball],
+        { cwd: consumerDir, encoding: 'utf8', timeout: 60000 },
+      );
+      expect(install.status, install.stderr).toBe(0);
+
+      const invocation = spawnSync(
+        'npm',
+        ['exec', '--offline', '--', 'knowledge-store', 'validate'],
+        {
+          cwd: consumerDir,
+          input: VALID_YAML,
+          encoding: 'utf8',
+          timeout: 30000,
+          env: { ...process.env, PATH: '/usr/bin:/bin' },
+        },
+      );
+      expect(invocation.status, invocation.stderr).toBe(0);
+      expect(invocation.stdout.trim()).toBe('valid');
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('knowledge-store package entry point', () => {
+  it('publishes the canonical command to the existing CLI implementation', () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')) as {
+      bin?: Record<string, string>;
+    };
+
+    expect(packageJson.bin).toEqual({ 'knowledge-store': 'scripts/knowledge-cli.ts' });
+  });
+
+  it('declares the shebang runtime in production dependencies', () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8')) as {
+      dependencies?: Record<string, string>;
+    };
+
+    expect(packageJson.dependencies?.tsx).toBe('^4.0.0');
   });
 });

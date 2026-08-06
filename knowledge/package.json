@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Sage Surfaces per-task knowledge store — SAG-2187",
   "type": "module",
+  "bin": {
+    "knowledge-store": "scripts/knowledge-cli.ts"
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
@@ -13,12 +16,12 @@
     "knowledge-cli-smoke": "tsx scripts/knowledge-cli.ts write < scripts/baselines/SAG-2067.yaml && echo SMOKE_PASSED"
   },
   "dependencies": {
+    "tsx": "^4.0.0",
     "yaml": "^2.4.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "tsx": "^4.0.0",
     "typescript": "^5.0.0",
     "vitest": "^1.6.0"
   }

@@ -174,6 +174,9 @@ describe("hermes-local adapter onSpawn forwarding", () => {
 
     const args = vi.mocked(serverUtils.runChildProcess).mock.calls.at(-1)?.[2] as string[];
     const prompt = args[args.indexOf("-q") + 1]!;
+    expect(
+      prompt.startsWith("# Paperclip Hermes session — agent-1 — issue-1 — test-run-1"),
+    ).toBe(true);
     expect(prompt).toContain("### Paperclip managed skill: beta");
     expect(prompt).toContain("# Beta\n\nUse beta carefully.");
     expect(prompt).toContain("### Paperclip managed skill: alpha");

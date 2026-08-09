@@ -87,6 +87,9 @@ const RESERVED_HERMES_PASSTHROUGH_FLAGS = new Set([
   "-p",
   "--skills",
   "-s",
+  "--model",
+  "-m",
+  "--provider",
 ]);
 
 function sanitizeHermesExtraArgs(extraArgs: string[] | undefined): string[] {

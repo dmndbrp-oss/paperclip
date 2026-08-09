@@ -137,6 +137,36 @@ describe("hermes-local adapter onSpawn forwarding", () => {
     expect(args.slice(3).some((arg) => /^(?:--profile|-p|--skills|-s)(?:=|$)/.test(arg))).toBe(false);
   });
 
+  it("keeps profile-selected model and provider authoritative over passthrough duplicates", async () => {
+    const { ctx } = makeCtx({
+      profile: "planner",
+      model: "qwen3.6:27b",
+      provider: "auto",
+      moaProfileBindings: { planner: "LagunaS-Qwen" },
+      extraArgs: [
+        "-m", "qwen3.6:27b",
+        "--model=other-model",
+        "--provider", "openrouter",
+        "--provider=other-provider",
+        "--keep", "value",
+      ],
+    });
+
+    await execute(ctx as any);
+
+    const args = vi.mocked(serverUtils.runChildProcess).mock.calls.at(-1)?.[2] as string[];
+    expect(args.filter((arg) => arg === "-m" || arg === "--model")).toEqual(["-m"]);
+    expect(args[args.indexOf("-m") + 1]).toBe("moa:LagunaS-Qwen");
+    expect(args.filter((arg) => arg === "--provider" || arg.startsWith("--provider=")).length).toBe(1);
+    expect(args[args.indexOf("--provider") + 1]).toBe("moa");
+    expect(args).toContain("--keep");
+    expect(args).toContain("value");
+    expect(args).not.toContain("qwen3.6:27b");
+    expect(args).not.toContain("other-model");
+    expect(args).not.toContain("openrouter");
+    expect(args).not.toContain("other-provider");
+  });
+
   it("binds MOA to the configured Planner profile without changing the Executor route", async () => {
     const binding = { planner: "LagunaS-Qwen" };
 
@@ -164,6 +194,58 @@ describe("hermes-local adapter onSpawn forwarding", () => {
     expect(executorArgs[executorArgs.indexOf("-m") + 1]).toBe("qwen3.6:27b");
     expect(executorArgs).not.toContain("--provider");
     expect(executorArgs).not.toContain("moa:LagunaS-Qwen");
+  });
+
+  it("keeps both profile routes authoritative when every reserved flag is passed through", async () => {
+    const conflictingExtraArgs = [
+      "-m", "wrong-short-model",
+      "-m=wrong-equals-model",
+      "--model", "wrong-model",
+      "--model=wrong-equals-model",
+      "--provider", "openrouter",
+      "--provider=wrong-provider",
+      "--keep", "value",
+    ];
+    const binding = { planner: "LagunaS-Qwen" };
+
+    const { ctx: plannerCtx } = makeCtx({
+      profile: "planner",
+      model: "qwen3.6:27b",
+      provider: "auto",
+      moaProfileBindings: binding,
+      extraArgs: conflictingExtraArgs,
+    });
+    await execute(plannerCtx as any);
+
+    const plannerArgs = vi.mocked(serverUtils.runChildProcess).mock.calls.at(-1)?.[2] as string[];
+    expect(plannerArgs[plannerArgs.indexOf("-m") + 1]).toBe("moa:LagunaS-Qwen");
+    expect(plannerArgs[plannerArgs.indexOf("--provider") + 1]).toBe("moa");
+    expect(plannerArgs).toContain("--keep");
+    expect(plannerArgs).toContain("value");
+    expect(plannerArgs).not.toContain("wrong-short-model");
+    expect(plannerArgs).not.toContain("wrong-equals-model");
+    expect(plannerArgs).not.toContain("wrong-model");
+    expect(plannerArgs).not.toContain("openrouter");
+    expect(plannerArgs).not.toContain("wrong-provider");
+
+    const { ctx: executorCtx } = makeCtx({
+      profile: "executor",
+      model: "qwen3.6:27b",
+      provider: "auto",
+      moaProfileBindings: binding,
+      extraArgs: conflictingExtraArgs,
+    });
+    await execute(executorCtx as any);
+
+    const executorArgs = vi.mocked(serverUtils.runChildProcess).mock.calls.at(-1)?.[2] as string[];
+    expect(executorArgs[executorArgs.indexOf("-m") + 1]).toBe("qwen3.6:27b");
+    expect(executorArgs).not.toContain("--provider");
+    expect(executorArgs).not.toContain("moa:LagunaS-Qwen");
+    expect(executorArgs).not.toContain("wrong-short-model");
+    expect(executorArgs).not.toContain("wrong-equals-model");
+    expect(executorArgs).not.toContain("wrong-model");
+    expect(executorArgs).not.toContain("openrouter");
+    expect(executorArgs).not.toContain("wrong-provider");
   });
 
   it.each(["../outside", "profile/name", "profile;rm", "", " ", " profile ", { name: "profile" }])(

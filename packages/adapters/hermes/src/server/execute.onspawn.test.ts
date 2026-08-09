@@ -143,7 +143,7 @@ describe("hermes-local adapter onSpawn forwarding", () => {
     const { ctx: plannerCtx } = makeCtx({
       profile: "planner",
       model: "qwen3.6:27b",
-      provider: "ollama-launch",
+      provider: "auto",
       moaProfileBindings: binding,
     });
     await execute(plannerCtx as any);
@@ -155,14 +155,14 @@ describe("hermes-local adapter onSpawn forwarding", () => {
     const { ctx: executorCtx } = makeCtx({
       profile: "executor",
       model: "qwen3.6:27b",
-      provider: "ollama-launch",
+      provider: "auto",
       moaProfileBindings: binding,
     });
     await execute(executorCtx as any);
 
     const executorArgs = vi.mocked(serverUtils.runChildProcess).mock.calls.at(-1)?.[2] as string[];
     expect(executorArgs[executorArgs.indexOf("-m") + 1]).toBe("qwen3.6:27b");
-    expect(executorArgs[executorArgs.indexOf("--provider") + 1]).toBe("ollama-launch");
+    expect(executorArgs).not.toContain("--provider");
     expect(executorArgs).not.toContain("moa:LagunaS-Qwen");
   });
 

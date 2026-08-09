@@ -549,6 +549,51 @@ describe.sequential("agent skill routes", () => {
     );
   });
 
+  it("preserves unknown host-external skills when syncing company skills", async () => {
+    const externalSkill = "verification-before-completion";
+    mockAgentService.getById.mockResolvedValue(makeAgent("claude_local"));
+    mockCompanySkillService.resolveRequestedSkillEntries.mockImplementationOnce(
+      async (
+        _companyId: string,
+        requested: Array<{ key: string; versionId?: string | null }>,
+        options?: { tolerateUnknownReferences?: boolean },
+      ) => {
+        if (!options?.tolerateUnknownReferences && requested.some((entry) => entry.key === externalSkill)) {
+          throw new Error(`unknown references: ${externalSkill}`);
+        }
+        return requested.map((entry) => ({
+          key: entry.key === "paperclip" ? "paperclipai/paperclip/paperclip" : entry.key,
+          versionId: entry.versionId ?? null,
+        }));
+      },
+    );
+
+    const res = await requestApp(await createApp(), (baseUrl) => request(baseUrl)
+      .post("/api/agents/11111111-1111-4111-8111-111111111111/skills/sync?companyId=company-1")
+      .send({ desiredSkills: [externalSkill, "paperclip"] }));
+
+    expect(res.status, JSON.stringify(res.body)).toBe(200);
+    expect(mockCompanySkillService.resolveRequestedSkillEntries).toHaveBeenCalledWith(
+      "company-1",
+      [
+        { key: externalSkill, versionId: null },
+        { key: "paperclip", versionId: null },
+      ],
+      { tolerateUnknownReferences: true },
+    );
+    expect(mockAgentService.update).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        adapterConfig: expect.objectContaining({
+          paperclipSkillSync: expect.objectContaining({
+            desiredSkills: [externalSkill, "paperclipai/paperclip/paperclip"],
+          }),
+        }),
+      }),
+      expect.any(Object),
+    );
+  });
+
   it("persists canonical desired skills when creating an agent directly", async () => {
     const res = await requestApp(await createApp(), (baseUrl) => request(baseUrl)
       .post("/api/companies/company-1/agents")

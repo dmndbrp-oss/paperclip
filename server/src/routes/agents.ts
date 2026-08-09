@@ -1447,6 +1447,7 @@ export function agentRoutes(
     adapterType: string,
     adapterConfig: Record<string, unknown>,
     requestedDesiredSkills: AgentDesiredSkillEntry[] | undefined,
+    options: { tolerateUnknownDesiredSkills?: boolean } = {},
   ) {
     if (!requestedDesiredSkills) {
       return {
@@ -1460,6 +1461,7 @@ export function agentRoutes(
     const resolvedRequestedSkillEntries = await companySkills.resolveRequestedSkillEntries(
       companyId,
       requestedDesiredSkills,
+      { tolerateUnknownReferences: options.tolerateUnknownDesiredSkills },
     );
     const runtimeSkillEntries = await companySkills.listRuntimeSkillEntries(companyId, {
       materializeMissing: shouldMaterializeRuntimeSkillsForAdapter(adapterType),
@@ -1739,6 +1741,7 @@ export function agentRoutes(
         agent.adapterType,
         agent.adapterConfig as Record<string, unknown>,
         requestedSkills,
+        { tolerateUnknownDesiredSkills: true },
       );
       if (!desiredSkills || !desiredSkillEntries || !runtimeSkillEntries) {
         throw unprocessable("Skill sync requires desiredSkills.");

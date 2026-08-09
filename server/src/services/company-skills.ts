@@ -1599,6 +1599,7 @@ async function resolveRequestedSkillEntriesOrThrow(
   companyId: string,
   skills: CompanySkill[],
   requestedSelections: Array<string | AgentDesiredSkillEntry>,
+  options: { tolerateUnknownReferences?: boolean } = {},
 ) {
   const missing = new Set<string>();
   const ambiguous = new Set<string>();
@@ -1625,6 +1626,14 @@ async function resolveRequestedSkillEntriesOrThrow(
 
     if (match.ambiguous) {
       ambiguous.add(selection.key);
+      continue;
+    }
+
+    if (options.tolerateUnknownReferences) {
+      resolved.set(selection.key, {
+        key: normalizeSkillKey(selection.key) ?? selection.key,
+        versionId: selection.versionId ?? null,
+      });
       continue;
     }
 
@@ -4457,9 +4466,13 @@ export function companySkillService(db: Db) {
       const skills = await listFull(companyId);
       return resolveRequestedSkillKeysOrThrow(skills, requestedReferences);
     },
-    resolveRequestedSkillEntries: async (companyId: string, requestedSelections: Array<string | AgentDesiredSkillEntry>) => {
+    resolveRequestedSkillEntries: async (
+      companyId: string,
+      requestedSelections: Array<string | AgentDesiredSkillEntry>,
+      options: { tolerateUnknownReferences?: boolean } = {},
+    ) => {
       const skills = await listFull(companyId);
-      return resolveRequestedSkillEntriesOrThrow(db, companyId, skills, requestedSelections);
+      return resolveRequestedSkillEntriesOrThrow(db, companyId, skills, requestedSelections, options);
     },
     categoryCounts,
     detail,

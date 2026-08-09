@@ -340,7 +340,7 @@ describe("SearchableSelect", () => {
 
   it("opens on focus and closes with Escape", async () => {
     root = render(
-      <SearchableSelect
+      <SearchableSelect<string>
         value=""
         groups={[{ id: "all", options: [{ key: "all:alpha", value: "alpha", label: "Alpha" }] }]}
         onValueChange={vi.fn()}

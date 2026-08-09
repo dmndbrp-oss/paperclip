@@ -6,13 +6,13 @@ import { describe, expect, it } from "vitest";
 const uiRoot = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 
 describe("PWA install mode", () => {
-  it("opens home-screen launches with browser controls visible", () => {
+  it("uses standalone display mode for home-screen launches", () => {
     const manifest = JSON.parse(readFileSync(resolve(uiRoot, "public/site.webmanifest"), "utf8")) as {
       display?: string;
     };
     const html = readFileSync(resolve(uiRoot, "index.html"), "utf8");
 
-    expect(manifest.display).toBe("browser");
+    expect(manifest.display).toBe("standalone");
     expect(html).not.toContain('name="mobile-web-app-capable"');
     expect(html).not.toContain('name="apple-mobile-web-app-capable"');
     expect(html).not.toContain('name="apple-mobile-web-app-status-bar-style"');

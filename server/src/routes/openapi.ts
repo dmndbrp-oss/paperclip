@@ -448,6 +448,17 @@ const jsonBody = (schema: z.ZodTypeAny) => ({
 
 const r = responses;
 
+const pushSubscriptionBodySchema = z.object({
+  endpoint: z.string().url(),
+  p256dh: z.string().min(1),
+  auth: z.string().min(1),
+  deviceLabel: z.string().max(120).optional(),
+}).strict();
+
+const pushUnsubscribeBodySchema = z.object({
+  endpoint: z.string().url(),
+}).strict();
+
 const externalObjectSummariesBodySchema = z.object({
   issueIds: z.array(z.string().uuid()).max(1000),
 }).strict();
@@ -533,6 +544,7 @@ const PUBLIC_OPERATIONS = new Set([
   "GET /api/invites/{token}/test-resolution",
   "POST /api/invites/{token}/accept",
   "POST /api/join-requests/{requestId}/claim-api-key",
+  "GET /api/push/vapid-public-key",
 ]);
 
 const BOARD_ONLY_PREFIXES = [
@@ -589,6 +601,10 @@ const BOARD_ONLY_OPERATIONS = new Set([
   "POST /api/issues/{id}/interactions/{interactionId}/accept",
   "POST /api/issues/{id}/interactions/{interactionId}/reject",
   "POST /api/issues/{id}/interactions/{interactionId}/respond",
+  "POST /api/push/subscriptions",
+  "DELETE /api/push/subscriptions",
+  "GET /api/push/subscriptions",
+  "POST /api/push/test",
 ]);
 
 const INSTANCE_ADMIN_OPERATIONS = new Set([
@@ -4671,6 +4687,46 @@ for (const route of [
     ...(route[0] === "post" || route[0] === "put" ? { body: pluginLocalFolderRequestSchema } : {}),
   });
 }
+
+// ─── Push notifications ────────────────────────────────────────────────────
+
+registerCurrentRoute({
+  method: "get",
+  path: "/api/push/vapid-public-key",
+  tags: ["push"],
+  summary: "Get the VAPID public key",
+});
+
+registerCurrentRoute({
+  method: "post",
+  path: "/api/push/subscriptions",
+  tags: ["push"],
+  summary: "Register a push subscription",
+  body: pushSubscriptionBodySchema,
+  responses: { 201: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden },
+});
+
+registerCurrentRoute({
+  method: "delete",
+  path: "/api/push/subscriptions",
+  tags: ["push"],
+  summary: "Remove a push subscription",
+  body: pushUnsubscribeBodySchema,
+});
+
+registerCurrentRoute({
+  method: "get",
+  path: "/api/push/subscriptions",
+  tags: ["push"],
+  summary: "List registered push subscriptions",
+});
+
+registerCurrentRoute({
+  method: "post",
+  path: "/api/push/test",
+  tags: ["push"],
+  summary: "Send a test push notification",
+});
 
 // ─── Spec builder ─────────────────────────────────────────────────────────────
 

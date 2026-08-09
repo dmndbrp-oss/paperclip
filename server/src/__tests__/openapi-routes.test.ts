@@ -39,6 +39,7 @@ const apiPrefixes: Record<string, string> = {
   "plugin-ui-static.ts": "/api",
   "plugins.ts": "/api",
   "projects.ts": "/api",
+  "push.ts": "/api",
   "resource-memberships.ts": "/api",
   "routines.ts": "/api",
   "secrets.ts": "/api",
@@ -54,9 +55,6 @@ const HTTP_METHODS = new Set(["get", "put", "post", "delete", "options", "head",
 const explicitOpenApiCoverageExclusions = new Set([
   // Pipeline routes are experimental and not yet represented in the public OpenAPI document.
   "pipelines.ts",
-  // SAG-7601 Web Push (Phase 1b) routes are new and not yet represented in the public
-  // OpenAPI document; documentation is a tracked follow-up.
-  "push.ts",
 ]);
 
 function createApp() {

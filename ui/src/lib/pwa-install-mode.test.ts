@@ -13,7 +13,7 @@ describe("PWA install mode", () => {
     const html = readFileSync(resolve(uiRoot, "index.html"), "utf8");
 
     // SAG-7601: iOS/iPadOS 16.4+ only delivers Web Push to an installed standalone PWA,
-    // so the manifest must declare standalone display. This supersedes the earlier
+    // so the manifest must declare standalone. This supersedes the earlier
     // display:"browser" choice from the mobile-flow polish (#6550).
     expect(manifest.display).toBe("standalone");
     // Standalone is driven by the manifest; the legacy Apple/Chromium *-capable meta

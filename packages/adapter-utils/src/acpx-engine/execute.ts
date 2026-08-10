@@ -54,6 +54,7 @@ import {
   resolvePaperclipDesiredSkillNames,
   removeMaintainerOnlySkillSymlinks,
   rewriteWorkspaceCwdEnvVarsForExecution,
+  scrubInheritedHostEnv,
   shapePaperclipWorkspaceEnvForExecution,
   stringifyPaperclipWakePayload,
   type PaperclipSkillEntry,
@@ -2172,7 +2173,7 @@ async function applySessionConfigOptions(input: {
  */
 function resolveRuntimeEnv(env: Record<string, string>): Record<string, string> {
   return Object.fromEntries(
-    Object.entries(ensurePathInEnv({ ...process.env, ...env })).filter(
+    Object.entries(ensurePathInEnv({ ...scrubInheritedHostEnv(process.env), ...env })).filter(
       (entry): entry is [string, string] => typeof entry[1] === "string",
     ),
   );

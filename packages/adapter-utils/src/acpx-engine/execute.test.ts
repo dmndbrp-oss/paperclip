@@ -918,6 +918,38 @@ describe("shared ACPX engine runtime behavior", () => {
     expect(env.PAPERCLIP_CLOUD_PROVIDER_TOKEN).toBe("cloud-token");
   });
 
+  it("scrubs inherited host secrets before applying ACPX runtime environment", async () => {
+    const inheritedKeys = [
+      "PAPERCLIP_SECRETS_MASTER_KEY_FILE",
+      "PAPERCLIP_AGENT_JWT_SECRET",
+      "BETTER_AUTH_SECRET",
+      "VAPID_PRIVATE_KEY",
+      "AZURE_GRAPH_CLIENT_SECRET",
+      "MS365_MCP_CLIENT_SECRET",
+    ] as const;
+    const previous = Object.fromEntries(inheritedKeys.map((key) => [key, process.env[key]]));
+    for (const key of inheritedKeys) process.env[key] = "host-only";
+
+    try {
+      const { sessionInputs } = await runExecutor(
+        { agentCommand: "node ./fake-acp.js", stateDir: path.join(await makeTempRoot(), "state") },
+        {
+          authToken: "runtime-secret-token",
+          context: { taskId: "issue-real", wakeReason: "issue_assigned" },
+        },
+      );
+      const env = (sessionInputs[0]!.sessionOptions as { env: Record<string, string> }).env;
+
+      for (const key of inheritedKeys) expect(env[key]).toBeUndefined();
+      expect(env.PAPERCLIP_API_KEY).toBe("runtime-secret-token");
+    } finally {
+      for (const key of inheritedKeys) {
+        if (previous[key] === undefined) delete process.env[key];
+        else process.env[key] = previous[key];
+      }
+    }
+  });
+
   it("busts the session fingerprint when resolved adapter env changes but not across wakes", async () => {
     const root = await makeTempRoot();
     const stateDir = path.join(root, "state");

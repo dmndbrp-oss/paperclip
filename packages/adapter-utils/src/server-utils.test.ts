@@ -391,6 +391,50 @@ describe("adapter skill snapshots", () => {
 });
 
 describe("runChildProcess", () => {
+  it("scrubs inherited host secrets before applying the child environment overlay", async () => {
+    const inheritedKeys = [
+      "PAPERCLIP_SECRETS_MASTER_KEY_FILE",
+      "PAPERCLIP_AGENT_JWT_SECRET",
+      "BETTER_AUTH_SECRET",
+      "VAPID_PRIVATE_KEY",
+      "AZURE_GRAPH_CLIENT_SECRET",
+      "MS365_MCP_CLIENT_SECRET",
+    ] as const;
+    const previous = Object.fromEntries(inheritedKeys.map((key) => [key, process.env[key]]));
+    for (const key of inheritedKeys) process.env[key] = "host-only";
+
+    try {
+      const result = await runChildProcess(
+        randomUUID(),
+        process.execPath,
+        ["-e", `process.stdout.write(JSON.stringify({ inherited: Object.keys(process.env).filter(key => ${JSON.stringify(inheritedKeys)}.includes(key)), hasApiKey: Boolean(process.env.PAPERCLIP_API_KEY), bridgeMode: process.env.PAPERCLIP_API_BRIDGE_MODE, path: process.env.PATH }))`],
+        {
+          cwd: process.cwd(),
+          env: {
+            PAPERCLIP_API_KEY: "run-token",
+            PAPERCLIP_API_BRIDGE_MODE: "queue_v1",
+            PATH: process.env.PATH ?? "/usr/bin",
+          },
+          timeoutSec: 5,
+          graceSec: 1,
+          onLog: async () => {},
+        },
+      );
+
+      expect(JSON.parse(result.stdout)).toEqual({
+        inherited: [],
+        hasApiKey: true,
+        bridgeMode: "queue_v1",
+        path: process.env.PATH ?? "/usr/bin",
+      });
+    } finally {
+      for (const key of inheritedKeys) {
+        if (previous[key] === undefined) delete process.env[key];
+        else process.env[key] = previous[key];
+      }
+    }
+  });
+
   it("does not arm a timeout when timeoutSec is 0", async () => {
     const result = await runChildProcess(
       randomUUID(),

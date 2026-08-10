@@ -2233,14 +2233,28 @@ export function refreshPaperclipWorkspaceEnvForExecution(input: {
 }
 
 export function sanitizeInheritedPaperclipEnv(baseEnv: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  return scrubInheritedHostEnv(baseEnv);
+}
+
+/**
+ * Removes host-only secrets and runtime state before constructing an adapter
+ * child environment. Run-specific values are applied afterward by the caller.
+ */
+export function scrubInheritedHostEnv(baseEnv: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...baseEnv };
-  delete env.PAPERCLIPAI_CMD;
   for (const key of Object.keys(env)) {
-    if (!key.startsWith("PAPERCLIP_")) continue;
-    if (key === "PAPERCLIP_RUNTIME_API_URL") continue;
-    if (key === "PAPERCLIP_LISTEN_HOST") continue;
-    if (key === "PAPERCLIP_LISTEN_PORT") continue;
-    delete env[key];
+    if (SENSITIVE_ENV_KEY.test(key) || key === "PAPERCLIPAI_CMD") {
+      delete env[key];
+      continue;
+    }
+    if (
+      key.startsWith("PAPERCLIP_") &&
+      key !== "PAPERCLIP_RUNTIME_API_URL" &&
+      key !== "PAPERCLIP_LISTEN_HOST" &&
+      key !== "PAPERCLIP_LISTEN_PORT"
+    ) {
+      delete env[key];
+    }
   }
   return env;
 }
@@ -3203,7 +3217,7 @@ export async function runChildProcess(
   const onLogError = opts.onLogError ?? ((err, id, msg) => console.warn({ err, runId: id }, msg));
   return new Promise<RunProcessResult>((resolve, reject) => {
     const rawMerged: NodeJS.ProcessEnv = {
-      ...sanitizeInheritedPaperclipEnv(process.env),
+      ...scrubInheritedHostEnv(process.env),
       ...opts.env,
     };
 
